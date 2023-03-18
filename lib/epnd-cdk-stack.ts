@@ -1,16 +1,13 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
-
+import { TenantApiGateway } from './httpapi';
+import { Tenant_ID } from "./const";
 export class EpndCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    const apigateway = new TenantApiGateway(this, Tenant_ID);
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'EpndCdkQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    new cdk.CfnOutput(this, 'api endpoint url:', { value: apigateway.api.url });
   }
 }
