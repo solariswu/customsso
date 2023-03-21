@@ -1,15 +1,12 @@
 export const config = {
-	'awsaccount' : '852307403105',
+	'awsaccount' : '731775235125', // Mar 27
 	'region' : 'eu-west-1',
 	'stage' : 'dev',
-	'subdomain' : 'amfa-test-dev',
-	'owndomain' : 'aws-amplify.dev',
-	'redirectUrl': 'https://d3o8lzdkv4sxm2.cloudfront.net',
+	'tenantAppUrl': 'https://epnd.org',
 	'apiEndpointUrl' : 'https://yourapiendpoint.com',
-	'tenantId' : 'EPND',
-	'customauthUrl': 'https://hosteduicustomauth.aws-amplify.dev',
-	'customauthLandingpage': 'https://hosteduicustomauth.aws-amplify.dev/hogwarts?',
-	'emailfrom' : 'Hogwarts <solariswu@hotmail.com>',
+	'tenantId' : 'epnd', // lowercase only
+	'customauthLandingpath': '/hogwarts?',
+	'emailfrom' : 'amfa-admin <noreply@amfa.com>',
 	'gmailaddress': 'niunaihemianbao012@gmail.com',
 	'gmailapppwd': 'pbwtmesdbhtiyhds'
 }
