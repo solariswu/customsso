@@ -33,11 +33,8 @@ export class AmfaStack extends Stack {
     // create custom auth oauth endpoints
     apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient);
 
-    new CfnOutput(this, 'userPoolId', {
-      value: tenantUserPool.userpool.userPoolId,
-    });
-    new CfnOutput(this, 'userPoolAppClientId', {
-      value: tenantUserPool.hostedUIClient.userPoolClientId,
-    });
+    new CfnOutput(this, 'userPoolId', { value: tenantUserPool.userpool.userPoolId, });
+
+    new CfnOutput(this, 'userPoolAppClientId', { value: tenantUserPool.hostedUIClient.userPoolClientId, });
   }
 }

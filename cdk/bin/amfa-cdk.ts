@@ -5,11 +5,10 @@ import { CertificateStack } from '../lib/certificate';
 import { AmfaStack } from '../lib/amfa-stack';
 import { config } from '../lib/config';
 
-
 const app = new App();
 
 const certEnv = {
-	account: config.awsaccount,//process.env.CDK_DEFAULT_ACCOUNT,
+	account: config.awsaccount, //process.env.CDK_DEFAULT_ACCOUNT,
 	region: 'us-east-1',
 };
 
@@ -19,7 +18,7 @@ const certStack = new CertificateStack(app, 'CertificateStack', {
 });
 
 const amfaEnv = {
-	account: config.awsaccount,//process.env.CDK_DEFAULT_ACCOUNT,
+	account: config.awsaccount, //process.env.CDK_DEFAULT_ACCOUNT,
 	region: config.region,
 }
 
