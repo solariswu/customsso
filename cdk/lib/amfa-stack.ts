@@ -11,17 +11,17 @@ import { TenantUserPool } from './userpool';
 
 
 export interface AmfaStackProps extends StackProps {
-	siteCertificate: Certificate;
-	hostedZone: PublicHostedZone;
+  siteCertificate: Certificate;
+  hostedZone: PublicHostedZone;
 }
 
 export class AmfaStack extends Stack {
-	constructor(scope: Construct, id: string, props: AmfaStackProps) {
-		super(scope, id, props);
+  constructor(scope: Construct, id: string, props: AmfaStackProps) {
+    super(scope, id, props);
 
     // frontend
     // use the domain created above to create the frontend web app.
-    const webApp = new WebApplication( this, props.siteCertificate, props.hostedZone);
+    const webApp = new WebApplication(this, props.siteCertificate, props.hostedZone);
 
     // backend
     // amfa apis
@@ -30,6 +30,7 @@ export class AmfaStack extends Stack {
     // userpool hostedui customauth-oidc customauth-lambda triggers.
     const tenantUserPool = new TenantUserPool(this, apigateway.api);
 
+    apigateway.createAmfaApiEndpoints(tenantUserPool.userpool);
     // create custom auth oauth endpoints
     apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient);
 

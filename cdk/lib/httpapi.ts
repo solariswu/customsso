@@ -1,13 +1,14 @@
 import { RestApi, IResource, LambdaIntegration, Cors, } from 'aws-cdk-lib/aws-apigateway';
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { ManagedPolicy, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { UserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
 
 import { Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import { config } from './config';
+import { DNS } from "./const";
 
 import * as path from 'path';
 
@@ -23,12 +24,12 @@ export class TenantApiGateway {
   api: RestApi;
   authCodeTable: Table;
   authSessionTable: Table;
+  userpool: UserPool;
 
-  constructor(scope: Construct) {
+  constructor(scope: Construct) { 
     this.scope = scope;
 
     this.createApiGateway();
-    this.createAmfaApiEndpoints(); // create REST API endpoints for amfa lambda functions
   }
 
   // create APIGateway
@@ -40,21 +41,41 @@ export class TenantApiGateway {
     });
   };
 
-  private createAmfaLambda(lambdaName: string) {
-    const myLambda = new Function(this.scope, `${lambdaName}lambda-${config.tenantId}`, {
-      runtime: Runtime.NODEJS_18_X,
-      handler: `${lambdaName}.handler`,
-      code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
-      environment: {
-        TENANT_ID: config.tenantId
-      },
-      timeout: Duration.minutes(2),
-    });
+  private createAmfaLambda(lambdaName: string, userpool: UserPool) {
+    const myLambda = new Function(
+      this.scope,
+      `${lambdaName}lambda-${config.tenantId}`,
+      {
+        runtime: Runtime.NODEJS_18_X,
+        handler: `${lambdaName}.handler`,
+        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
+        environment: {
+          TENANT_ID: config.tenantId,
+          USERPOOL_ID: userpool.userPoolId,
+          DOMAIN_NAME: DNS.RootDomainName,
+          TENANT_CONFIG_URL: config.tenantConfigUrl,
+          AMFA_CONFIG_URL: config.amfaConfigUrl,
+        },
+        timeout: Duration.minutes(2),
+      }
+    );
 
     myLambda.role?.addManagedPolicy(
       ManagedPolicy.fromAwsManagedPolicyName(
         'AWSLambdaExecute',
       ),
+    );
+
+    const policyStatement =
+      new PolicyStatement({
+        actions: ['cognito-idp:AdminListGroupsForUser'],
+        resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
+      });
+
+    myLambda.role?.attachInlinePolicy(
+      new Policy(this.scope, `amfa-${lambdaName}-lambda-policy`, {
+        statements: [policyStatement],
+      })
     );
 
     return myLambda;
@@ -78,11 +99,11 @@ export class TenantApiGateway {
     );
   };
 
-  private createAmfaApiEndpoints = () => {
+  public createAmfaApiEndpoints = (userpool: UserPool) => {
     const amfaLambdaFunctions = ['amfa'];
 
     amfaLambdaFunctions.map(fnName => {
-      const lambdaFn = this.createAmfaLambda(fnName);
+      const lambdaFn = this.createAmfaLambda(fnName, userpool);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
     });
   };

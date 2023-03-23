@@ -1,9 +1,12 @@
 import { stepone } from "./stepone.mjs";
 
-const validateInputParams = (event) => {
+const validateInputParams = (payload) => {
 	// check required params here
 	// source IPs
-	return event.headers['X-Forwarded-For'].trim().length > 0;
+	// return event.headers['X-Forwarded-For'].trim().length > 0;
+
+	return (payload && payload.email &&
+		payload.apti && payload.rememberDevice && payload.authParam);
 };
 
 const headers = {
@@ -31,31 +34,42 @@ export const handler = async (event) => {
 	let error = '';
 
 	try {
-		// const payload = JSON.parse(event.body);
+		const payload = JSON.parse(event.body);
 
-		if (validateInputParams(event)) {
-			//  const username = payload.username;
-			const ipAddress = getIPFromHeader(event.headers['X-Forwarded-For'].trim());
+		if (validateInputParams(payload)) {
+			const ipAddress = getIPFromHeader(
+				event.headers['X-Forwarded-For'].trim()
+			);
+			const origin = event.headers['origin']?.trim();
+
+			if (
+				origin !== `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`
+			) {
+				return response(403, JSON.stringify({ message: 'origin not allowed' }));
+			}
 
 			let oneEvent = {};
 			oneEvent.uIP = ipAddress;
-			oneEvent.email = event.email;
-			oneEvent.apti = event.apti;
-			oneEvent.rememberDevice = event.rememberDevice;
-			oneEvent.authParam = event.authParam;
+			oneEvent.email = payload.email;
+			oneEvent.apti = payload.apti;
+			oneEvent.rememberDevice = payload.rememberDevice;
+			oneEvent.authParam = payload.authParam;
+			oneEvent.origin = `${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`;
 
 			// todo fetch cookie from header
-			// oneEvent.cookieString = event.cookieString;
+			// oneEvent.cookieString = event.headers['Cookies']['']';
+			console.log ('oneEvent', oneEvent);
 
-			stepone (oneEvent);
+			const steponeResponse = await stepone(oneEvent);
 
-			return response(200, JSON.stringify({ message: `requester IP is: ${ipAddress}` }));
+			return response(stepone.statusCode, steponeResponse.body);
 		} else {
 			error = 'incoming params error.';
 		}
 	} catch (err) {
+		console.log (err);
 		return response(
-			err.statusCode,
+			err.statusCode ? err.statusCode : 500,
 			JSON.stringify({
 				message: 'input param parse error',
 			})

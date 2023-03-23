@@ -8,5 +8,7 @@ export const config = {
 	'customauthLandingpath': '/hogwarts?',
 	'emailfrom' : 'amfa-admin <noreply@amfa.com>',
 	'gmailaddress': 'niunaihemianbao012@gmail.com',
-	'gmailapppwd': 'pbwtmesdbhtiyhds'
+	'gmailapppwd': 'pbwtmesdbhtiyhds',
+	'amfaConfigUrl': 'https://cdn.jsdelivr.net/gh/solariswu/free-cdn-source@main/amfa-test-config.json',
+	'tenantConfigUrl': 'https://cdn.jsdelivr.net/gh/solariswu/free-cdn-source@main/tenant-test-config.json',
 }
