@@ -6,11 +6,11 @@ const OTP = () => {
   const [errMsg, setErrMsg] = useState('');
 
   return (
-    <div class='container'>
-      <div class='modal-dialog'>
-        <div class='modal-content background-customizable modal-content-mobile visible-xs visible-sm'>
+    <div className='container'>
+      <div className='modal-dialog'>
+        <div className='modal-content background-customizable modal-content-mobile visible-xs visible-sm'>
           <div style={{ height: '5px', background: 'orange' }} />
-          <div class='modal-body' style={{ textAlign: 'center' }}>
+          <div className='modal-body' style={{ textAlign: 'center' }}>
             <span>
               <h3>Your login requires an additional verification</h3>
             </span>
@@ -23,35 +23,35 @@ const OTP = () => {
                 to receive a one time identity code, then enter it below.
               </span>
             </div>
-            <div class='login-or'>
-              <hr class='hr-customizable' />
+            <div className='login-or'>
+              <hr className='hr-customizable' />
             </div>
-            <div class='row align-items-end'>
-              <div class='col'>Email:</div>
-              <div class='col'> <a href='##' class='link-customizable'> txxx@hxx.com </a> </div>
+            <div className='row align-items-end'>
+              <div className='col'>Email:</div>
+              <div className='col'> <a href='##' className='link-customizable'> txxx@hxx.com </a> </div>
             </div>
 
-            <div class='row align-items-end'>
-              <div class='col'>Alt-Email:</div>
-              <div class='col'> <a href='##' class='link-customizable'> txxx@hxx.com </a> </div>
+            <div className='row align-items-end'>
+              <div className='col'>Alt-Email:</div>
+              <div className='col'> <a href='##' className='link-customizable'> txxx@hxx.com </a> </div>
             </div>
-            <div class='row align-items-end'>
-              <div class='col'>SMS:</div>
-              <div class='col'> <a href='##' class='link-customizable'> +1-752-4**-***2 </a> </div>
+            <div className='row align-items-end'>
+              <div className='col'>SMS:</div>
+              <div className='col'> <a href='##' className='link-customizable'> +1-752-4**-***2 </a> </div>
             </div>
-            <div class='row align-items-end'>
-              <div class='col'>Voice:</div>
-              <div class='col'> <a href='##' class='link-customizable'> +1-752-4**-***2 </a> </div>
+            <div className='row align-items-end'>
+              <div className='col'>Voice:</div>
+              <div className='col'> <a href='##' className='link-customizable'> +1-752-4**-***2 </a> </div>
             </div>
-            <div class='row align-items-end'>
-              <div class='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>
+            <div className='row align-items-end'>
+              <div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>
             </div>
             <div>
-              <hr class='hr-customizable' />
+              <hr className='hr-customizable' />
               <input
                 name='otp'
                 id='otp'
-                class='form-control inputField-customizable'
+                className='form-control inputField-customizable'
                 placeholder='******'
                 autocapitalize='none'
                 required
@@ -62,7 +62,7 @@ const OTP = () => {
               <button
                 name='confirm'
                 type='submit'
-                class='btn btn-primary submitButton-customizable'
+                className='btn btn-primary submitButton-customizable'
                 onClick={() => navigate('authorise')}
               >
                 Verify
@@ -71,11 +71,11 @@ const OTP = () => {
             {errMsg && (
               <div>
                 <br />
-                <span class='errorMessage-customizable'>{errMsg}</span>
+                <span className='errorMessage-customizable'>{errMsg}</span>
               </div>
             )}
-            <hr class='hr-customizable' />
-            <div class='footer-customizable'>
+            <hr className='hr-customizable' />
+            <div className='footer-customizable'>
               <span
                 style={{ fontSize: '0.8rem', marginLeft: '0.5em', color: 'grey' }}
               >
