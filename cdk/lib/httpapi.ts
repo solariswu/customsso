@@ -68,7 +68,7 @@ export class TenantApiGateway {
 
     const policyStatement =
       new PolicyStatement({
-        actions: ['cognito-idp:AdminListGroupsForUser'],
+        actions: ['cognito-idp:AdminListGroupsForUser', 'cognito-idp:ListUsers'],
         resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
       });
 

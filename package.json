@@ -22,7 +22,7 @@
 		"test": "react-scripts test",
 		"eject": "react-scripts eject",
 		"cdk-build": "tsc --target ES2018 --moduleResolution node --module commonjs cdk/bin/amfa-cdk.ts",
-		"deploy": "npm run cdk-build && cdk deploy"
+		"deploy": "npm run cdk-build && cdk deploy --all --profile burner"
 	},
 	"eslintConfig": {
 		"extends": [

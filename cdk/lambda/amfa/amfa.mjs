@@ -1,9 +1,12 @@
-import { stepone } from "./stepone.mjs";
+import {
+  CognitoIdentityProviderClient,
+} from '@aws-sdk/client-cognito-identity-provider';
+
+import { amfaSteps } from "./utils/amfaSteps.mjs";
+
 
 const validateInputParams = (payload) => {
 	// check required params here
-	// source IPs
-	// return event.headers['X-Forwarded-For'].trim().length > 0;
 
 	return (payload && payload.email &&
 		payload.apti && payload.rememberDevice && payload.authParam);
@@ -22,6 +25,8 @@ const response = (statusCode = 200, body) => {
 		body,
 	};
 };
+
+const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION, });
 
 const getIPFromHeader = (fwdfor) => {
 	const IPs = fwdfor.split(',');
@@ -60,9 +65,9 @@ export const handler = async (event) => {
 			// oneEvent.cookieString = event.headers['Cookies']['']';
 			console.log ('oneEvent', oneEvent);
 
-			const steponeResponse = await stepone(oneEvent);
+			const steponeResponse = await amfaSteps(oneEvent, headers, client, 1);
 
-			return response(stepone.statusCode, steponeResponse.body);
+			return response(steponeResponse.statusCode, steponeResponse.body);
 		} else {
 			error = 'incoming params error.';
 		}
