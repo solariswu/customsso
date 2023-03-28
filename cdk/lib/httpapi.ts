@@ -1,8 +1,11 @@
-import { RestApi, IResource, LambdaIntegration, Cors, } from 'aws-cdk-lib/aws-apigateway';
+import { RestApi, IResource, LambdaIntegration, Cors, EndpointType, DomainName} from 'aws-cdk-lib/aws-apigateway';
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { ManagedPolicy, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { ARecord, PublicHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { ApiGatewayDomain } from "aws-cdk-lib/aws-route53-targets";
 
 import { Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -25,19 +28,39 @@ export class TenantApiGateway {
   authCodeTable: Table;
   authSessionTable: Table;
   userpool: UserPool;
+  certificate: Certificate;
+  hostedZone: PublicHostedZone;
 
-  constructor(scope: Construct) { 
+  constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone) {
     this.scope = scope;
+    this.certificate = certificate;
+    this.hostedZone = hostedZone;
 
     this.createApiGateway();
   }
 
   // create APIGateway
   private createApiGateway() {
+    const apiDomainName = new DomainName(this.scope, 'TenantApiGatewayDomain', {
+      domainName: `api.${config.tenantId}.${DNS.RootDomainName}`,
+      certificate: this.certificate,
+      endpointType: EndpointType.EDGE
+    });
+
     this.api = new RestApi(this.scope, 'TenantApiGateway', {
       description: 'api gateway for serverless',
       // 👇 enable CORS
       defaultCorsPreflightOptions,
+    });
+
+    apiDomainName.addBasePathMapping (this.api);
+
+    new ARecord(this.scope, "apiDNS", {
+      zone: this.hostedZone,
+      recordName: "api",
+      target: RecordTarget.fromAlias(
+        new ApiGatewayDomain(apiDomainName)
+      ),
     });
   };
 

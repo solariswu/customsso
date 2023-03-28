@@ -66,7 +66,7 @@ const Home = () => {
         body: JSON.stringify(params),
       };
 
-      fetch('https://ueimip6pm5.execute-api.eu-west-1.amazonaws.com/prod/amfa', options)
+      fetch(`${amfaConfigs.apiUrl}/amfa`, options)
         .then(res => res.json())
         .then(data => {
           console.log('data', data);

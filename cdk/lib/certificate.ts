@@ -11,20 +11,23 @@ import { config } from './config';
 
 export class CertificateStack extends Stack {
 	siteCertificate: Certificate;
-    hostedZone: PublicHostedZone;
+	apiCertificate: Certificate;
+	hostedZone: PublicHostedZone;
 
 	constructor(scope: Construct, id: string, props: StackProps) {
 		super(scope, id, props);
 
 		const certificateResources = new CertificateResources(this, 'certificate');
 		this.siteCertificate = certificateResources.acmcert;
-        this.hostedZone = certificateResources.hostedZone;
+		this.hostedZone = certificateResources.hostedZone;
+		this.apiCertificate = certificateResources.wildcert;
 	}
 }
 
 export class CertificateResources extends Construct {
 	public readonly hostedZone: PublicHostedZone;
 	public readonly acmcert: Certificate;
+	public readonly wildcert: Certificate;
 
 	constructor(scope: Construct, id: string) {
 		super(scope, id);
@@ -45,6 +48,11 @@ export class CertificateResources extends Construct {
 		this.acmcert = new Certificate(this, `${config.tenantId}-ACMCertificate`, {
 			validation: CertificateValidation.fromDns(this.hostedZone),
 			domainName: `${config.tenantId}.${DNS.RootDomainName}`,
+		});
+
+		this.wildcert = new Certificate(this, `${config.tenantId}-ACMwildCertificate`, {
+			validation: CertificateValidation.fromDns(this.hostedZone),
+			domainName: `*.${config.tenantId}.${DNS.RootDomainName}`,
 		});
 	}
 

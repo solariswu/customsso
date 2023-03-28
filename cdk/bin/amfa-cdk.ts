@@ -24,6 +24,7 @@ const amfaEnv = {
 
 new AmfaStack(app, 'AmfaStack', {
 	siteCertificate: certStack.siteCertificate,
+	apiCertificate: certStack.apiCertificate,
 	hostedZone: certStack.hostedZone,
 	env: amfaEnv,
 	crossRegionReferences: true,
