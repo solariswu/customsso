@@ -1,7 +1,7 @@
 body {
   font-family: "Arial";
   color: #3B3B3B;
-  background: #909090;
+  background: #c0c0c0;
 }
 
 @media (min-width: 768px) {
@@ -156,7 +156,7 @@ body {
   font-size: 14px;
   width: 100%;
   background: #F5F5F5;
-  border: 2px solid #D64958;
+  /* border: 2px solid #D64958; */
   color: #D64958;
 }
 

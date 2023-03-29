@@ -8,9 +8,8 @@ const storeOAuthQueryValues = (queryValues) => {
 }
 
 const Home = () => {
-  const [errMsg, setErrorMsg] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams()
-
 
   useEffect(() => {
     const client_id = searchParams.get("client_id")
@@ -19,40 +18,29 @@ const Home = () => {
     const redirect_uri = searchParams.get("redirect_uri")
     const scope = searchParams.get("scope")
 
-
   }, []);
 
   const LOGIN = () => {
     const navigate = useNavigate();
     const [rememberDevice, setRememberDevice] = useState(sessionStorage.getItem('amfa-remember-device') || 'false');
     const [email, setEmail] = useState('');
-    const [authParam, setAuthParam] = useState('');
-
-    const handleSubmit = (e) => {
-      const param = this.getAuthParam();
-      setAuthParam(param);
-      e.preventDefault();
-    };
-
-    const handleChange = (event) => {
-      console.log("onchange:", event.target.value);
-      setAuthParam(event.target.value);
-    };
 
     const handleRememberDevice = (e) => {
       const newChoice = e.target.checked ? 'true' : 'false';
 
-      setRememberDevice(newChoice);
-      sessionStorage.setItem('amfa-remember-device', newChoice);
+      if (newChoice === 'true' && window.confirm('Remember this device?') ||
+        newChoice === 'false') {
+        setRememberDevice(newChoice);
+        sessionStorage.setItem('amfa-remember-device', newChoice);
+      }
     }
 
-    const stepone = (e) => {
+    const stepone = async (e) => {
       let apti = sessionStorage.getItem('apti');
       apti = apti ? apti : (Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16));
       sessionStorage.setItem('apti', apti);
 
       const authParam = window.getAuthParam();
-      console.log('authParam', authParam);
 
       const params = {
         email,
@@ -60,24 +48,39 @@ const Home = () => {
         authParam,
         apti,
       };
-      console.log('params', params);
+
       const options = {
         method: 'POST',
         body: JSON.stringify(params),
       };
 
-      fetch(`${amfaConfigs.apiUrl}/amfa`, options)
-        .then(res => res.json())
-        .then(data => {
-          console.log('data', data);
-          if (data.error) {
-            setErrorMsg(data.error);
-          }
-          else {
+      let errorMessage = '';
+
+      try {
+        const res = await fetch(`${amfaConfigs.apiUrl}/amfa`, options);
+
+        switch (res.status) {
+          case 200:
+            console.log('got 200 back');
+            break;
+          case 202:
             navigate('/password');
-          }
-        })
-        .catch(err => console.error(err));
+            break;
+          default:
+            const data = await res.json();
+            if (data) {
+              setErrorMsg(data.message ? data.message : JSON.stringify(data));
+            }
+            else {
+              setErrorMsg('Unknown error, please contact help desk.');
+            }
+            break;
+        }
+      }
+      catch (err) {
+        console.error(err);
+        setErrorMsg(JSON.stringify(err));
+      }
     }
 
     return (
@@ -106,14 +109,14 @@ const Home = () => {
                 <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
                   autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)} />
                 <button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
-                  onClick={stepone} //navigate('/password')}
+                  onClick={stepone}
                 >
                   Confirm
                 </button>
               </div>
-              {errMsg && <div>
+              {errorMsg && <div>
                 <br />
-                <span className='errorMessage-customizable'>{errMsg}</span>
+                <span className='errorMessage-customizable'>{errorMsg}</span>
               </div>}
               <hr className='hr-customizable' />
               <div className='footer-customizable'>

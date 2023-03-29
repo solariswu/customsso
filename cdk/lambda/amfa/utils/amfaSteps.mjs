@@ -7,8 +7,10 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import axios from 'axios';
+import { createHash } from 'node:crypto';
 
 import { fetchConfigData } from './fetchConfigData.mjs';
+
 
 export const amfaSteps = async (event, headers, client, step) => {
 
@@ -16,9 +18,13 @@ export const amfaSteps = async (event, headers, client, step) => {
     return {
       statusCode,
       headers,
-      body: JSON.stringify(body),
+      body: JSON.stringify({ message: body }),
     };
   };
+
+  function hash(content) {
+    return createHash('md5').update(content).digest('hex');
+  }
 
   try {
     const [tenantData, amfaConfigs] = await fetchConfigData();
@@ -28,7 +34,7 @@ export const amfaSteps = async (event, headers, client, step) => {
 
     const asmurl = 'https://asm2.apersona.com:8443/asm';  // Url of the Adaptive MFA Server.
 
-    console.log('stepone inside:', event);
+    console.log('steps inside:', event);
 
     const listUsersParam = {
       UserPoolId: process.env.USERPOOL_ID,
@@ -41,12 +47,13 @@ export const amfaSteps = async (event, headers, client, step) => {
 
     const listUsersRes = await client.send(new ListUsersCommand(listUsersParam));
     console.log('listUsersRes:', listUsersRes);
-    console.log('UserAttributes:', listUsersRes.Users[0].Attributes);
 
     if (!listUsersRes || !listUsersRes.Users || listUsersRes.Users.length === 0) {
       console.log('Did not find valid user for email:', event.email);
       return response(500, 'Did not find valid user for this email');
     };
+
+    console.log('UserAttributes:', listUsersRes.Users[0].Attributes);
 
     const param = {
       UserPoolId: process.env.USERPOOL_ID,
@@ -73,6 +80,7 @@ export const amfaSteps = async (event, headers, client, step) => {
         `Did not find a valid ASM Policy for the user group:${ug})`
       );
     }
+
     // This is the ASM Security Policy key. This key needs to be picked up from a NodeJS back-end propery file based on the role of the user based on their email address-keycloak account.
     // Ex. If user_role=super admin, then l='epnd-su-72ja37bc51mz', ELSE if user_role=cohort owner, then l=asm_policy_for_cohort_owners, etc. etc.
 
@@ -81,7 +89,6 @@ export const amfaSteps = async (event, headers, client, step) => {
 
     // API vars that come from the end-user javascript front-end client via post or cookie read
     let u = event.email; //'ksparksnc@icloud.com'; // email address of the user. Entered from front end web service to login via post.
-    let c = event.cookieString ? event.cookieString : ''; //'278dcbdee5660876c230650ebb4bd70e';  // For every new MFA Auth login the nodeJS backend needs to read the cookie from teh client if it exists and send it in.
     let igd = event.rememberDevice === 'true' ? 1 : 0; // On the main login page, add a checkbox:  [ ] Remember this device, I own it. If checked, set igd = 0 and send it with all related transactions until the login process completes
     // If it's not checked (default) set igd = 1. This will ensure no forensics are collected on a public terminal or shared devices.
     // If the user checks the box, then node.js needs to save this preference in the browser under local storage.  see: https://codepen.io/kylastoneberg/pen/qweppq
@@ -93,7 +100,7 @@ export const amfaSteps = async (event, headers, client, step) => {
     // API vars that are known previously and should be reused
 
     // API vars that are detected or generated  on the back-end node.js
-    let uIp = event.uIp ? event.uIp : '00000000000'; // This is the client ip address as detected from the NodeJS server. see: https://www.abstractapi.com/guides/node-js-get-ip-address Let's'45.23.45.12'; // This is the client ip address as detected from the NodeJS server. see: https://www.abstractapi.com/guides/node-js-get-ip-address Let's use request.header.
+    let uIp = event.uIP ? event.uIP : '00000000000'; // This is the client ip address as detected from the NodeJS server. see: https://www.abstractapi.com/guides/node-js-get-ip-address Let's'45.23.45.12'; // This is the client ip address as detected from the NodeJS server. see: https://www.abstractapi.com/guides/node-js-get-ip-address Let's use request.header.
     let apti = event.apti; // This key needs to be a randon key that is set for each new login process and kept and sent in until the user succeeds or fails their login.
     let otpm = 'e'; // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. s for sms, v for voice, ae for alt-email.
     let p = u; // OTP Method value. Making p=u is our default use case to begin with. In order to do other methods, the end user will need a way to manage their other methods, like phone number, alt-email, mobile token.
@@ -109,6 +116,10 @@ export const amfaSteps = async (event, headers, client, step) => {
     }
     let af1 = u + 'passwordless_check' + uIp; // This is the passwordless behavior tracker.
     // This var creates a behavior key for passwordless auth. By adding the email and uIP, a user will only be able to use passwordless auth from a known previously used location.
+
+    const amfaCookieName = hash(`${u}${wr}${salt}`);
+    let c = (event.cookies && event.cookies[amfaCookieName]) ? event.cookies[amfaCookieName] : ''; //'278dcbdee5660876c230650ebb4bd70e';  // For every new MFA Auth login the nodeJS backend needs to read the cookie from teh client if it exists and send it in.
+
 
     let postURL = asmurl +
       '/extAuthenticate.kv?' +
@@ -143,6 +154,7 @@ export const amfaSteps = async (event, headers, client, step) => {
       postURL = postURL + '&sfl=' + sfl + '&nsf=' + nsf;
     }
 
+    console.log('now posting to : ', postURL);
     // Execute the authentication API
     const amfaResponse = await axios.post(postURL);
 
@@ -156,31 +168,29 @@ export const amfaSteps = async (event, headers, client, step) => {
 
     var date = new Date();
 
-    const cookieValue = `amfa_cookie=${u}${wr}${uIp}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
-
-    const headers = {
-      'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-      'Set-Cookie': cookieValue,
-    }
-
     switch (amfaResponse.statusCode) {
       case 200:
         if (amfaResponse.data === 'OK') {
+          const cookieValue = `${amfaCookieName}=${amfaResponse.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+
           return {
             message: 'OK',
             statusCode: 200,
-            headers,
+            headers: {
+              'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+              'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+              'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+              'Set-Cookie': cookieValue,
+            }
           };
         }
-        return response(500, 'The login service is not currently available. Contact the help desk.');
+        return response(502, 'The login service is not currently available. Contact the help desk.');
       case 202:
         return response(202, response.data);
       case 203:
-        return response(500, 'Your location is not permitted. Contact the help desk.');
+        return response(402, 'Your location is not permitted. Contact the help desk.');
       default:
-        return response(500, 'We ran into an issue. Please contact the help desk.');
+        return response(503, 'We ran into an issue. Please contact the help desk.');
     }
   }
   catch (error) {

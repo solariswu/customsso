@@ -1,5 +1,5 @@
 import {
-  CognitoIdentityProviderClient,
+	CognitoIdentityProviderClient,
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { amfaSteps } from "./utils/amfaSteps.mjs";
@@ -14,7 +14,7 @@ const validateInputParams = (payload) => {
 
 const headers = {
 	'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-	'Access-Control-Allow-Origin': '*',
+	'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
 	'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
 };
 
@@ -35,6 +35,8 @@ const getIPFromHeader = (fwdfor) => {
 // lambda for rest api
 export const handler = async (event) => {
 	console.log('Received event:', JSON.stringify(event, null, 2));
+
+	const requestId = Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16);
 
 	let error = '';
 
@@ -62,8 +64,8 @@ export const handler = async (event) => {
 			oneEvent.origin = `${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`;
 
 			// todo fetch cookie from header
-			// oneEvent.cookieString = event.headers['Cookies']['']';
-			console.log ('oneEvent', oneEvent);
+			oneEvent.cookies = event.headers['Cookies'];
+			console.log('oneEvent', oneEvent);
 
 			const steponeResponse = await amfaSteps(oneEvent, headers, client, 1);
 
@@ -72,7 +74,7 @@ export const handler = async (event) => {
 			error = 'incoming params error.';
 		}
 	} catch (err) {
-		console.log (err);
+		console.log(err);
 		return response(
 			err.statusCode ? err.statusCode : 500,
 			JSON.stringify({
@@ -81,5 +83,5 @@ export const handler = async (event) => {
 		);
 	}
 
-	return response(500, JSON.stringify(error));
+	return response(500, JSON.stringify({ message: error }));
 };
