@@ -1,87 +1,114 @@
 import {
-	CognitoIdentityProviderClient,
+  CognitoIdentityProviderClient,
+  AdminInitiateAuthCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { amfaSteps } from "./utils/amfaSteps.mjs";
 
 
 const validateInputParams = (payload) => {
-	// check required params here
+  // check required params here
+  switch (payload.phase) {
+    case 'username':
+      return (payload && payload.email &&
+        payload.apti && payload.rememberDevice && payload.authParam);
+    case 'password':
+      return (payload && payload.email && payload.password &&
+        payload.apti && payload.rememberDevice && payload.authParam);
+    case 'otp':
+      return (payload && payload.email && payload.otp && payload.otpCode &&
+        payload.apti && payload.rememberDevice && payload.authParam);
+    default:
+      break;
+  }
 
-	return (payload && payload.email &&
-		payload.apti && payload.rememberDevice && payload.authParam);
+  return false;
 };
 
 const headers = {
-	'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-	'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
-	'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+  'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
 };
 
 const response = (statusCode = 200, body) => {
-	return {
-		statusCode,
-		headers,
-		body,
-	};
+  return {
+    statusCode,
+    headers,
+    body,
+  };
 };
 
 const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION, });
 
 const getIPFromHeader = (fwdfor) => {
-	const IPs = fwdfor.split(',');
-	return IPs[0];
+  const IPs = fwdfor.split(',');
+  return IPs[0];
 }
 // lambda for rest api
 export const handler = async (event) => {
-	console.log('Received event:', JSON.stringify(event, null, 2));
+  console.log('Received event:', JSON.stringify(event, null, 2));
 
-	const requestId = Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16);
+  const requestId = Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16);
 
-	let error = '';
+  let error = '';
 
-	try {
-		const payload = JSON.parse(event.body);
+  try {
+    const payload = JSON.parse(event.body);
 
-		if (validateInputParams(payload)) {
-			const ipAddress = getIPFromHeader(
-				event.headers['X-Forwarded-For'].trim()
-			);
-			const origin = event.headers['origin']?.trim();
+    console.log('payload', payload);
 
-			if (
-				origin !== `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`
-			) {
-				return response(403, JSON.stringify({ message: 'origin not allowed' }));
-			}
+    if (payload && validateInputParams(payload)) {
 
-			let oneEvent = {};
-			oneEvent.uIP = ipAddress;
-			oneEvent.email = payload.email;
-			oneEvent.apti = payload.apti;
-			oneEvent.rememberDevice = payload.rememberDevice;
-			oneEvent.authParam = payload.authParam;
-			oneEvent.origin = `${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`;
+      const ipAddress = getIPFromHeader(
+        event.headers['X-Forwarded-For'].trim()
+      );
+      const origin = event.headers['origin']?.trim();
 
-			// todo fetch cookie from header
-			oneEvent.cookies = event.headers['Cookies'];
-			console.log('oneEvent', oneEvent);
+      if (
+        origin !== `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`
+      ) {
+        return response(403, JSON.stringify({ message: 'origin not allowed' }));
+      }
 
-			const steponeResponse = await amfaSteps(oneEvent, headers, client, 1);
+      let oneEvent = {};
+      oneEvent.uIP = ipAddress;
+      oneEvent.email = payload.email;
+      oneEvent.apti = payload.apti;
+      oneEvent.rememberDevice = payload.rememberDevice;
+      oneEvent.authParam = payload.authParam;
+      oneEvent.origin = `${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`;
 
-			return response(steponeResponse.statusCode, steponeResponse.body);
-		} else {
-			error = 'incoming params error.';
-		}
-	} catch (err) {
-		console.log(err);
-		return response(
-			err.statusCode ? err.statusCode : 500,
-			JSON.stringify({
-				message: 'input param parse error',
-			})
-		);
-	}
+      // todo fetch cookie from header
+      oneEvent.cookies = event.headers['Cookies'];
+      console.log('oneEvent', oneEvent);
 
-	return response(500, JSON.stringify({ message: error }));
+      switch (payload.phase) {
+        case 'username':
+          const stepOneResponse = await amfaSteps(oneEvent, headers, client, 1);
+          return response(stepOneResponse.statusCode, stepOneResponse.body);
+        case 'password':
+          oneEvent.password = payload.password;
+          // store tokens and then perform OAuth2 back to main CUP
+          const stepTwoResponse = await amfaSteps(oneEvent, headers, client, 2);
+          return response(stepTwoResponse.statusCode, stepTwoResponse.body);
+        default:
+          break;
+      }
+    } else {
+      error = 'incoming params error.';
+    }
+
+
+  } catch (err) {
+    console.log(err);
+    return response(
+      err.statusCode ? err.statusCode : 500,
+      JSON.stringify({
+        message: 'input param parse error',
+      })
+    );
+  }
+
+  return response(500, JSON.stringify({ message: error }));
 };

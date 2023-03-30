@@ -71,7 +71,7 @@ export const amfaSteps = async (event, headers, client, step) => {
     const ug = userGroup.Groups[0].GroupName;
     console.log('ug:', ug);
 
-    const l = tenantData[ug] ? tenantData[ug] : '';
+    const l = tenantData[ug] ? encodeURI(tenantData[ug]) : '';
 
     if (l === '') {
       console.log('Did not find a valid ASM Policy for the user group:', ug);
@@ -110,9 +110,9 @@ export const amfaSteps = async (event, headers, client, step) => {
     let nsf = 3; // No saving of Forensics:  nsf=0 means ASM will continue to save and update forensics and passwordless auth will auto extend to the policy ttl.
     // nsf=1 means asm will not save any forensics and as a result, passwordless will expire no matter what on the ttl.
     // With the next release of ASM, we will be setting nsf=3 which will not save device forensics, but it will contine to update the one time use cookie/token, which is more secure.
-    let tType = 'Initial passwordless login verification'; // Transaction typelLabel for audit logs.
+    let tType = encodeURI('Initial passwordless login verification'); // Transaction typelLabel for audit logs.
     if (step === 2) {
-      tType = 'Password verification';
+      tType = encodeURI('Password verification');
     }
     let af1 = u + 'passwordless_check' + uIp; // This is the passwordless behavior tracker.
     // This var creates a behavior key for passwordless auth. By adding the email and uIP, a user will only be able to use passwordless auth from a known previously used location.
@@ -168,14 +168,33 @@ export const amfaSteps = async (event, headers, client, step) => {
 
     var date = new Date();
 
-    switch (amfaResponse.statusCode) {
-      case 200:
-        if (amfaResponse.data === 'OK') {
+    if (amfaResponse && amfaResponse.data && amfaResponse.data.code) {
+      console.log('amfaResponse.data.code:', amfaResponse.data.code);
+      const res = amfaResponse.data;
+
+      switch (res.code) {
+        case 200:
+          if (res.message === 'OK') {
+            const cookieValue = `${amfaCookieName}=${amfaResponse.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+
+            return {
+              message: 'OK',
+              statusCode: 200,
+              headers: {
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+                'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+                'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+                'Set-Cookie': cookieValue,
+              }
+            };
+          }
+          // return response(502, 'The login service is not currently available. Contact the help desk.');
+          // test proposal
           const cookieValue = `${amfaCookieName}=${amfaResponse.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
 
           return {
             message: 'OK',
-            statusCode: 200,
+            statusCode: 202,
             headers: {
               'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
               'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
@@ -183,14 +202,16 @@ export const amfaSteps = async (event, headers, client, step) => {
               'Set-Cookie': cookieValue,
             }
           };
-        }
-        return response(502, 'The login service is not currently available. Contact the help desk.');
-      case 202:
-        return response(202, response.data);
-      case 203:
-        return response(402, 'Your location is not permitted. Contact the help desk.');
-      default:
-        return response(503, 'We ran into an issue. Please contact the help desk.');
+        case 202:
+          return response(202, res.message);
+        case 203:
+          return response(402, 'Your location is not permitted. Contact the help desk.');
+        default:
+          return response(503, 'We ran into an issue. Please contact the help desk.');
+      }
+    }
+    else {
+      return response(500, 'amfa response error');
     }
   }
   catch (error) {

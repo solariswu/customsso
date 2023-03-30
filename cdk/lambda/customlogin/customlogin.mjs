@@ -16,7 +16,7 @@ const validateInputParams = (event) => {
 export const handler = async (event) => {
   console.log(event);
 
-  let error = '';
+  let error = {message: 'unknown error in custom login'};
 
   const payload = JSON.parse(event.body);
 

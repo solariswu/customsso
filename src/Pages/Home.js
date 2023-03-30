@@ -9,7 +9,9 @@ const storeOAuthQueryValues = (queryValues) => {
 
 const Home = () => {
   const [errorMsg, setErrorMsg] = useState(null);
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [state, setState] = useState(null);
+  const [redirectUri, setRedirectUri] = useState(null);
 
   useEffect(() => {
     const client_id = searchParams.get("client_id")
@@ -17,6 +19,9 @@ const Home = () => {
     const state = searchParams.get("state")
     const redirect_uri = searchParams.get("redirect_uri")
     const scope = searchParams.get("scope")
+
+    setRedirectUri(redirect_uri);
+    setState(state);
 
   }, []);
 
@@ -36,9 +41,9 @@ const Home = () => {
     }
 
     const stepone = async (e) => {
-      let apti = sessionStorage.getItem('apti');
-      apti = apti ? apti : (Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16));
+      const apti = (Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16));
       sessionStorage.setItem('apti', apti);
+      console.log ('set new apti in home:', apti);
 
       const authParam = window.getAuthParam();
 
@@ -47,14 +52,13 @@ const Home = () => {
         rememberDevice,
         authParam,
         apti,
+        phase: 'username'
       };
 
       const options = {
         method: 'POST',
         body: JSON.stringify(params),
       };
-
-      let errorMessage = '';
 
       try {
         const res = await fetch(`${amfaConfigs.apiUrl}/amfa`, options);
@@ -64,7 +68,15 @@ const Home = () => {
             console.log('got 200 back');
             break;
           case 202:
-            navigate('/password');
+            navigate('/password', {
+              state: {
+                username: email,
+                rememberDevice,
+                apti,
+                state,
+                redirectUri,
+              }
+            });
             break;
           default:
             const data = await res.json();

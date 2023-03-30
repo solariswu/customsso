@@ -9,6 +9,6 @@ export const config = {
 	'emailfrom' : 'amfa-admin <noreply@amfa.com>',
 	'gmailaddress': 'niunaihemianbao012@gmail.com',
 	'gmailapppwd': 'pbwtmesdbhtiyhds',
-	'amfaConfigUrl': 'https://cdn.jsdelivr.net/gh/solariswu/free-cdn-source@main/amfa-test-config.json',
-	'tenantConfigUrl': 'https://cdn.jsdelivr.net/gh/solariswu/free-cdn-source@main/tenant-test-config.json',
+	'amfaConfigUrl': 'https://cdn.jsdelivr.net/gh/solariswu/free-cdn-source@latest/amfa-test-config.json',
+	'tenantConfigUrl': 'https://cdn.jsdelivr.net/gh/solariswu/free-cdn-source@latest/tenant-test-config.json',
 }

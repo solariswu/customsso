@@ -1,4 +1,4 @@
-import { RestApi, IResource, LambdaIntegration, Cors, EndpointType, DomainName} from 'aws-cdk-lib/aws-apigateway';
+import { RestApi, IResource, LambdaIntegration, Cors, EndpointType, DomainName } from 'aws-cdk-lib/aws-apigateway';
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { ManagedPolicy, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
@@ -53,7 +53,7 @@ export class TenantApiGateway {
       defaultCorsPreflightOptions,
     });
 
-    apiDomainName.addBasePathMapping (this.api);
+    apiDomainName.addBasePathMapping(this.api);
 
     new ARecord(this.scope, "apiDNS", {
       zone: this.hostedZone,
@@ -91,7 +91,7 @@ export class TenantApiGateway {
 
     const policyStatement =
       new PolicyStatement({
-        actions: ['cognito-idp:AdminListGroupsForUser', 'cognito-idp:ListUsers'],
+        actions: ['cognito-idp:AdminListGroupsForUser', 'cognito-idp:ListUsers', 'cognito-idp:AdminInitiateAuth'],
         resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
       });
 
@@ -133,13 +133,14 @@ export class TenantApiGateway {
 
   public createOAuthEndpointLambda(
     name: string,
+    userpool: UserPool,
     userpoolclient: UserPoolClient,
     authCodeTableName: string,
     authSessionTableName: string
   ) {
     const policyStatement =
       new PolicyStatement({
-        actions: ['dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:DeleteItem'],
+        actions: ['dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:DeleteItem', 'cognito-idp:AdminInitiateAuth'],
         resources: ['*'],
       });
 
@@ -152,6 +153,7 @@ export class TenantApiGateway {
         APP_SECRET: userpoolclient.userPoolClientSecret.unsafeUnwrap(),
         AUTHCODE_TABLE: authCodeTableName,
         AUTHSESSION_TABLE: authSessionTableName,
+        USERPOOL_ID: userpool.userPoolId,
       },
       timeout: Duration.minutes(5),
     });
@@ -187,8 +189,8 @@ export class TenantApiGateway {
     return table;
   };
 
-  public createOAuthEndpoints(customAuthClient: UserPoolClient) {
-    const oauthEndpointsName = ['challenge', 'token', 'customlogin'];
+  public createOAuthEndpoints(customAuthClient: UserPoolClient, userpool: UserPool) {
+    const oauthEndpointsName = ['challenge', 'token', 'customlogin', 'admininitauth'];
 
     // DB for storing custom auth session data
     this.authCodeTable = this.createAuthCodeTable();
@@ -202,9 +204,10 @@ export class TenantApiGateway {
     oauthEndpointsName.map((name) => {
       const mylambdaFunction = this.createOAuthEndpointLambda(
         name,
+        userpool,
         customAuthClient,
         this.authCodeTable.tableName,
-        this.authSessionTable.tableName
+        this.authSessionTable.tableName,
       );
 
       this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, name);
