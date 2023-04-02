@@ -9,9 +9,9 @@ import {
 } from '@aws-sdk/client-dynamodb';
 
 const headers = {
-	'Access-Control-Allow-Headers': 'Content-Type',
+	'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
 	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Methods': 'OPTIONS,POST',
+	'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
 };
 
 const validateInputParams = (event) => {
@@ -37,15 +37,13 @@ const getUserByPassword = async (payload, cognito, secretHash) => {
 			PASSWORD: payload.password,
 			SECRET_HASH: secretHash,
 		},
-		UserpoolId: process.env.USERPOOL_ID,
+		UserPoolId: process.env.USERPOOL_ID,
 		ClientId: process.env.APPCLIENT_ID,
-		AuthFlow: ADMIN_NO_SRP_AUTH,
+		AuthFlow: "ADMIN_NO_SRP_AUTH",
 	};
 
 	const command = new AdminInitiateAuthCommand(params);
-
 	const user = await cognito.send(command);
-
 	console.log('password login user:', user);
 
 	return user;
@@ -58,13 +56,13 @@ const getUser = async (payload, cognito) => {
 
 	const secretHash = crypto
 		.createHmac('SHA256', appclientSecret)
-		.update(username + appclientId)
+		.update(payload.username + appclientId)
 		.digest('base64');
 
 	return await getUserByPassword(payload, cognito, secretHash);
 }
 
-const storeTokens = async (user, dynamodb, requestTimeEpoch) => {
+const storeTokens = async (user, authCode, dynamodb, requestTimeEpoch) => {
 	const tokenString =
 		'{"id_token":"' +
 		user.AuthenticationResult['IdToken'] +
@@ -119,9 +117,9 @@ export const handler = async (event) => {
 
 			if (user.AuthenticationResult) {
 				const authCode = makeId(32);
-				await storeTokens(user, payload.username, dynamodb, event.requestContext.requestTimeEpoch);
+				await storeTokens(user, authCode, dynamodb, event.requestContext.requestTimeEpoch);
 
-				const res = { authCode};
+				const res = { authCode };
 				return {
 					statusCode: 200,
 					headers,

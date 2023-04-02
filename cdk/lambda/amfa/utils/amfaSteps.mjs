@@ -16,6 +16,7 @@ export const amfaSteps = async (event, headers, client, step) => {
 
   const response = (statusCode, body) => {
     return {
+      isBase64Encoded: false,
       statusCode,
       headers,
       body: JSON.stringify({ message: body }),
@@ -110,17 +111,14 @@ export const amfaSteps = async (event, headers, client, step) => {
     let nsf = 3; // No saving of Forensics:  nsf=0 means ASM will continue to save and update forensics and passwordless auth will auto extend to the policy ttl.
     // nsf=1 means asm will not save any forensics and as a result, passwordless will expire no matter what on the ttl.
     // With the next release of ASM, we will be setting nsf=3 which will not save device forensics, but it will contine to update the one time use cookie/token, which is more secure.
-    let tType = encodeURI('Initial passwordless login verification'); // Transaction typelLabel for audit logs.
-    if (step === 2) {
-      tType = encodeURI('Password verification');
-    }
+
     let af1 = u + 'passwordless_check' + uIp; // This is the passwordless behavior tracker.
     // This var creates a behavior key for passwordless auth. By adding the email and uIP, a user will only be able to use passwordless auth from a known previously used location.
 
     const amfaCookieName = hash(`${u}${wr}${salt}`);
     let c = (event.cookies && event.cookies[amfaCookieName]) ? event.cookies[amfaCookieName] : ''; //'278dcbdee5660876c230650ebb4bd70e';  // For every new MFA Auth login the nodeJS backend needs to read the cookie from teh client if it exists and send it in.
 
-
+    let tType = encodeURI('Initial passwordless login verification'); // Transaction typelLabel for audit logs.
     let postURL = asmurl +
       '/extAuthenticate.kv?' +
       'l=' +
@@ -150,56 +148,78 @@ export const amfaSteps = async (event, headers, client, step) => {
       '&a=' +
       a;
 
-    if (step === 1) {
-      postURL = postURL + '&sfl=' + sfl + '&nsf=' + nsf;
+    switch (step) {
+      case 1:
+        postURL = postURL + '&sfl=' + sfl + '&nsf=' + nsf;
+        break;
+      case 2:
+        tType = encodeURI('Password verification');
+        break;
+      case 3:
+        tType = encodeURI('OTP resend');
+        otpm = event.otptype;
+        // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
+        //e for email, s for sms, v for voice, ae for alt-email.
+        p = event.otpaddr;
+        postURL = '/extResendOtp.kv?' + 'l=' + l + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
+        break;
+      case 4:
+        let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
+        postURL = '/extVerifyOtp.kv?' + 'l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
+        break;
+      default:
+        break;
     }
 
     console.log('now posting to : ', postURL);
     // Execute the authentication API
     const amfaResponse = await axios.post(postURL);
 
-    console.log('step' + step + ' response:', amfaResponse);
-
-    Date.prototype.addDays = function (days) {
-      var date = new Date(this.valueOf());
-      date.setDate(date.getDate() + days);
-      return date;
-    }
-
-    var date = new Date();
-
     if (amfaResponse && amfaResponse.data && amfaResponse.data.code) {
-      console.log('amfaResponse.data.code:', amfaResponse.data.code);
+      console.log('amfaResponse.data:', amfaResponse.data);
       const res = amfaResponse.data;
 
       switch (res.code) {
         case 200:
+          Date.prototype.addDays = function (days) {
+            var date = new Date(this.valueOf());
+            date.setDate(date.getDate() + days);
+            return date;
+          }
+
+          var date = new Date();
+
           if (res.message === 'OK') {
-            const cookieValue = `${amfaCookieName}=${amfaResponse.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+            const cookieValue = `${amfaCookieName}=${amfaResponse.data.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
 
             return {
-              message: 'OK',
               statusCode: 200,
+              isBase64Encoded: false,
+              multiValueHeaders: {
+                'Set-Cookie': [cookieValue]
+              },
               headers: {
                 'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
                 'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
                 'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-                'Set-Cookie': cookieValue,
               }
             };
           }
           // return response(502, 'The login service is not currently available. Contact the help desk.');
           // test proposal
-          const cookieValue = `${amfaCookieName}=${amfaResponse.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+          const cookieValue = `${amfaCookieName}=${amfaResponse.data.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+          console.log('cookieValue:', cookieValue);
 
           return {
-            message: 'OK',
             statusCode: 202,
+            isBase64Encoded: false,
+            multiValueHeaders: {
+              'Set-Cookie': [cookieValue]
+            },
             headers: {
               'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
               'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
               'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-              'Set-Cookie': cookieValue,
             }
           };
         case 202:
@@ -216,7 +236,7 @@ export const amfaSteps = async (event, headers, client, step) => {
   }
   catch (error) {
     console.error('Error in step ' + step + ':', error);
-    return response(500, error);
+    return response(500, error.message ? error : { message: 'Unknown error in amfa steps' });
   }
 
 }

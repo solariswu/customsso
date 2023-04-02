@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { Button } from 'reactstrap';
+
 import { amfaConfigs } from '../const';
 
 const storeOAuthQueryValues = (queryValues) => {
@@ -12,6 +14,7 @@ const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [state, setState] = useState(null);
   const [redirectUri, setRedirectUri] = useState(null);
+  const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {
     const client_id = searchParams.get("client_id")
@@ -23,7 +26,7 @@ const Home = () => {
     setRedirectUri(redirect_uri);
     setState(state);
 
-  }, []);
+  }, [searchParams]);
 
   const LOGIN = () => {
     const navigate = useNavigate();
@@ -33,7 +36,7 @@ const Home = () => {
     const handleRememberDevice = (e) => {
       const newChoice = e.target.checked ? 'true' : 'false';
 
-      if (newChoice === 'true' && window.confirm('Remember this device?') ||
+      if ((newChoice === 'true' && window.confirm('Remember this device?')) ||
         newChoice === 'false') {
         setRememberDevice(newChoice);
         sessionStorage.setItem('amfa-remember-device', newChoice);
@@ -43,7 +46,6 @@ const Home = () => {
     const stepone = async (e) => {
       const apti = (Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16));
       sessionStorage.setItem('apti', apti);
-      console.log ('set new apti in home:', apti);
 
       const authParam = window.getAuthParam();
 
@@ -57,9 +59,12 @@ const Home = () => {
 
       const options = {
         method: 'POST',
+        credentials: "include", // include, *same-origin, omit
         body: JSON.stringify(params),
       };
 
+      setLoading(true);
+      setErrorMsg('');
       try {
         const res = await fetch(`${amfaConfigs.apiUrl}/amfa`, options);
 
@@ -80,6 +85,7 @@ const Home = () => {
             break;
           default:
             const data = await res.json();
+            console.log('got back in home', data);
             if (data) {
               setErrorMsg(data.message ? data.message : JSON.stringify(data));
             }
@@ -90,8 +96,11 @@ const Home = () => {
         }
       }
       catch (err) {
-        console.error(err);
-        setErrorMsg(JSON.stringify(err));
+        console.error('error in home', err);
+        setErrorMsg('Email login error, please contact help desk.');
+      }
+      finally {
+        setLoading(false);
       }
     }
 
@@ -120,11 +129,15 @@ const Home = () => {
                 <span className='textDescription-customizable'> Login with your EPND account </span><br />
                 <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
                   autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)} />
-                <button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
-                  onClick={stepone}
+                <Button
+                  name="confirm" type="submit"
+                  variant="success"
+                  className="btn btn-primary submitButton-customizable"
+                  disabled={isLoading}
+                  onClick={!isLoading ? stepone : null}
                 >
-                  Confirm
-                </button>
+                  {isLoading ? 'Sending...' : 'Confirm'}
+                </Button>
               </div>
               {errorMsg && <div>
                 <br />

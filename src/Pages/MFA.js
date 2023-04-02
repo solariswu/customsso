@@ -1,9 +1,136 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+import { Button } from 'reactstrap';
+
+import { amfaConfigs } from '../const';
 
 const OTP = () => {
   const navigate = useNavigate();
-  const [errMsg, setErrMsg] = useState('');
+  const location = useLocation();
+
+  const [errMsg, setErrorMsg] = useState('');
+  const [isLoading, setLoading] = useState(false);
+  const [otp, setOtp] = useState({ type: 'e', code: '', addr: '' });
+
+  useEffect(() => {
+    if (!location.state) {
+      navigate('/');
+    }
+  },  [location, navigate]);
+
+  const authParam = window.getAuthParam();
+
+  const username = location.state?.username;
+  const rememberDevice = location.state?.rememberDevice;
+  const apti = location.state?.apti;
+  const state = location.state?.state;
+  const redirectUri = location.state?.redirectUri;
+
+  const setOTPCode = (e) => {
+    setOtp({ ...otp, code: e.target.value });
+  }
+
+  const stepthree = async ({ otptype, otpaddr }) => {
+    setOtp({ ...otp, type: otptype, addr: otpaddr });
+
+    const params = {
+      email: username,
+      rememberDevice,
+      authParam,
+      apti,
+      otptype,
+      otpaddr,
+      phase: 'sendotp'
+    };
+
+    console.log('send otp params:', params);
+
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const result = await fetch(`${amfaConfigs.apiUrl}/amfa`, {
+        method: 'POST',
+        body: JSON.stringify(params),
+      });
+
+      switch (result.status) {
+        case 200:
+          setErrorMsg('Verification Code Sent!');
+          break;
+        case 202:
+          console.log('get send otp 202 back');
+          break;
+        default:
+          const data = await result.json();
+          console.log('got send otp data back:', data);
+          if (data) {
+            setErrorMsg(data.message ? data.message : data.name ? data.name : JSON.stringify(data));
+          }
+          else {
+            setErrorMsg('Unknown error, please contact help desk.');
+          }
+          break;
+      }
+    }
+    catch (err) {
+      console.error('error in OTP login', err);
+      setErrorMsg('OTP login error, please contact help desk.');
+    }
+    finally {
+      setLoading(false);
+    }
+  }
+
+  const stepfour = async (e) => {
+
+    const params = {
+      email: username,
+      rememberDevice,
+      authParam,
+      apti,
+      otptype: otp.type,
+      otpcode: otp.code,
+      phase: 'verifyotp'
+    };
+
+    console.log('verify otp params:', params);
+
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const result = await fetch(`${amfaConfigs.apiUrl}/amfa`, {
+        method: 'POST',
+        body: JSON.stringify(params),
+      });
+
+      switch (result.status) {
+        case 200:
+          console.log('get verify otp 200 back');
+          break;
+        case 202:
+          console.log('get verify otp 202 back');
+          break;
+        default:
+          const data = await result.json();
+          console.log('got verify otp data back:', data);
+          if (data) {
+            setErrorMsg(data.message ? data.message : data.name ? data.name : JSON.stringify(data));
+          }
+          else {
+            setErrorMsg('Unknown error, please contact help desk.');
+          }
+          break;
+      }
+    }
+    catch (err) {
+      console.error('error in password login', err);
+      setErrorMsg('OTP login error, please contact help desk.');
+    }
+    finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className='container'>
@@ -28,7 +155,10 @@ const OTP = () => {
             </div>
             <div className='row align-items-end'>
               <div className='col'>Email:</div>
-              <div className='col'> <a href='##' className='link-customizable'> txxx@hxx.com </a> </div>
+              <div className='col'>
+                <a href='##' className='link-customizable' onClick={() => username? stepthree({ otptype: 'e', otpaddr: username }): null}
+                >
+                  {username ? `${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))}` : 'unknown'} </a> </div>
             </div>
 
             <div className='row align-items-end'>
@@ -48,25 +178,18 @@ const OTP = () => {
             </div>
             <div>
               <hr className='hr-customizable' />
-              <input
-                name='otp'
-                id='otp'
-                className='form-control inputField-customizable'
-                placeholder='******'
-                autocapitalize='none'
-                required
-                aria-label='otp'
-                value=''
-                type='otp'
-              />
-              <button
-                name='confirm'
+              <input name="otpcode" id="otpcode" className="form-control inputField-customizable" placeholder="******"
+                autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode} />
+
+              <Button
+                name='verifyotp'
                 type='submit'
                 className='btn btn-primary submitButton-customizable'
-                onClick={() => navigate('authorise')}
+                disabled={isLoading}
+                onClick={!isLoading ? stepfour : null}
               >
-                Verify
-              </button>
+                {isLoading ? 'Sending...' : 'Verify'}
+              </Button>
             </div>
             {errMsg && (
               <div>
@@ -90,7 +213,6 @@ const OTP = () => {
 }
 
 const MFA = () => {
-
   return (
     <OTP />
   )

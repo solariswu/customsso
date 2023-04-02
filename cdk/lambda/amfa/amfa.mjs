@@ -15,8 +15,11 @@ const validateInputParams = (payload) => {
     case 'password':
       return (payload && payload.email && payload.password &&
         payload.apti && payload.rememberDevice && payload.authParam);
-    case 'otp':
-      return (payload && payload.email && payload.otp && payload.otpCode &&
+    case 'sendotp':
+      return (payload && payload.otpaddr && payload.otptype &&
+        payload.apti && payload.rememberDevice && payload.authParam);
+    case 'verifyotp':
+      return (payload && payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.rememberDevice && payload.authParam);
     default:
       break;
@@ -78,6 +81,8 @@ export const handler = async (event) => {
       oneEvent.rememberDevice = payload.rememberDevice;
       oneEvent.authParam = payload.authParam;
       oneEvent.origin = `${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`;
+      oneEvent.otptype = payload.otptype;
+      oneEvent.otpcode = payload.otpcode;
 
       // todo fetch cookie from header
       oneEvent.cookies = event.headers['Cookies'];
@@ -86,12 +91,17 @@ export const handler = async (event) => {
       switch (payload.phase) {
         case 'username':
           const stepOneResponse = await amfaSteps(oneEvent, headers, client, 1);
-          return response(stepOneResponse.statusCode, stepOneResponse.body);
+          console.log('stepOneResponse', stepOneResponse);
+          return stepOneResponse;
         case 'password':
-          oneEvent.password = payload.password;
-          // store tokens and then perform OAuth2 back to main CUP
           const stepTwoResponse = await amfaSteps(oneEvent, headers, client, 2);
-          return response(stepTwoResponse.statusCode, stepTwoResponse.body);
+          return stepTwoResponse;
+        case 'sendotp':
+          const stepThreeResponse = await amfaSteps(oneEvent, headers, client, 3);
+          return stepThreeResponse; 
+        case 'verifyotp':
+          const stepFourResponse = await amfaSteps(oneEvent, headers, client, 4);
+          return stepFourResponse;
         default:
           break;
       }

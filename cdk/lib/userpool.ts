@@ -82,6 +82,7 @@ export class TenantUserPool {
         // enable custom auth flow
         custom: true,
         userSrp: true,
+        adminUserPassword: true,
       },
       userPoolClientName: 'customAuthClient',
     });

@@ -1,24 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import { Button } from 'reactstrap';
 import { amfaConfigs } from '../const';
 
 const LOGIN = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log('location in password:', location.state);
 
-  const username = location.state.username;
-  const rememberDevice = location.state.rememberDevice;
-  const apti = location.state.apti;
+  useEffect(() => {
+    if (!location.state) {
+      navigate('/');
+    }
+  },  [location, navigate]);
+
+  const username = location.state?.username;
+  const rememberDevice = location.state?.rememberDevice;
+  const apti = location.state?.apti;
+  const state = location.state?.state;
+  const redirectUri = location.state?.redirectUri;
 
   const [errorMsg, setErrorMsg] = useState(null);
   const [password, setPassword] = useState('');
+  const [isLoading, setLoading] = useState(false);
 
   const steptwo = async (e) => {
-    // const apti =  sessionStorage.getItem('apti');
-    // console.log ('get apti in password:', apti);
-
     const authParam = window.getAuthParam();
 
     const params = {
@@ -27,40 +33,61 @@ const LOGIN = () => {
       rememberDevice,
       authParam,
       apti,
+      phase: 'password'
     };
 
     const options = {
       method: 'POST',
-      body: JSON.stringify({username, password}),
+      body: JSON.stringify({ username, password }),
     };
 
-    console.log ('password params:', params);
+    console.log('password params:', params);
 
+    setLoading(true);
+    setErrorMsg('');
     try {
       const res = await fetch(`${amfaConfigs.apiUrl}/oauth2/admininitauth`, options);
-      console.log ('password res:', res);
 
-      switch (res.status) {
-        case 200:
-          console.log('got 200 back');
-          break;
-        case 202:
-          navigate('/mfa');
-          break;
-        default:
-          const data = await res.json();
-          if (data) {
-            setErrorMsg(data.message ? data.message : JSON.stringify(data));
-          }
-          else {
-            setErrorMsg('Unknown error, please contact help desk.');
-          }
-          break;
+      if (res.status === 200) {
+        const result = await fetch(`${amfaConfigs.apiUrl}/amfa`, {
+          method: 'POST',
+          body: JSON.stringify(params),
+        });
+
+        switch (result.status) {
+          case 200:
+            console.log('get steptwo 200 back');
+            break;
+          case 202:
+            navigate('/mfa', {
+              state: {
+                username,
+                rememberDevice,
+                apti,
+                state,
+                redirectUri,
+              }
+            });
+            break;
+          default:
+            const data = await result.json();
+            console.log('got step two data back:', data);
+            if (data) {
+              setErrorMsg(data.message ? data.message : data.name ? data.name : JSON.stringify(data));
+            }
+            else {
+              setErrorMsg('Unknown error, please contact help desk.');
+            }
+            break;
+        }
       }
     }
     catch (err) {
-      console.error(err);
-      setErrorMsg(JSON.stringify(err));
+      console.error('error in password login', err);
+      setErrorMsg('Password login error, please contact help desk.');
+    }
+    finally {
+      setLoading(false);
     }
   }
 
@@ -79,11 +106,13 @@ const LOGIN = () => {
               <span className='textDescription-customizable'> Please enter your password </span><br />
               <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
                 placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-              <button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
-                onClick={steptwo}
+              <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
+                variant="success"
+                disabled={isLoading}
+                onClick={!isLoading ? steptwo : null}
               >
-                Sign In
-              </button>
+                {isLoading ? 'Sending...' : 'Sign In'}
+              </Button>
               <div>
                 <p className="redirect-customizable"><a
                   href="/#">Forgot Password?</a></p>
