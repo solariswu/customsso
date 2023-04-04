@@ -131,7 +131,7 @@ const storeTokens = async (user, dynamodb, requestTimeEpoch) => {
 
   const params = {
     Item: {
-      authcode: {
+      authCode: {
         S: authCode,
       },
       tokenString: {

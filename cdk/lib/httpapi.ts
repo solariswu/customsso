@@ -36,6 +36,10 @@ export class TenantApiGateway {
     this.certificate = certificate;
     this.hostedZone = hostedZone;
 
+    // DB for storing custom auth session data
+    this.authCodeTable = this.createAuthCodeTable();
+    this.authSessionTable = this.createAuthSessionTable();
+
     this.createApiGateway();
   }
 
@@ -64,7 +68,7 @@ export class TenantApiGateway {
     });
   };
 
-  private createAmfaLambda(lambdaName: string, userpool: UserPool) {
+  private createAmfaLambda(lambdaName: string, userpool: UserPool, authCodeTableName: string,) {
     const myLambda = new Function(
       this.scope,
       `${lambdaName}lambda-${config.tenantId}`,
@@ -78,6 +82,7 @@ export class TenantApiGateway {
           DOMAIN_NAME: DNS.RootDomainName,
           TENANT_CONFIG_URL: config.tenantConfigUrl,
           AMFA_CONFIG_URL: config.amfaConfigUrl,
+          AUTHCODE_TABLE: authCodeTableName,
         },
         timeout: Duration.minutes(2),
       }
@@ -89,15 +94,28 @@ export class TenantApiGateway {
       ),
     );
 
-    const policyStatement =
+    const policyStatementCognito =
       new PolicyStatement({
-        actions: ['cognito-idp:AdminListGroupsForUser', 'cognito-idp:ListUsers', 'cognito-idp:AdminInitiateAuth'],
+        actions: [
+          'cognito-idp:AdminListGroupsForUser',
+          'cognito-idp:ListUsers',
+          'cognito-idp:AdminInitiateAuth',
+        ],
         resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
+      });
+
+
+    const policyStatementDB =
+      new PolicyStatement({
+        actions: [
+          'dynamodb:GetItem',
+        ],
+        resources: [`arn:aws:dynamodb:${config.region}:*:table/${authCodeTableName}`],
       });
 
     myLambda.role?.attachInlinePolicy(
       new Policy(this.scope, `amfa-${lambdaName}-lambda-policy`, {
-        statements: [policyStatement],
+        statements: [policyStatementCognito, policyStatementDB],
       })
     );
 
@@ -126,7 +144,7 @@ export class TenantApiGateway {
     const amfaLambdaFunctions = ['amfa'];
 
     amfaLambdaFunctions.map(fnName => {
-      const lambdaFn = this.createAmfaLambda(fnName, userpool);
+      const lambdaFn = this.createAmfaLambda(fnName, userpool, this.authCodeTable.tableName);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
     });
   };
@@ -140,7 +158,7 @@ export class TenantApiGateway {
   ) {
     const policyStatement =
       new PolicyStatement({
-        actions: ['dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:DeleteItem', 'cognito-idp:AdminInitiateAuth'],
+        actions: ['dynamodb:GetItem', 'dynamodb:Scan', 'dynamodb:PutItem', 'dynamodb:DeleteItem', 'cognito-idp:AdminInitiateAuth'],
         resources: ['*'],
       });
 
@@ -175,7 +193,8 @@ export class TenantApiGateway {
 
   private createAuthCodeTable() {
     const table = new Table(this.scope, `amfa-authcode-${config.tenantId}`, {
-      partitionKey: { name: 'authcode', type: AttributeType.STRING },
+      partitionKey: { name: 'username', type: AttributeType.STRING },
+      sortKey: { name: 'apti', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
     });
     return table;
@@ -191,10 +210,6 @@ export class TenantApiGateway {
 
   public createOAuthEndpoints(customAuthClient: UserPoolClient, userpool: UserPool) {
     const oauthEndpointsName = ['challenge', 'token', 'customlogin', 'admininitauth'];
-
-    // DB for storing custom auth session data
-    this.authCodeTable = this.createAuthCodeTable();
-    this.authSessionTable = this.createAuthSessionTable();
 
     const rootPathAPI = this.api.root.addResource('oauth2', {
       // 👇 enable CORS

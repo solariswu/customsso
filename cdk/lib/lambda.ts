@@ -21,7 +21,7 @@ export const getOAuthLambdaPolicy = (oAuthEndpointName: string) => {
   return ([
     BasicLambdaPolicyStatement,
     new PolicyStatement({
-      actions: ['dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:DeleteItem'],
+      actions: ['dynamodb:GetItem', 'dynamodb:Scan', 'dynamodb:PutItem', 'dynamodb:DeleteItem'],
       resources: ['*'],
     }),
   ]);

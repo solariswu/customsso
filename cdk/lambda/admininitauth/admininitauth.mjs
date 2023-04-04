@@ -15,7 +15,8 @@ const headers = {
 };
 
 const validateInputParams = (event) => {
-	return event.username.trim().length > 0 && event.password.trim().length > 0;
+	return event.username.trim().length > 0 && event.password.trim().length > 0 &&
+		event.apti.trim().length > 0 && event.state.trim().length > 0;
 };
 
 function makeId(length) {
@@ -29,7 +30,7 @@ function makeId(length) {
 	return result;
 }
 
-const getUserByPassword = async (payload, cognito, secretHash) => {
+const getUserWithPassword = async (payload, cognito, secretHash) => {
 
 	const params = {
 		AuthParameters: {
@@ -59,10 +60,11 @@ const getUser = async (payload, cognito) => {
 		.update(payload.username + appclientId)
 		.digest('base64');
 
-	return await getUserByPassword(payload, cognito, secretHash);
+	return await getUserWithPassword(payload, cognito, secretHash);
 }
 
-const storeTokens = async (user, authCode, dynamodb, requestTimeEpoch) => {
+const storeTokens = async (user, payload, authCode, dynamodb, requestTimeEpoch) => {
+	console.log('tokens write user:', user);
 	const tokenString =
 		'{"id_token":"' +
 		user.AuthenticationResult['IdToken'] +
@@ -77,8 +79,20 @@ const storeTokens = async (user, authCode, dynamodb, requestTimeEpoch) => {
 
 	const params = {
 		Item: {
-			authcode: {
+			username: {
+				S:  payload.username,
+			},
+			apti: {
+				S: payload.apti,
+			},
+			authCode: {
 				S: authCode,
+			},
+			state: {
+				S: payload.state,
+			},
+			redirectUri: {
+				S: payload.redirectUri,
 			},
 			tokenString: {
 				S: tokenString,
@@ -117,9 +131,9 @@ export const handler = async (event) => {
 
 			if (user.AuthenticationResult) {
 				const authCode = makeId(32);
-				await storeTokens(user, authCode, dynamodb, event.requestContext.requestTimeEpoch);
+				await storeTokens(user, payload, authCode, dynamodb, event.requestContext.requestTimeEpoch);
 
-				const res = { authCode };
+				const res = { username: payload.username, apti: payload.apti };
 				return {
 					statusCode: 200,
 					headers,

@@ -69,6 +69,8 @@ const OTP = () => {
       apti,
       otptype,
       otpaddr,
+      state,
+      redirectUri,
       phase: 'sendotp'
     };
 
@@ -137,6 +139,8 @@ const OTP = () => {
       apti,
       otptype: otp.type,
       otpcode: otp.code,
+      state,
+      redirectUri,
       phase: 'verifyotp'
     };
 

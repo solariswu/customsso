@@ -46,15 +46,15 @@ const LOGIN = () => {
       rememberDevice,
       authParam,
       apti,
+      state,
+      redirectUri,
       phase: 'password'
     };
 
     const options = {
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, apti, state, redirectUri }),
     };
-
-    console.log('password params:', params);
 
     setLoading(true);
     setErrorMsg('');
@@ -69,7 +69,11 @@ const LOGIN = () => {
 
         switch (result.status) {
           case 200:
-            console.log('get steptwo 200 back');
+            const response = await result.json();
+            console.log('got step two data back:', response);
+            if (response.location) {
+              window.location.assign(response.location);
+            }
             break;
           case 202:
             navigate('/mfa', {

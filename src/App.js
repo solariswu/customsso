@@ -10,8 +10,8 @@ const App = () => {
       <>
          <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/authorize" element={<Home />} />
-            <Route path="/oauth2/authorize" element={<Home />} />
+            <Route path="/authorise" element={<Home />} />
+            <Route path="/oauth2/authorise" element={<Home />} />
             <Route path="/password" element={<Password />} />
             <Route path="/mfa" element={<MFA />} />
             <Route path="*" element={<NoMatch />} />

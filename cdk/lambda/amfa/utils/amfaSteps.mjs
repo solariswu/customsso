@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 
 import { fetchConfigData } from './fetchConfigData.mjs';
 
+import { fetchCode } from './fetchCode.mjs';
 
 export const amfaSteps = async (event, headers, client, step) => {
 
@@ -175,24 +176,49 @@ export const amfaSteps = async (event, headers, client, step) => {
     // Execute the authentication API
     // const amfaResponse = await axios.post(postURL);
     const amfaResponse = await fetch(postURL, {
-        method: "POST"
+      method: "POST"
     });
 
     if (amfaResponse && amfaResponse.status) {
       const amfaResponseJSON = await amfaResponse.json();
 
       console.log('amfaResponseJSON:', amfaResponseJSON);
+      Date.prototype.addDays = function (days) {
+        var date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;
+      }
+
+      var date = new Date();
 
       switch (amfaResponseJSON.code) {
         case 200:
-
-          Date.prototype.addDays = function (days) {
-            var date = new Date(this.valueOf());
-            date.setDate(date.getDate() + days);
-            return date;
+          switch (step) {
+            case 1:
+              // todo: passwordless login, then return to cognito response.
+              break;
+            case 2:
+            case 4:
+              // todo: password verified,return to cognito response. 302
+              const url = await fetchCode(event.email, event.apti);
+              const cookieValue3 = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+              return {
+                statusCode: 200,
+                isBase64Encoded: false,
+                multiValueHeaders: {
+                  'Set-Cookie': [cookieValue3]
+                },
+                headers: {
+                  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+                  'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+                  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+                },
+                body: JSON.stringify({'location': url})
+              }
+            default:
+              break;
           }
 
-          var date = new Date();
 
           if (amfaResponseJSON.message === 'OK') {
             const cookieValue = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;

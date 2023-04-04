@@ -3,6 +3,7 @@ import os
 
 import boto3
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Attr
 
 AWS_REGION = os.environ.get('AWS_REGION')
 
@@ -34,15 +35,19 @@ def handler(event, context):
     table = dynamodb.Table(DBTABLE_NAME)
 
     try:
-        response = table.get_item(Key={'authcode': code})
+        # response = table.get_item(Key={'authCode': code})
+        response = table.scan(FilterExpression=Attr('authCode').eq(code))
     except ClientError as e:
         print(e.response['Error']['Message'])
         RESBODY = json.dumps(e.response['Error']['Message'])
         RESCODE = 400
     else:
         print(response)
-        tokens = response['Item']['tokenString']
-        table.delete_item(Key={'authcode': code})
+        tokens = response['Items'][0]['tokenString']
+        username = response['Items'][0]['username']
+        apti = response['Items'][0]['apti']
+        table.delete_item(Key={'username': username, 'apti': apti})
+        # table.delete_item(Key={'authCode': code})
 
         RESCODE = response['ResponseMetadata']['HTTPStatusCode']
         RESBODY = tokens

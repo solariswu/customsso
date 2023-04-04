@@ -66,6 +66,8 @@ const Home = () => {
         rememberDevice,
         authParam,
         apti,
+        state,
+        redirectUri,
         phase: 'username'
       };
 
