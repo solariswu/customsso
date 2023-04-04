@@ -12,19 +12,32 @@ const LOGIN = () => {
     if (!location.state) {
       navigate('/');
     }
-  },  [location, navigate]);
+  }, []);
 
   const username = location.state?.username;
   const rememberDevice = location.state?.rememberDevice;
   const apti = location.state?.apti;
   const state = location.state?.state;
   const redirectUri = location.state?.redirectUri;
+  const aemail = location.state?.aemail;
+  const phoneNumber = location.state?.phoneNumber;
 
   const [errorMsg, setErrorMsg] = useState(null);
   const [password, setPassword] = useState('');
   const [isLoading, setLoading] = useState(false);
 
+  const confirmLogin = (e) => {
+    if (e.key === "Enter") {
+      steptwo();
+    }
+  }
+
   const steptwo = async (e) => {
+
+    if (!password) {
+      setErrorMsg('Please enter password');
+      return;
+    };
     const authParam = window.getAuthParam();
 
     const params = {
@@ -66,6 +79,8 @@ const LOGIN = () => {
                 apti,
                 state,
                 redirectUri,
+                aemail,
+                phoneNumber
               }
             });
             break;
@@ -103,9 +118,12 @@ const LOGIN = () => {
               <hr className="hr-customizable" />
             </div>
             <div>
-              <span className='textDescription-customizable'> Please enter your password </span><br />
+              <span className='idpDescription-customizable'> Please enter your password </span><br />
               <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
-                placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                onKeyUp={e => confirmLogin(e)}
+                disabled={isLoading}
+              />
               <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
                 variant="success"
                 disabled={isLoading}
@@ -114,8 +132,9 @@ const LOGIN = () => {
                 {isLoading ? 'Sending...' : 'Sign In'}
               </Button>
               <div>
-                <p className="redirect-customizable"><a
-                  href="/#">Forgot Password?</a></p>
+                <span className='textDescription-customizable'>
+                  <p className="redirect-customizable"><a
+                    href="/#">Forgot Password?</a></p></span>
               </div>
             </div>
             {errorMsg && <div>
@@ -125,7 +144,7 @@ const LOGIN = () => {
             <hr className='hr-customizable' />
             <div className='footer-customizable'>
               <span
-                style={{ fontSize: '0.8rem', marginLeft: '0.5em', color: 'grey' }}
+                className='legalText-customizable'
               >
                 Copyright &copy; 2023 ePersona Inc. v0.1
               </span>

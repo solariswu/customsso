@@ -8,7 +8,7 @@ import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Distribution, OriginAccessIdentity } from 'aws-cdk-lib/aws-cloudfront';
 import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 
-import { RemovalPolicy } from "aws-cdk-lib";
+import { RemovalPolicy, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { config } from "./config";
@@ -20,7 +20,7 @@ export class WebApplication {
 	name: string;
 	domainName: string;
 	certificate: Certificate;
-    hostedZone: PublicHostedZone;
+	hostedZone: PublicHostedZone;
 	aRecord: ARecord;
 	s3bucket: Bucket;
 	distribution: Distribution;
@@ -29,7 +29,7 @@ export class WebApplication {
 		this.scope = scope;
 		this.domainName = `${config.tenantId}.${DNS.RootDomainName}`;
 		this.certificate = certificate;
-        this.hostedZone = hostedZone;
+		this.hostedZone = hostedZone;
 
 		this.distribution = this.createDistribution();
 		this.aRecord = this.createRoute53ARecord();
@@ -74,6 +74,17 @@ export class WebApplication {
 			defaultBehavior: {
 				origin: new S3Origin(bucket, { originAccessIdentity }),
 			},
+			errorResponses: [{
+				httpStatus: 403,
+				responseHttpStatus: 403,
+				responsePagePath: '/index.html',
+				ttl: Duration.minutes(30),
+			}, {
+				httpStatus: 404,
+				responseHttpStatus: 404,
+				responsePagePath: '/index.html',
+				ttl: Duration.minutes(30),
+			}],
 		});
 	}
 

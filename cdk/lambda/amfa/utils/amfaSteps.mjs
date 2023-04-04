@@ -6,7 +6,6 @@ import {
   ListUsersCommand
 } from '@aws-sdk/client-cognito-identity-provider';
 
-import axios from 'axios';
 import { createHash } from 'node:crypto';
 
 import { fetchConfigData } from './fetchConfigData.mjs';
@@ -39,15 +38,10 @@ export const amfaSteps = async (event, headers, client, step) => {
 
     const listUsersParam = {
       UserPoolId: process.env.USERPOOL_ID,
-      // AttributesToGet: ["email"],
       Filter: "email = \"" + event.email + "\"",
-      // Limit: 1,
     };
 
-    console.log("listUsersParam", listUsersParam);
-
     const listUsersRes = await client.send(new ListUsersCommand(listUsersParam));
-    console.log('listUsersRes:', listUsersRes);
 
     if (!listUsersRes || !listUsersRes.Users || listUsersRes.Users.length === 0) {
       console.log('Did not find valid user for email:', event.email);
@@ -55,6 +49,12 @@ export const amfaSteps = async (event, headers, client, step) => {
     };
 
     console.log('UserAttributes:', listUsersRes.Users[0].Attributes);
+    const user = listUsersRes.Users[0];
+
+    const userAttributes = user.Attributes.reduce((acc, curr) => {
+      acc[curr.Name] = curr.Value;
+      return acc;
+    });
 
     const param = {
       UserPoolId: process.env.USERPOOL_ID,
@@ -161,11 +161,11 @@ export const amfaSteps = async (event, headers, client, step) => {
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
         //e for email, s for sms, v for voice, ae for alt-email.
         p = event.otpaddr;
-        postURL = '/extResendOtp.kv?' + 'l=' + l + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
+        postURL = asmurl + '/extResendOtp.kv?' + 'l=' + l + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
         break;
       case 4:
         let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
-        postURL = '/extVerifyOtp.kv?' + 'l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
+        postURL = asmurl + '/extVerifyOtp.kv?' + 'l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
         break;
       default:
         break;
@@ -173,14 +173,19 @@ export const amfaSteps = async (event, headers, client, step) => {
 
     console.log('now posting to : ', postURL);
     // Execute the authentication API
-    const amfaResponse = await axios.post(postURL);
+    // const amfaResponse = await axios.post(postURL);
+    const amfaResponse = await fetch(postURL, {
+        method: "POST"
+    });
 
-    if (amfaResponse && amfaResponse.data && amfaResponse.data.code) {
-      console.log('amfaResponse.data:', amfaResponse.data);
-      const res = amfaResponse.data;
+    if (amfaResponse && amfaResponse.status) {
+      const amfaResponseJSON = await amfaResponse.json();
 
-      switch (res.code) {
+      console.log('amfaResponseJSON:', amfaResponseJSON);
+
+      switch (amfaResponseJSON.code) {
         case 200:
+
           Date.prototype.addDays = function (days) {
             var date = new Date(this.valueOf());
             date.setDate(date.getDate() + days);
@@ -189,8 +194,23 @@ export const amfaSteps = async (event, headers, client, step) => {
 
           var date = new Date();
 
-          if (res.message === 'OK') {
-            const cookieValue = `${amfaCookieName}=${amfaResponse.data.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+          if (amfaResponseJSON.message === 'OK') {
+            const cookieValue = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+
+            // test only
+            return {
+              statusCode: 202,
+              isBase64Encoded: false,
+              multiValueHeaders: {
+                'Set-Cookie': [cookieValue]
+              },
+              headers: {
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+                'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+                'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+              },
+              body: JSON.stringify(userAttributes)
+            }
 
             return {
               statusCode: 200,
@@ -207,7 +227,24 @@ export const amfaSteps = async (event, headers, client, step) => {
           }
           // return response(502, 'The login service is not currently available. Contact the help desk.');
           // test proposal
-          const cookieValue = `${amfaCookieName}=${amfaResponse.data.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+          const cookieValue2 = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+
+          return {
+            statusCode: 202,
+            isBase64Encoded: false,
+            multiValueHeaders: {
+              'Set-Cookie': [cookieValue2]
+            },
+            headers: {
+              'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+              'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+              'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+            },
+            body: JSON.stringify(userAttributes)
+          }
+        case 202:
+          // test proposal
+          const cookieValue = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
           console.log('cookieValue:', cookieValue);
 
           return {
@@ -220,10 +257,9 @@ export const amfaSteps = async (event, headers, client, step) => {
               'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
               'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
               'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-            }
-          };
-        case 202:
-          return response(202, res.message);
+            },
+            body: JSON.stringify(userAttributes)
+          }
         case 203:
           return response(402, 'Your location is not permitted. Contact the help desk.');
         default:
