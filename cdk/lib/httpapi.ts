@@ -68,7 +68,7 @@ export class TenantApiGateway {
     });
   };
 
-  private createAmfaLambda(lambdaName: string, userpool: UserPool, authCodeTableName: string,) {
+  private createAmfaLambda(lambdaName: string, userpool: UserPool, userPoolClient: UserPoolClient, authCodeTableName: string,) {
     const myLambda = new Function(
       this.scope,
       `${lambdaName}lambda-${config.tenantId}`,
@@ -83,6 +83,9 @@ export class TenantApiGateway {
           TENANT_CONFIG_URL: config.tenantConfigUrl,
           AMFA_CONFIG_URL: config.amfaConfigUrl,
           AUTHCODE_TABLE: authCodeTableName,
+          APPCLIENT_ID: userPoolClient.userPoolClientId,
+          APP_SECRET: userPoolClient.userPoolClientSecret.unsafeUnwrap(),
+          MAGIC_STRING: config.magicstring,
         },
         timeout: Duration.minutes(2),
       }
@@ -109,6 +112,7 @@ export class TenantApiGateway {
       new PolicyStatement({
         actions: [
           'dynamodb:GetItem',
+          'dynamodb:PutItem',
         ],
         resources: [`arn:aws:dynamodb:${config.region}:*:table/${authCodeTableName}`],
       });
@@ -140,11 +144,11 @@ export class TenantApiGateway {
     );
   };
 
-  public createAmfaApiEndpoints = (userpool: UserPool) => {
+  public createAmfaApiEndpoints = (userpool: UserPool, userPoolClient: UserPoolClient) => {
     const amfaLambdaFunctions = ['amfa'];
 
     amfaLambdaFunctions.map(fnName => {
-      const lambdaFn = this.createAmfaLambda(fnName, userpool, this.authCodeTable.tableName);
+      const lambdaFn = this.createAmfaLambda(fnName, userpool, userPoolClient, this.authCodeTable.tableName);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
     });
   };

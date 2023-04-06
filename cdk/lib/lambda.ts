@@ -4,7 +4,6 @@ import { Duration } from 'aws-cdk-lib';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
 import { config } from '../lib/config';
-import { DNS } from '../lib/const';
 
 
 
@@ -38,10 +37,7 @@ export const createAuthChallengeFn = (
     code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
     timeout: Duration.minutes(5),
     environment: {
-      LANDING_PAGE: `https://${config.tenantId}.${DNS.RootDomainName}${config.customauthLandingpath}`,
-      SENDER: config.emailfrom,
-      GMAIL_ACCOUNT: config.gmailaddress,
-      GMAIL_APPPWD: config.gmailapppwd,
+      MAGIC_STRING: config.magicstring,
     },
   });
 

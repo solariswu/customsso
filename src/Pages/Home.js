@@ -5,10 +5,6 @@ import { Button } from 'reactstrap';
 
 import { amfaConfigs } from '../const';
 
-const storeOAuthQueryValues = (queryValues) => {
-  console.warn('todo - storeAuthQueryValues', queryValues);
-}
-
 const Home = () => {
   const [errorMsg, setErrorMsg] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,11 +13,11 @@ const Home = () => {
   const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {
-    const client_id = searchParams.get("client_id")
-    const response_type = searchParams.get("response_type")
+    // const client_id = searchParams.get("client_id")
+    // const response_type = searchParams.get("response_type")
     const state = searchParams.get("state")
     const redirect_uri = searchParams.get("redirect_uri")
-    const scope = searchParams.get("scope")
+    // const scope = searchParams.get("scope")
 
     setRedirectUri(redirect_uri);
     setState(state);
@@ -83,7 +79,15 @@ const Home = () => {
 
         switch (res.status) {
           case 200:
-            console.log('got 200 back');
+            const response = await res.json();
+            console.log('got step one data back:', response);
+            if (response.location) {
+              window.location.assign(response.location);
+              return;
+            }
+            else {
+              setErrorMsg('Passwordless login error, please contact help desk.');
+            }
             break;
           case 202:
             const result = await res.json();
@@ -99,9 +103,19 @@ const Home = () => {
               }
             });
             break;
+          case 504:
+            {
+              const data = await res.json();
+              console.error('got back in home', data);
+              setErrorMsg('service error, please contact help desk.');
+            }
+            break;
           default:
             const data = await res.json();
             console.log('got back in home', data);
+            console.log ('got back in home message', data.message);
+            console.log ('got back in home json', JSON.stringify(data));
+
             if (data) {
               setErrorMsg(data.message ? data.message : JSON.stringify(data));
             }
@@ -110,12 +124,11 @@ const Home = () => {
             }
             break;
         }
+        setLoading(false);
       }
       catch (err) {
         console.error('error in home', err);
         setErrorMsg('Email login error, please contact help desk.');
-      }
-      finally {
         setLoading(false);
       }
     }

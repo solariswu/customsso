@@ -83,6 +83,9 @@ export const handler = async (event) => {
       oneEvent.otptype = payload.otptype;
       oneEvent.otpcode = payload.otpcode;
       oneEvent.otpaddr = payload.otpaddr;
+      oneEvent.redirectUri = payload.redirectUri;
+      oneEvent.state = payload.state;
+      oneEvent.requestTimeEpoch = event.requestContext.requestTimeEpoch;
 
       // todo fetch cookie from header
       oneEvent.cookies = event.headers['Cookies'];

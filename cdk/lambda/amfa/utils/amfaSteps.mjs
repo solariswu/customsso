@@ -7,12 +7,11 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { createHash } from 'node:crypto';
-
 import { fetchConfigData } from './fetchConfigData.mjs';
-
 import { fetchCode } from './fetchCode.mjs';
+import { passwordlessLogin } from './passwordlessLogin.mjs';
 
-export const amfaSteps = async (event, headers, client, step) => {
+export const amfaSteps = async (event, headers, cognito, step) => {
 
   const response = (statusCode, body) => {
     return {
@@ -42,7 +41,7 @@ export const amfaSteps = async (event, headers, client, step) => {
       Filter: "email = \"" + event.email + "\"",
     };
 
-    const listUsersRes = await client.send(new ListUsersCommand(listUsersParam));
+    const listUsersRes = await cognito.send(new ListUsersCommand(listUsersParam));
 
     if (!listUsersRes || !listUsersRes.Users || listUsersRes.Users.length === 0) {
       console.log('Did not find valid user for email:', event.email);
@@ -62,7 +61,7 @@ export const amfaSteps = async (event, headers, client, step) => {
       Username: listUsersRes.Users[0].Username,
     };
 
-    const userGroup = await client.send(new AdminListGroupsForUserCommand(param));
+    const userGroup = await cognito.send(new AdminListGroupsForUserCommand(param));
     console.log('userGroup:', userGroup);
 
     if (!userGroup || !userGroup.Groups || userGroup.Groups.length === 0) {
@@ -174,7 +173,6 @@ export const amfaSteps = async (event, headers, client, step) => {
 
     console.log('now posting to : ', postURL);
     // Execute the authentication API
-    // const amfaResponse = await axios.post(postURL);
     const amfaResponse = await fetch(postURL, {
       method: "POST"
     });
@@ -183,124 +181,84 @@ export const amfaSteps = async (event, headers, client, step) => {
       const amfaResponseJSON = await amfaResponse.json();
 
       console.log('amfaResponseJSON:', amfaResponseJSON);
-      Date.prototype.addDays = function (days) {
-        var date = new Date(this.valueOf());
-        date.setDate(date.getDate() + days);
-        return date;
-      }
-
-      var date = new Date();
 
       switch (amfaResponseJSON.code) {
         case 200:
           switch (step) {
             case 1:
-              // todo: passwordless login, then return to cognito response.
-              break;
             case 2:
             case 4:
-              // todo: password verified,return to cognito response. 302
-              const url = await fetchCode(event.email, event.apti);
-              const cookieValue3 = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
-              return {
-                statusCode: 200,
-                isBase64Encoded: false,
-                multiValueHeaders: {
-                  'Set-Cookie': [cookieValue3]
-                },
-                headers: {
-                  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-                  'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
-                  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-                },
-                body: JSON.stringify({'location': url})
+              if (amfaResponseJSON.message === 'OK') {
+                const url = step === 1 ? await passwordlessLogin(event, cognito) :
+                  await fetchCode(event.email, event.apti);
+                console.log('url:', url);
+                if (url) {
+                  Date.prototype.addDays = function (days) {
+                    var date = new Date(this.valueOf());
+                    date.setDate(date.getDate() + days);
+                    return date;
+                  }
+
+                  var date = new Date();
+                  const cookieValue = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+
+                  return {
+                    statusCode: 200,
+                    isBase64Encoded: false,
+                    multiValueHeaders: {
+                      'Set-Cookie': [cookieValue]
+                    },
+                    headers: {
+                      'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+                      'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+                      'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+                    },
+                    body: JSON.stringify({ 'location': url })
+                  }
+                }
+                else {
+                  // redirect url === null
+                  return response(505, 'Service error, please contact the help desk.')
+                }
               }
-            default:
-              break;
-          }
-
-
-          if (amfaResponseJSON.message === 'OK') {
-            const cookieValue = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
-
-            // test only
-            return {
-              statusCode: 202,
-              isBase64Encoded: false,
-              multiValueHeaders: {
-                'Set-Cookie': [cookieValue]
-              },
-              headers: {
-                'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-                'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
-                'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-              },
-              body: JSON.stringify(userAttributes)
-            }
-
-            return {
-              statusCode: 200,
-              isBase64Encoded: false,
-              multiValueHeaders: {
-                'Set-Cookie': [cookieValue]
-              },
-              headers: {
-                'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-                'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
-                'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+              else {
+                // statusCode 200, but not 'OK' message
+                return response(501, 'The login service is not currently available. Contact the help desk.');
               }
-            };
-          }
-          // return response(502, 'The login service is not currently available. Contact the help desk.');
-          // test proposal
-          const cookieValue2 = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
-
-          return {
-            statusCode: 202,
-            isBase64Encoded: false,
-            multiValueHeaders: {
-              'Set-Cookie': [cookieValue2]
-            },
-            headers: {
-              'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-              'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
-              'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-            },
-            body: JSON.stringify(userAttributes)
           }
         case 202:
           // test proposal
-          const cookieValue = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
-          console.log('cookieValue:', cookieValue);
-
-          return {
-            statusCode: 202,
-            isBase64Encoded: false,
-            multiValueHeaders: {
-              'Set-Cookie': [cookieValue]
-            },
-            headers: {
-              'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-              'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
-              'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-            },
-            body: JSON.stringify(userAttributes)
+          switch (step) {
+            case 1:
+              // User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
+              return response(202, 'Your identity requires password login.')
+            case 2:
+              // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
+              return response(202, 'Your identity requires verification.')
+            case 3:
+              // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
+              return response(202, amfaResponseJSON.message)
+            case 4:
+              // The OTP entered was not correct. Push the user back to the OTP Challenge Page:
+              return response(403, 'The identity code you entered was not correct. Please try again.')
+            default:
+              break;
           }
         case 203:
-          return response(402, 'Your location is not permitted. Contact the help desk.');
+          return response(203, 'Your location is not permitted. Contact the help desk.');
+        case 401:
+          return response(401, 'You took too long or entered your otp wrong too many times. Try your login again.');
         default:
-          return response(503, 'We ran into an issue. Please contact the help desk.');
+          return response(502, 'We ran into an issue. Please contact the help desk.');
       }
     }
-    else {
-      return response(500, 'amfa response error');
-    }
+
+    return response(503, 'amfa response error');
   }
   catch (error) {
     console.error('Error in step ' + step + ':', error);
-    return response(500, error.message ? error : { message: 'Unknown error in amfa steps' });
+    return response(504, error.message ? error.message : 'Unknown error in amfa steps');
   }
-
 }
 
   // Once the adaptive mfa api is executed, there are a number of possible return codes.
