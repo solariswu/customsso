@@ -55,14 +55,14 @@ const OTP = () => {
 
   const confirmLogin = (e) => {
     if (e.key === "Enter") {
-      stepfour();
+      stepfour(e);
     }
   }
 
   const stepthree = async ({ otptype, otpaddr }) => {
     setOtp({ ...otp, type: otptype, addr: otpaddr });
 
-    const params = {
+    const sendOtpParams = {
       email: username,
       rememberDevice,
       authParam,
@@ -74,14 +74,14 @@ const OTP = () => {
       phase: 'sendotp'
     };
 
-    console.log('send otp params:', params);
+    console.log('send otp params:', sendOtpParams);
 
     setLoading(true);
     setErrorMsg('');
     try {
       const result = await fetch(`${amfaConfigs.apiUrl}/amfa`, {
         method: 'POST',
-        body: JSON.stringify(params),
+        body: JSON.stringify(sendOtpParams),
       });
 
       switch (result.status) {
@@ -89,9 +89,9 @@ const OTP = () => {
           const resultMsg = await result.json();
           if (resultMsg.message) {
             setErrorMsg(resultMsg.message);
-            setInterval(() => {
+            setTimeout(() => {
               setErrorMsg('');
-            }, 8000);
+            }, 300);
           }
           else {
             setErrorMsg('Unknown OTP send error, please contact help desk.');
@@ -106,7 +106,6 @@ const OTP = () => {
           break;
         default:
           const data = await result.json();
-          console.log('got send otp data back:', data);
           if (data) {
             setErrorMsg(data.message ? data.message : data.name ? data.name : JSON.stringify(data));
           }
@@ -132,7 +131,7 @@ const OTP = () => {
       return;
     }
 
-    const params = {
+    const verifyOtpParams = {
       email: username,
       rememberDevice,
       authParam,
@@ -144,22 +143,22 @@ const OTP = () => {
       phase: 'verifyotp'
     };
 
-    console.log('verify otp params:', params);
+    console.log('verify otp params:', verifyOtpParams);
 
     setLoading(true);
     setErrorMsg('');
     try {
       const result = await fetch(`${amfaConfigs.apiUrl}/amfa`, {
         method: 'POST',
-        body: JSON.stringify(params),
+        body: JSON.stringify(verifyOtpParams),
       });
 
       switch (result.status) {
         case 200:
-          console.log('get verify otp 200 back');
-          break;
-        case 202:
-          console.log('get verify otp 202 back');
+          const response = await result.json();
+          if (response.location) {
+            window.location.assign(response.location);
+          }
           break;
         default:
           const data = await result.json();
@@ -189,7 +188,7 @@ const OTP = () => {
           <div style={{ height: '5px', background: 'orange' }} />
           <div className='modal-body' style={{ textAlign: 'center' }}>
             <span>
-              <h3>Your login requires an additional verification</h3>
+              <h3>{amfaConfigs.mfaPageTitle}</h3>
             </span>
             <br />
             <div>
@@ -210,29 +209,30 @@ const OTP = () => {
                   (<div className='row align-items-end'>
                     <div className='col'>Email:</div>
                     <div className='col'>
-                      <a href='##' className='link-customizable' onClick={() => username ? stepthree({ otptype: 'e', otpaddr: username }) : null}>
-                        {username ? `${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))}` : 'unknown'}
-                      </a>
+                      <span className='link-customizable' onClick={() => username ? stepthree({ otptype: 'e', otpaddr: username }) : null}>
+                        {username ? `${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))}` : '-'}
+                      </span>
                     </div>
                   </div>) : option === 'ae' ?
-
                     <div className='row align-items-end'>
                       <div className='col'>Alt-Email:</div>
                       <div className='col'>
-                        <a href='##' className='link-customizable' onClick={() => aemail ? stepthree({ otptype: 'ae', otpaddr: aemail }) : null}>
-                          {aemail ? `${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}` : 'unknown'} </a> </div>
+                        <span className='link-customizable' onClick={() => aemail ? stepthree({ otptype: 'ae', otpaddr: aemail }) : null}>
+                          {aemail ? `${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}` : '-'}
+                        </span> </div>
                     </div> : option === 's' ?
                       <div className='row align-items-end'>
                         <div className='col'>SMS:</div>
                         <div className='col'>
-                          <a href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
-                            {phoneNumber ? phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') : 'unknown'} </a> </div>
+                          <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
+                            {phoneNumber ? phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') : '-'}
+                          </span> </div>
                       </div> : option === 'v' ?
                         <div className='row align-items-end'>
                           <div className='col'>Voice:</div>
                           <div className='col'>
-                            <a href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
-                              {phoneNumber ? phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') : 'unknown'} </a> </div>
+                            <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
+                              {phoneNumber ? phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') : '-'} </span> </div>
                         </div> :
                         <div className='row align-items-end'>
                           <div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>

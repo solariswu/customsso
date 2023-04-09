@@ -70,7 +70,6 @@ const LOGIN = () => {
         switch (result.status) {
           case 200:
             const response = await result.json();
-            console.log('got step two data back:', response);
             if (response.location) {
               window.location.assign(response.location);
             }
@@ -90,7 +89,6 @@ const LOGIN = () => {
             break;
           default:
             const data = await result.json();
-            console.log('got step two data back:', data);
             if (data) {
               setErrorMsg(data.message ? data.message : data.name ? data.name : JSON.stringify(data));
             }

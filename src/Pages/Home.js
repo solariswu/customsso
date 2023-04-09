@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from 'reactstrap';
 
 import { amfaConfigs } from '../const';
+import { clientName } from '../const';
 
 const Home = () => {
   const [errorMsg, setErrorMsg] = useState(null);
@@ -13,11 +14,8 @@ const Home = () => {
   const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {
-    // const client_id = searchParams.get("client_id")
-    // const response_type = searchParams.get("response_type")
     const state = searchParams.get("state")
     const redirect_uri = searchParams.get("redirect_uri")
-    // const scope = searchParams.get("scope")
 
     setRedirectUri(redirect_uri);
     setState(state);
@@ -80,7 +78,6 @@ const Home = () => {
         switch (res.status) {
           case 200:
             const response = await res.json();
-            console.log('got step one data back:', response);
             if (response.location) {
               window.location.assign(response.location);
               return;
@@ -103,19 +100,8 @@ const Home = () => {
               }
             });
             break;
-          case 504:
-            {
-              const data = await res.json();
-              console.error('got back in home', data);
-              setErrorMsg('service error, please contact help desk.');
-            }
-            break;
           default:
             const data = await res.json();
-            console.log('got back in home', data);
-            console.log ('got back in home message', data.message);
-            console.log ('got back in home json', JSON.stringify(data));
-
             if (data) {
               setErrorMsg(data.message ? data.message : JSON.stringify(data));
             }
@@ -155,7 +141,7 @@ const Home = () => {
                 <hr className="hr-customizable" />
               </div>
               <div>
-                <span className='idpDescription-customizable'> Login with your EPND account </span><br />
+                <span className='idpDescription-customizable'> Login with your {clientName} account </span><br />
                 <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
                   autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
                   onKeyUp={e => confirmLogin(e)}

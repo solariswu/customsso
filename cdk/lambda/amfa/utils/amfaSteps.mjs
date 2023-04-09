@@ -30,11 +30,8 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     const [tenantData, amfaConfigs] = await fetchConfigData();
     // API vars saved in node.js property file in the back-end node.js
     const salt = amfaConfigs.salt; // Pull this from a property file. All MFA services will use this same salt to read and write the one_time_token-Cookie.
-    console.log('salt', salt);
 
     const asmurl = 'https://asm2.apersona.com:8443/asm';  // Url of the Adaptive MFA Server.
-
-    console.log('steps inside:', event);
 
     const listUsersParam = {
       UserPoolId: process.env.USERPOOL_ID,
@@ -240,15 +237,25 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               return response(202, amfaResponseJSON.message)
             case 4:
               // The OTP entered was not correct. Push the user back to the OTP Challenge Page:
+              // transform the statusCode to 403, as all 202 in frontend means redirect to another page.
               return response(403, 'The identity code you entered was not correct. Please try again.')
             default:
+              // no such case
               break;
           }
         case 203:
+          // Country blocked or threat actor location detected.
+          // Push the user back to the initial login page with this error:
+          //    "Your location is not permitted. Contact the help desk."
           return response(203, 'Your location is not permitted. Contact the help desk.');
         case 401:
+          // The user took too long or entered the otp wrong too many times.
+          // Send the user back to the login page with this error:
+          //    "You took too long or entered your otp wrong too many times. Try your login again."
           return response(401, 'You took too long or entered your otp wrong too many times. Try your login again.');
         default:
+          // Anything else: Default - Push the user back to the initial login page with the error:
+          //     "We ran into an issue. Please contact the help desk."
           return response(502, 'We ran into an issue. Please contact the help desk.');
       }
     }

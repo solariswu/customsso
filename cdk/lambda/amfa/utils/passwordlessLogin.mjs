@@ -25,9 +25,6 @@ const getUser = async (username, cognito) => {
   const appclientId = process.env.APPCLIENT_ID;
   const appclientSecret = process.env.APP_SECRET;
 
-  console.log('appclientId:', appclientId);
-  console.log('appclientSecret:', appclientSecret);
-
   const secretHash = crypto
     .createHmac('SHA256', appclientSecret)
     .update(username + appclientId)

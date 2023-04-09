@@ -38,7 +38,5 @@ export const fetchConfigData = async () => {
 	console.log('configData:', configData);
 
 	return [tenantData, configData];
-	// console.log('fetchConfigData:', tenantDataRes.value.data, configDataRes.value.data);
-	// return [tenantDataRes.value.data, configDataRes.value.data];
 
 }

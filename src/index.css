@@ -283,3 +283,12 @@ body {
   margin-top: -3px;
   padding: 8px;
 }
+.link-customizable {
+    cursor:pointer;
+    color:blue;
+    text-decoration:underline;
+}
+.link-customizable:hover {
+  text-decoration:none;
+  text-shadow: 1px 1px 1px #555;
+}
