@@ -91,7 +91,7 @@ export class TenantUserPool {
   private addHostedUIAppClient() {
     this.hostedUIClient = new UserPoolClient(this.scope, 'hostedUIClient', {
       userPool: this.userpool,
-      generateSecret: false,
+      generateSecret: true,
       authFlows: {
         userSrp: true,
       },
