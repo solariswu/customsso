@@ -109,51 +109,36 @@ const LOGIN = () => {
   }
 
   return (
-    <div className="container">
-      <div className="modal-dialog">
-        <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm">
-          <div style={{ height: '5px', background: 'orange' }} />
-          <div className="modal-body" style={{ textAlign: 'center' }}>
-            <span><h3>Sign in to your account</h3></span>
-            <br />
-            <div className="login-or">
-              <hr className="hr-customizable" />
-            </div>
-            <div>
-              <span className='idpDescription-customizable'> Please enter your password </span><br />
-              <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
-                placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
-                onKeyUp={e => confirmLogin(e)}
-                disabled={isLoading}
-              />
-              <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
-                variant="success"
-                disabled={isLoading}
-                onClick={!isLoading ? steptwo : null}
-              >
-                {isLoading ? 'Sending...' : 'Sign In'}
-              </Button>
-              <div>
-                <span className='textDescription-customizable'>
-                  <p className="redirect-customizable"><a
-                    href="/#">Forgot Password?</a></p></span>
-              </div>
-            </div>
-            {errorMsg && <div>
-              <br />
-              <span className='errorMessage-customizable'>{errorMsg}</span>
-            </div>}
-            <hr className='hr-customizable' />
-            <div className='footer-customizable'>
-              <span
-                className='legalText-customizable'
-              >
-                Copyright &copy; 2023 ePersona Inc. v0.1
-              </span>
-            </div>
-          </div>
+    <div>
+      <span><h3>Sign in to your account</h3></span>
+      <br />
+      <div className="login-or">
+        <hr className="hr-customizable" />
+      </div>
+      <div>
+        <span className='idpDescription-customizable'> Please enter your password </span><br />
+        <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
+          placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
+          onKeyUp={e => confirmLogin(e)}
+          disabled={isLoading}
+        />
+        <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
+          variant="success"
+          disabled={isLoading}
+          onClick={!isLoading ? steptwo : null}
+        >
+          {isLoading ? 'Sending...' : 'Sign In'}
+        </Button>
+        <div>
+          <span className='textDescription-customizable'>
+            <p className="redirect-customizable"><a
+              href="/#">Forgot Password?</a></p></span>
         </div>
       </div>
+      {errorMsg && <div>
+        <br />
+        <span className='errorMessage-customizable'>{errorMsg}</span>
+      </div>}
     </div >
   );
 }

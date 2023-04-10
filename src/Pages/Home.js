@@ -120,62 +120,47 @@ const Home = () => {
     }
 
     return (
-      <div className="container">
-        <div className="modal-dialog">
-          <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm">
-            <div style={{ height: '5px', background: 'orange' }} />
-            <div className="modal-body" style={{ textAlign: 'center' }}>
-              <span><h3>Sign in to your account</h3></span>
-              <br />
-              <div>
-                <input
-                  type="checkbox" id="remember-me" name="remember-me"
-                  checked={rememberDevice === 'true'}
-                  onChange={handleRememberDevice}
-                />
-                <span style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey' }}>
-                  This is my device, remember it.
-                </span>
-              </div>
-              <div className="login-or">
-                <hr className="hr-customizable" />
-              </div>
-              <div>
-                <span className='idpDescription-customizable'> Login with your {clientName} account </span><br />
-                <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
-                  autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
-                  onKeyUp={e => confirmLogin(e)}
-                  disabled={isLoading} />
-                <Button
-                  name="confirm" type="submit"
-                  className="btn btn-primary submitButton-customizable"
-                  disabled={isLoading}
-                  onClick={!isLoading ? stepone : null}
-                >
-                  {isLoading ? 'Sending...' : 'Confirm'}
-                </Button>
-              </div>
-              <div>
-                <span className='textDescription-customizable'> New User?
-                  <a href="/password" className="textLink-customizable"> Register</a></span>
-              </div>
-              {errorMsg && <div>
-                <br />
-                <span className='errorMessage-customizable'>{errorMsg}</span>
-              </div>}
-              <hr className='hr-customizable' />
-              <div className='footer-customizable'>
-                <span
-                  className='legalText-customizable'
-                >
-                  Copyright &copy; 2023 ePersona Inc. v0.1
-                </span>
-              </div>
-            </div>
-          </div>
+      <div>
+        <span><h3>Sign in to your account</h3></span>
+        <br />
+        <div>
+          <input
+            type="checkbox" id="remember-me" name="remember-me"
+            checked={rememberDevice === 'true'}
+            onChange={handleRememberDevice}
+          />
+          <span style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey' }}>
+            This is my device, remember it.
+          </span>
         </div>
+        <div className="login-or">
+          <hr className="hr-customizable" />
+        </div>
+        <div>
+          <span className='idpDescription-customizable'> Login with your {clientName} account </span><br />
+          <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
+            autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
+            onKeyUp={e => confirmLogin(e)}
+            disabled={isLoading} />
+          <Button
+            name="confirm" type="submit"
+            className="btn btn-primary submitButton-customizable"
+            disabled={isLoading}
+            onClick={!isLoading ? stepone : null}
+          >
+            {isLoading ? 'Sending...' : 'Confirm'}
+          </Button>
+        </div>
+        <div>
+          <span className='textDescription-customizable'> New User?
+            <a href="/password" className="textLink-customizable"> Register</a></span>
+        </div>
+        {errorMsg && <div>
+          <br />
+          <span className='errorMessage-customizable'>{errorMsg}</span>
+        </div>}
+      </div>
 
-      </div >
     );
   }
 

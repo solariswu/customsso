@@ -182,97 +182,81 @@ const OTP = () => {
   }
 
   return (
-    <div className='container'>
-      <div className='modal-dialog'>
-        <div className='modal-content background-customizable modal-content-mobile visible-xs visible-sm'>
-          <div style={{ height: '5px', background: 'orange' }} />
-          <div className='modal-body' style={{ textAlign: 'center' }}>
-            <span>
-              <h3>{amfaConfigs.mfaPageTitle}</h3>
-            </span>
-            <br />
-            <div>
-              <span
-                style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey' }}
-              >
-                Please click on one of the available verification methods below
-                to receive a one time identity code, then enter it below.
-              </span>
-            </div>
-            <div className='login-or'>
-              <hr className='hr-customizable' />
-            </div>
-            {isFetching ?
-              'Loading...' :
-              otpOptions.map((option) => (
-                option === 'e' ?
-                  (<div className='row align-items-end'>
-                    <div className='col'>Email:</div>
-                    <div className='col'>
-                      <span className='link-customizable' onClick={() => username ? stepthree({ otptype: 'e', otpaddr: username }) : null}>
-                        {username ? `${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))}` : '-'}
-                      </span>
-                    </div>
-                  </div>) : option === 'ae' ?
-                    <div className='row align-items-end'>
-                      <div className='col'>Alt-Email:</div>
-                      <div className='col'>
-                        <span className='link-customizable' onClick={() => aemail ? stepthree({ otptype: 'ae', otpaddr: aemail }) : null}>
-                          {aemail ? `${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}` : '-'}
-                        </span> </div>
-                    </div> : option === 's' ?
-                      <div className='row align-items-end'>
-                        <div className='col'>SMS:</div>
-                        <div className='col'>
-                          <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
-                            {phoneNumber ? phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') : '-'}
-                          </span> </div>
-                      </div> : option === 'v' ?
-                        <div className='row align-items-end'>
-                          <div className='col'>Voice:</div>
-                          <div className='col'>
-                            <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
-                              {phoneNumber ? phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') : '-'} </span> </div>
-                        </div> :
-                        <div className='row align-items-end'>
-                          <div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>
-                        </div>
-              ))}
-            <div>
-              <hr className='hr-customizable' />
-              <input name="otpcode" id="otpcode" className="form-control inputField-customizable" placeholder="***"
-                autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
-                onKeyUp={e => confirmLogin(e)}
-                disabled={isLoading}
-              />
-
-              <Button
-                name='verifyotp'
-                type='submit'
-                className='btn btn-primary submitButton-customizable'
-                disabled={isLoading}
-                onClick={!isLoading ? stepfour : null}
-              >
-                {isLoading ? 'Sending...' : 'Verify'}
-              </Button>
-            </div>
-            {errMsg && (
-              <div>
-                <br />
-                <span className='errorMessage-customizable'>{errMsg}</span>
-              </div>
-            )}
-            <hr className='hr-customizable' />
-            <div className='footer-customizable'>
-              <span
-                className='legalText-customizable'
-              >
-                Copyright &copy; 2023 ePersona Inc.{' '}
-              </span>
-            </div>
-          </div>
-        </div>
+    <div>            <span>
+      <h3>{amfaConfigs.mfaPageTitle}</h3>
+    </span>
+      <br />
+      <div>
+        <span
+          style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey' }}
+        >
+          Please click on one of the available verification methods below
+          to receive a one time identity code, then enter it below.
+        </span>
       </div>
+      <div className='login-or'>
+        <hr className='hr-customizable' />
+      </div>
+      {isFetching ?
+        'Loading...' :
+        otpOptions.map((option) => (
+          option === 'e' ?
+            (<div className='row align-items-end'>
+              <div className='col'>Email:</div>
+              <div className='col'>
+                <span className='link-customizable' onClick={() => username ? stepthree({ otptype: 'e', otpaddr: username }) : null}>
+                  {username ? `${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))}` : '-'}
+                </span>
+              </div>
+            </div>) : option === 'ae' ?
+              <div className='row align-items-end'>
+                <div className='col'>Alt-Email:</div>
+                <div className='col'>
+                  <span className='link-customizable' onClick={() => aemail ? stepthree({ otptype: 'ae', otpaddr: aemail }) : null}>
+                    {aemail ? `${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}` : '-'}
+                  </span> </div>
+              </div> : option === 's' ?
+                <div className='row align-items-end'>
+                  <div className='col'>SMS:</div>
+                  <div className='col'>
+                    <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
+                      {phoneNumber ? phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') : '-'}
+                    </span> </div>
+                </div> : option === 'v' ?
+                  <div className='row align-items-end'>
+                    <div className='col'>Voice:</div>
+                    <div className='col'>
+                      <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
+                        {phoneNumber ? phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') : '-'} </span> </div>
+                  </div> :
+                  <div className='row align-items-end'>
+                    <div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>
+                  </div>
+        ))}
+      <div>
+        <hr className='hr-customizable' />
+        <input name="otpcode" id="otpcode" className="form-control inputField-customizable" placeholder="***"
+          autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
+          onKeyUp={e => confirmLogin(e)}
+          disabled={isLoading}
+        />
+
+        <Button
+          name='verifyotp'
+          type='submit'
+          className='btn btn-primary submitButton-customizable'
+          disabled={isLoading}
+          onClick={!isLoading ? stepfour : null}
+        >
+          {isLoading ? 'Sending...' : 'Verify'}
+        </Button>
+      </div>
+      {errMsg && (
+        <div>
+          <br />
+          <span className='errorMessage-customizable'>{errMsg}</span>
+        </div>
+      )}
     </div>
   );
 }

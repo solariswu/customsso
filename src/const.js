@@ -1,4 +1,4 @@
-export const clientName = 'epnd-dev001';
+export const clientName = 'epnd-dev002';
 export const mfaPageTitle = 'Your login requires an additional verification';
 export const region = 'eu-west-1';
 const rootDomain = 'amfa.aws-amplify.dev';
