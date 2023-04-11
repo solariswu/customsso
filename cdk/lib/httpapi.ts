@@ -26,7 +26,6 @@ export class TenantApiGateway {
   scope: Construct;
   api: RestApi;
   authCodeTable: Table;
-  authSessionTable: Table;
   userpool: UserPool;
   certificate: Certificate;
   hostedZone: PublicHostedZone;
@@ -38,7 +37,6 @@ export class TenantApiGateway {
 
     // DB for storing custom auth session data
     this.authCodeTable = this.createAuthCodeTable();
-    this.authSessionTable = this.createAuthSessionTable();
 
     this.createApiGateway();
   }
@@ -157,8 +155,7 @@ export class TenantApiGateway {
     name: string,
     userpool: UserPool,
     userpoolclient: UserPoolClient,
-    authCodeTableName: string,
-    authSessionTableName: string
+    authCodeTableName: string
   ) {
     const policyStatement =
       new PolicyStatement({
@@ -167,14 +164,13 @@ export class TenantApiGateway {
       });
 
     const myLambda = new Function(this.scope, `amfa-customauth-${name}`, {
-      runtime: name == 'token' ? Runtime.PYTHON_3_9 : Runtime.NODEJS_18_X,
-      handler: name == 'token' ? `my${name}.handler` : `${name}.handler`,
+      runtime: name === 'token' ? Runtime.PYTHON_3_9 : Runtime.NODEJS_18_X,
+      handler: name === 'token' ? `my${name}.handler` : `${name}.handler`,
       code: Code.fromAsset(path.join(__dirname, `/../lambda/${name}`)),
       environment: {
         APPCLIENT_ID: userpoolclient.userPoolClientId,
         APP_SECRET: userpoolclient.userPoolClientSecret.unsafeUnwrap(),
         AUTHCODE_TABLE: authCodeTableName,
-        AUTHSESSION_TABLE: authSessionTableName,
         USERPOOL_ID: userpool.userPoolId,
       },
       timeout: Duration.minutes(5),
@@ -202,18 +198,10 @@ export class TenantApiGateway {
       billingMode: BillingMode.PAY_PER_REQUEST,
     });
     return table;
-  };
-
-  private createAuthSessionTable() {
-    const table = new Table(this.scope, `amfa-authsession-${config.tenantId}`, {
-      partitionKey: { name: 'username', type: AttributeType.STRING },
-      billingMode: BillingMode.PAY_PER_REQUEST,
-    });
-    return table;
-  };
+  }
 
   public createOAuthEndpoints(customAuthClient: UserPoolClient, userpool: UserPool) {
-    const oauthEndpointsName = ['challenge', 'token', 'customlogin', 'admininitauth'];
+    const oauthEndpointsName = ['token', 'admininitauth'];
 
     const rootPathAPI = this.api.root.addResource('oauth2', {
       // 👇 enable CORS
@@ -225,8 +213,7 @@ export class TenantApiGateway {
         name,
         userpool,
         customAuthClient,
-        this.authCodeTable.tableName,
-        this.authSessionTable.tableName,
+        this.authCodeTable.tableName
       );
 
       this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, name);

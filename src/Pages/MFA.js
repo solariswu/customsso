@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button } from 'reactstrap';
 
-import { amfaConfigs } from '../const';
+import { amfaConfigs, mfaPageTitle } from '../const';
 
 const OTP = () => {
   const navigate = useNavigate();
@@ -182,9 +182,8 @@ const OTP = () => {
   }
 
   return (
-    <div>            <span>
-      <h3>{amfaConfigs.mfaPageTitle}</h3>
-    </span>
+    <div>
+      <span> <h3>{mfaPageTitle}</h3> </span>
       <br />
       <div>
         <span
@@ -212,22 +211,29 @@ const OTP = () => {
               <div className='row align-items-end'>
                 <div className='col'>Alt-Email:</div>
                 <div className='col'>
-                  <span className='link-customizable' onClick={() => aemail ? stepthree({ otptype: 'ae', otpaddr: aemail }) : null}>
-                    {aemail ? `${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}` : '-'}
-                  </span> </div>
+                  {aemail ?
+                    <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae', otpaddr: aemail })}>
+                      {`${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}`} </span> :
+                    <span> {'-'} </span>}
+                </div>
               </div> : option === 's' ?
                 <div className='row align-items-end'>
                   <div className='col'>SMS:</div>
                   <div className='col'>
-                    <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
-                      {phoneNumber ? phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') : '-'}
-                    </span> </div>
+                    {phoneNumber ?
+                      <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
+                        {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3')} </span> :
+                      <span> {'-'} </span>}
+                  </div>
                 </div> : option === 'v' ?
                   <div className='row align-items-end'>
                     <div className='col'>Voice:</div>
                     <div className='col'>
-                      <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
-                        {phoneNumber ? phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') : '-'} </span> </div>
+                      {phoneNumber ?
+                        <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
+                          {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3')} </span> :
+                        <span> {'-'} </span>}
+                    </div>
                   </div> :
                   <div className='row align-items-end'>
                     <div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>

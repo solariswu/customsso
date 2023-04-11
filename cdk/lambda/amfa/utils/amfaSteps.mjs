@@ -117,8 +117,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     let tType = encodeURI('Initial passwordless login verification'); // Transaction typelLabel for audit logs.
     let postURL = asmurl +
-      '/extAuthenticate.kv?' +
-      'l=' +
+      '/extAuthenticate.kv?l=' +
       l +
       '&u=' +
       u +
@@ -158,11 +157,11 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
         //e for email, s for sms, v for voice, ae for alt-email.
         p = event.otpaddr;
-        postURL = asmurl + '/extResendOtp.kv?' + 'l=' + l + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
+        postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
         break;
       case 4:
         let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
-        postURL = asmurl + '/extVerifyOtp.kv?' + 'l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
+        postURL = asmurl + '/extVerifyOtp.kv?l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
         break;
       default:
         break;
@@ -222,6 +221,9 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                 // statusCode 200, but not 'OK' message
                 return response(501, 'The login service is not currently available. Contact the help desk.');
               }
+              default:
+                // step 3 would not get 200, but 202 when the otp was sent.
+                return response(505, 'The login service is not currently available. Contact the help desk.');
           }
         case 202:
           // test proposal
@@ -231,7 +233,16 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               return response(202, 'Your identity requires password login.')
             case 2:
               // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
-              return response(202, 'Your identity requires verification.')
+              return {
+                statusCode: 202,
+                isBase64Encoded: false,
+                headers: {
+                  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+                  'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+                  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+                },
+                body: JSON.stringify(userAttributes)
+              }
             case 3:
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
               return response(202, amfaResponseJSON.message)
@@ -243,6 +254,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               // no such case
               break;
           }
+          break;
         case 203:
           // Country blocked or threat actor location detected.
           // Push the user back to the initial login page with this error:

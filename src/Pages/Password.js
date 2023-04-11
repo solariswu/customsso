@@ -19,8 +19,8 @@ const LOGIN = () => {
   const apti = location.state?.apti;
   const state = location.state?.state;
   const redirectUri = location.state?.redirectUri;
-  const aemail = location.state?.aemail;
-  const phoneNumber = location.state?.phoneNumber;
+  // const aemail = location.state?.aemail;
+  // const phoneNumber = location.state?.phoneNumber;
 
   const [errorMsg, setErrorMsg] = useState(null);
   const [password, setPassword] = useState('');
@@ -75,6 +75,7 @@ const LOGIN = () => {
             }
             break;
           case 202:
+            const response2 = await result.json();
             navigate('/mfa', {
               state: {
                 username,
@@ -82,8 +83,8 @@ const LOGIN = () => {
                 apti,
                 state,
                 redirectUri,
-                aemail,
-                phoneNumber
+                aemail: response2.nickname,
+                phoneNumber: response2.phone_number,
               }
             });
             break;

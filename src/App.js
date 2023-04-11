@@ -12,7 +12,7 @@ const App = () => {
             <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm">
             <div class="banner-customizable">
                         <center>
-                            <img alt="logo" class="logo-customizable" src="./logo.png" />
+                            <img alt="logo" class="logo-customizable" src="https://cdn.jsdelivr.net/gh/solariswu/free-cdn-source@latest/logo.png" />
                         </center>
                     </div>
                <div style={{ height: '5px', background: 'orange' }} />
