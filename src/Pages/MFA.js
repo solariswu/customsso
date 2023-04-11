@@ -98,11 +98,14 @@ const OTP = () => {
           }
           break;
         case 401:
-          navigate('/', {
-            state: {
-              ErrorMsg: 'You took too long or entered your otp wrong too many times. Try your login again.'
-            }
-          });
+          const resultMsg401 = await result.json();
+          if (resultMsg401.message) {
+            localStorage.setItem('OTPErrorMsg', resultMsg401.message);
+            window.location.assign(`${amfaConfigs.entryUrl}&client_id=${resultMsg401.client_id}`);
+          }
+          else {
+            setErrorMsg('Unknown OTP send error, please contact help desk.');
+          }
           break;
         default:
           const data = await result.json();
@@ -160,6 +163,20 @@ const OTP = () => {
             window.location.assign(response.location);
           }
           break;
+        // case 203:
+        // Push the user back to the initial login page with this error: "Your location is not permitted. Contact the help desk."
+        case 401:
+          // Send the user back to the login page with this error: "You took too long or entered your otp wrong too many times. Try your login again."
+          const resultMsg = await result.json();
+          if (resultMsg.message) {
+            localStorage.setItem('OTPErrorMsg', resultMsg.message);
+            window.location.assign(`${amfaConfigs.entryUrl}&client_id=${resultMsg.clientId}`);
+          }
+          else {
+            setErrorMsg('Unknown OTP send error, please contact help desk.');
+          }
+          break;
+        case 203:
         default:
           const data = await result.json();
           console.log('got verify otp data back:', data);

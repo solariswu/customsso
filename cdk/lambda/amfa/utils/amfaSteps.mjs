@@ -45,8 +45,17 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       return response(500, 'Did not find valid user for this email');
     };
 
-    console.log('UserAttributes:', listUsersRes.Users[0].Attributes);
-    const user = listUsersRes.Users[0];
+    const users = listUsersRes.Users.filter((user) => {
+      return user.UserStatus === 'CONFIRMED';
+    });
+
+    if (users.length === 0) {
+      console.log('Did not find valid user for email:', event.email);
+      return response(500, 'Did not find valid user for this email');
+    };
+
+    console.log('UserAttributes:', users[0].Attributes);
+    const user = users[0];
 
     const userAttributes = user.Attributes.reduce((acc, curr) => {
       acc[curr.Name] = curr.Value;
@@ -55,7 +64,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     const param = {
       UserPoolId: process.env.USERPOOL_ID,
-      Username: listUsersRes.Users[0].Username,
+      Username: users[0].Username,
     };
 
     const userGroup = await cognito.send(new AdminListGroupsForUserCommand(param));
@@ -86,8 +95,8 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     let sfl = 6; // This should be picked up via property file. It should be set to 5 or 6. Can also be set based on user security group. If admin, sfl=6 else sfl=5. Should never be set less than 5.
 
     // API vars that come from the end-user javascript front-end client via post or cookie read
-    let u = event.email; //'ksparksnc@icloud.com'; // email address of the user. Entered from front end web service to login via post.
-    let igd = event.rememberDevice === 'true' ? 1 : 0; // On the main login page, add a checkbox:  [ ] Remember this device, I own it. If checked, set igd = 0 and send it with all related transactions until the login process completes
+    let u = event.email; // email address of the user. Entered from front end web service to login via post.
+    let igd = event.rememberDevice === 'true' ? 0 : 1; // On the main login page, add a checkbox:  [ ] Remember this device, I own it. If checked, set igd = 0 and send it with all related transactions until the login process completes
     // If it's not checked (default) set igd = 1. This will ensure no forensics are collected on a public terminal or shared devices.
     // If the user checks the box, then node.js needs to save this preference in the browser under local storage.  see: https://codepen.io/kylastoneberg/pen/qweppq
     let a = encodeURI(event.authParam);
@@ -221,9 +230,9 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                 // statusCode 200, but not 'OK' message
                 return response(501, 'The login service is not currently available. Contact the help desk.');
               }
-              default:
-                // step 3 would not get 200, but 202 when the otp was sent.
-                return response(505, 'The login service is not currently available. Contact the help desk.');
+            default:
+              // step 3 would not get 200, but 202 when the otp was sent.
+              return response(505, 'The login service is not currently available. Contact the help desk.');
           }
         case 202:
           // test proposal
@@ -264,7 +273,20 @@ export const amfaSteps = async (event, headers, cognito, step) => {
           // The user took too long or entered the otp wrong too many times.
           // Send the user back to the login page with this error:
           //    "You took too long or entered your otp wrong too many times. Try your login again."
-          return response(401, 'You took too long or entered your otp wrong too many times. Try your login again.');
+          return {
+            statusCode: 401,
+            isBase64Encoded: false,
+            headers: {
+              'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+              'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+              'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+            },
+            body: JSON.stringify({
+              message: 'You took too long or entered your otp wrong too many times. Try your login again.',
+              clientId: process.env.HOSTED_CLIENT_ID,
+            })
+          }
+        // return response(401, 'You took too long or entered your otp wrong too many times. Try your login again.');
         default:
           // Anything else: Default - Push the user back to the initial login page with the error:
           //     "We ran into an issue. Please contact the help desk."

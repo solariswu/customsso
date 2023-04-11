@@ -66,7 +66,7 @@ export class TenantApiGateway {
     });
   };
 
-  private createAmfaLambda(lambdaName: string, userpool: UserPool, userPoolClient: UserPoolClient, authCodeTableName: string,) {
+  private createAmfaLambda(lambdaName: string, userpool: UserPool, userPoolClient: UserPoolClient, authCodeTableName: string, hostedClientId: string) {
     const myLambda = new Function(
       this.scope,
       `${lambdaName}lambda-${config.tenantId}`,
@@ -84,6 +84,7 @@ export class TenantApiGateway {
           APPCLIENT_ID: userPoolClient.userPoolClientId,
           APP_SECRET: userPoolClient.userPoolClientSecret.unsafeUnwrap(),
           MAGIC_STRING: config.magicstring,
+          HOSTED_CLIENT_ID: hostedClientId,
         },
         timeout: Duration.minutes(2),
       }
@@ -142,11 +143,11 @@ export class TenantApiGateway {
     );
   };
 
-  public createAmfaApiEndpoints = (userpool: UserPool, userPoolClient: UserPoolClient) => {
+  public createAmfaApiEndpoints = (userpool: UserPool, userPoolClient: UserPoolClient, hostedClientId: string) => {
     const amfaLambdaFunctions = ['amfa'];
 
     amfaLambdaFunctions.map(fnName => {
-      const lambdaFn = this.createAmfaLambda(fnName, userpool, userPoolClient, this.authCodeTable.tableName);
+      const lambdaFn = this.createAmfaLambda(fnName, userpool, userPoolClient, this.authCodeTable.tableName, hostedClientId);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
     });
   };

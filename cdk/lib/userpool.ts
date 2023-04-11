@@ -25,22 +25,23 @@ export class TenantUserPool {
   userpool: UserPool;
   hostedUIClient: UserPoolClient;
   customAuthClient: UserPoolClient;
-  api: RestApi
+  oidcProvider: UserPoolIdentityProviderOidc;
+  api: RestApi;
 
   constructor(scope: Construct, apiGateway: RestApi) {
     this.scope = scope;
     this.api = apiGateway;
 
-    this.createUserPool();
-    this.addCustomAuthClient();
+    this.userpool = this.createUserPool();
+    this.customAuthClient = this.addCustomAuthClient();
     this.addCustomAuthLambdaTriggers();
-    this.createOIDCProvider();
-    this.addHostedUIAppClient();
-    this.addHostedUIDomain()
+    this.hostedUIClient = this.addHostedUIAppClient();
+    this.oidcProvider = this.createOIDCProvider();
+    this.addHostedUIDomain();
   }
 
   private createUserPool = () => {
-    this.userpool = new UserPool(this.scope, `amfa-userpool}`, {
+    return new UserPool(this.scope, `amfa-userpool}`, {
       userPoolName: `amfaUserPool`,
       // use self sign-in is disable by default
       selfSignUpEnabled: true,
@@ -75,7 +76,7 @@ export class TenantUserPool {
   }
 
   private addCustomAuthClient() {
-    this.customAuthClient = new UserPoolClient(this.scope, 'customAuthClient', {
+    return new UserPoolClient(this.scope, 'customAuthClient', {
       userPool: this.userpool,
       generateSecret: true,
       authFlows: {
@@ -89,7 +90,7 @@ export class TenantUserPool {
   };
 
   private addHostedUIAppClient() {
-    this.hostedUIClient = new UserPoolClient(this.scope, 'hostedUIClient', {
+    return new UserPoolClient(this.scope, 'hostedUIClient', {
       userPool: this.userpool,
       generateSecret: false,
       authFlows: {

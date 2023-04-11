@@ -20,11 +20,17 @@ const Home = () => {
     setRedirectUri(redirect_uri);
     setState(state);
 
+    const otpErrorMsg = localStorage.getItem('OTPErrorMsg');
+    if (otpErrorMsg) {
+      setErrorMsg(otpErrorMsg);
+      localStorage.removeItem('OTPErrorMsg');
+    }
+
   }, [searchParams]);
 
   const LOGIN = () => {
     const navigate = useNavigate();
-    const [rememberDevice, setRememberDevice] = useState(sessionStorage.getItem('amfa-remember-device') || 'false');
+    const [rememberDevice, setRememberDevice] = useState(localStorage.getItem('amfa-remember-device') || 'false');
     const [email, setEmail] = useState('');
 
     const confirmLogin = (e) => {
@@ -38,12 +44,12 @@ const Home = () => {
       if ((newChoice === 'true' && window.confirm('Remember this device?')) ||
         newChoice === 'false') {
         setRememberDevice(newChoice);
-        sessionStorage.setItem('amfa-remember-device', newChoice);
+        localStorage.setItem('amfa-remember-device', newChoice);
       }
     }
 
     const stepone = async (e) => {
-      const mailformat = /^\b[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b$/i;
+      const mailformat = /^\b[A-Z0-9._+%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b$/i;
       // /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
       if (!email || !email.match(mailformat)) {
         setErrorMsg('Please enter a valid email address');
@@ -87,16 +93,14 @@ const Home = () => {
             }
             break;
           case 202:
-            const result = await res.json();
+            // const result = await res.json();
             navigate('/password', {
               state: {
                 username: email,
                 rememberDevice,
                 apti,
                 state,
-                redirectUri,
-                aemail: result.nickname,
-                phoneNumber: result.phone_number,
+                redirectUri
               }
             });
             break;

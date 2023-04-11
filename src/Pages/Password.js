@@ -19,8 +19,6 @@ const LOGIN = () => {
   const apti = location.state?.apti;
   const state = location.state?.state;
   const redirectUri = location.state?.redirectUri;
-  // const aemail = location.state?.aemail;
-  // const phoneNumber = location.state?.phoneNumber;
 
   const [errorMsg, setErrorMsg] = useState(null);
   const [password, setPassword] = useState('');
