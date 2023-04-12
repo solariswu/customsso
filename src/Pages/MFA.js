@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import { Button } from 'reactstrap';
+import { Button, Spinner } from 'reactstrap';
 
-import { amfaConfigs, mfaPageTitle } from '../const';
+import { amfaConfigs, apiUrl, applicationUrl, mfaPageTitle } from '../const';
 
 const OTP = () => {
   const navigate = useNavigate();
@@ -81,19 +81,19 @@ const OTP = () => {
     setErrorMsg('');
     setInfoMsg('');
     try {
-      const result = await fetch(`${amfaConfigs.apiUrl}/amfa`, {
+      const result = await fetch(`${apiUrl}/amfa`, {
         method: 'POST',
         body: JSON.stringify(sendOtpParams),
       });
 
       switch (result.status) {
-        case 200:
+        case 202:
           const resultMsg = await result.json();
           if (resultMsg.message) {
             setInfoMsg(resultMsg.message);
             setTimeout(() => {
               setInfoMsg('');
-            }, 300);
+            }, 8000);
           }
           else {
             setErrorMsg('Unknown OTP send error, please contact help desk.');
@@ -103,7 +103,7 @@ const OTP = () => {
           const resultMsg401 = await result.json();
           if (resultMsg401.message) {
             localStorage.setItem('OTPErrorMsg', resultMsg401.message);
-            window.location.assign(`${amfaConfigs.entryUrl}&client_id=${resultMsg401.client_id}`);
+            window.location.assign(`${applicationUrl}?amfa=relogin`);
           }
           else {
             setErrorMsg('Unknown OTP send error, please contact help desk.');
@@ -154,7 +154,7 @@ const OTP = () => {
     setErrorMsg('');
     setInfoMsg('');
     try {
-      const result = await fetch(`${amfaConfigs.apiUrl}/amfa`, {
+      const result = await fetch(`${apiUrl}/amfa`, {
         method: 'POST',
         body: JSON.stringify(verifyOtpParams),
       });
@@ -173,7 +173,8 @@ const OTP = () => {
           const resultMsg = await result.json();
           if (resultMsg.message) {
             localStorage.setItem('OTPErrorMsg', resultMsg.message);
-            window.location.assign(`${amfaConfigs.entryUrl}&client_id=${resultMsg.clientId}`);
+            window.location.assign(`${applicationUrl}?amfa=relogin`);
+            // window.location.assign(`${amfaConfigs.entryUrl}&client_id=${resultMsg.clientId}`);
           }
           else {
             setErrorMsg('Unknown OTP send error, please contact help desk.');
@@ -277,13 +278,14 @@ const OTP = () => {
           {isLoading ? 'Sending...' : 'Verify'}
         </Button>
       </div>
-      {errMsg && (
+      {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
+      errMsg && (
         <div>
           <br />
           <span className='errorMessage-customizable'>{errMsg}</span>
           <span className='infoMessage-customizable'>{infoMsg}</span>
         </div>
-      )}
+      ))}
     </div>
   );
 }

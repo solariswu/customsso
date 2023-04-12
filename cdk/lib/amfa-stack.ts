@@ -22,7 +22,7 @@ export class AmfaStack extends Stack {
 
     // frontend
     // use the domain created above to create the frontend web app.
-    const webApp = new WebApplication(this, props.siteCertificate, props.hostedZone);
+    new WebApplication(this, props.siteCertificate, props.hostedZone);
 
     // backend
     // amfa apis

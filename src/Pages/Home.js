@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Spinner } from 'reactstrap';
 
 
-import { amfaConfigs } from '../const';
+import { apiUrl } from '../const';
 import { clientName } from '../const';
 
 const LOGIN = () => {
@@ -58,7 +58,6 @@ const LOGIN = () => {
     };
 
     const apti = (Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16));
-    sessionStorage.setItem('apti', apti);
 
     const authParam = window.getAuthParam();
 
@@ -80,7 +79,7 @@ const LOGIN = () => {
     setLoading(true);
     setErrorMsg('');
     try {
-      const res = await fetch(`${amfaConfigs.apiUrl}/amfa`, options);
+      const res = await fetch(`${apiUrl}/amfa`, options);
 
       switch (res.status) {
         case 200:

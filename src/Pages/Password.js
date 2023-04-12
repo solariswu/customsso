@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import { Button } from 'reactstrap';
-import { amfaConfigs } from '../const';
+import { Button, Spinner } from 'reactstrap';
+import { apiUrl } from '../const';
 
 const LOGIN = () => {
   const navigate = useNavigate();
@@ -57,10 +57,10 @@ const LOGIN = () => {
     setLoading(true);
     setErrorMsg('');
     try {
-      const res = await fetch(`${amfaConfigs.apiUrl}/oauth2/admininitauth`, options);
+      const res = await fetch(`${apiUrl}/oauth2/admininitauth`, options);
 
       if (res.status === 200) {
-        const result = await fetch(`${amfaConfigs.apiUrl}/amfa`, {
+        const result = await fetch(`${apiUrl}/amfa`, {
           method: 'POST',
           body: JSON.stringify(params),
         });
@@ -95,6 +95,15 @@ const LOGIN = () => {
               setErrorMsg('Unknown error, please contact help desk.');
             }
             break;
+        }
+      }
+      else {
+        const data = await res.json();
+        if (data) {
+          setErrorMsg(data.message ? data.message : data.name ? data.name : JSON.stringify(data));
+        }
+        else {
+          setErrorMsg('Unknown error, please contact help desk.');
         }
       }
     }
@@ -134,10 +143,11 @@ const LOGIN = () => {
               href="/#">Forgot Password?</a></p></span>
         </div>
       </div>
-      {errorMsg && <div>
-        <br />
-        <span className='errorMessage-customizable'>{errorMsg}</span>
-      </div>}
+      {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
+        errorMsg && <div>
+          <br />
+          <span className='errorMessage-customizable'>{errorMsg}</span>
+        </div>)}
     </div >
   );
 }
