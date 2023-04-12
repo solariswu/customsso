@@ -31,6 +31,8 @@ const headers = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
   'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
   'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+  'Access-Control-Expose-Headers': 'Set-Cookie',
+  'Access-Control-Allow-Credentials': 'true',
 };
 
 const response = (statusCode = 200, body) => {
@@ -88,7 +90,7 @@ export const handler = async (event) => {
       oneEvent.requestTimeEpoch = event.requestContext.requestTimeEpoch;
 
       // todo fetch cookie from header
-      oneEvent.cookies = event.headers['Cookies'];
+      oneEvent.cookies = event.headers['Cookie'];
       console.log('oneEvent', oneEvent);
 
       switch (payload.phase) {

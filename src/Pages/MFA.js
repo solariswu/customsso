@@ -84,6 +84,7 @@ const OTP = () => {
       const result = await fetch(`${apiUrl}/amfa`, {
         method: 'POST',
         body: JSON.stringify(sendOtpParams),
+        credentials: 'include',
       });
 
       switch (result.status) {
@@ -92,7 +93,6 @@ const OTP = () => {
           if (resultMsg.message) {
             setInfoMsg(resultMsg.message);
             setTimeout(() => {
-              setInfoMsg('');
             }, 8000);
           }
           else {
@@ -133,6 +133,7 @@ const OTP = () => {
 
     if (!otp.code || otp.code.length < 1) {
       setErrorMsg('Please enter the verification code');
+      setInfoMsg('');
       return;
     }
 
@@ -157,6 +158,7 @@ const OTP = () => {
       const result = await fetch(`${apiUrl}/amfa`, {
         method: 'POST',
         body: JSON.stringify(verifyOtpParams),
+        credentials: 'include',
       });
 
       switch (result.status) {
@@ -174,7 +176,6 @@ const OTP = () => {
           if (resultMsg.message) {
             localStorage.setItem('OTPErrorMsg', resultMsg.message);
             window.location.assign(`${applicationUrl}?amfa=relogin`);
-            // window.location.assign(`${amfaConfigs.entryUrl}&client_id=${resultMsg.clientId}`);
           }
           else {
             setErrorMsg('Unknown OTP send error, please contact help desk.');
@@ -183,7 +184,6 @@ const OTP = () => {
         case 203:
         default:
           const data = await result.json();
-          console.log('got verify otp data back:', data);
           if (data) {
             setErrorMsg(data.message ? data.message : data.name ? data.name : JSON.stringify(data));
           }
@@ -262,7 +262,7 @@ const OTP = () => {
         ))}
       <div>
         <hr className='hr-customizable' />
-        <input name="otpcode" id="otpcode" className="form-control inputField-customizable" placeholder="***"
+        <input name="otpcode" id="otpcode" className="form-control inputField-customizable" placeholder="******"
           autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
           onKeyUp={e => confirmLogin(e)}
           disabled={isLoading}
@@ -279,13 +279,12 @@ const OTP = () => {
         </Button>
       </div>
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
-      errMsg && (
-        <div>
-          <br />
-          <span className='errorMessage-customizable'>{errMsg}</span>
-          <span className='infoMessage-customizable'>{infoMsg}</span>
-        </div>
-      ))}
+        errMsg && (
+          <div>         <br /><span className='errorMessage-customizable'>{errMsg}</span></div>
+        ))}
+      {!isLoading && infoMsg &&
+        <div>         <br /><span className='infoMessage-customizable'>{infoMsg}</span></div>
+      }
     </div>
   );
 }

@@ -74,6 +74,7 @@ const LOGIN = () => {
     const options = {
       method: 'POST',
       body: JSON.stringify(params),
+      credentials: 'include',
     };
 
     setLoading(true);
@@ -126,7 +127,7 @@ const LOGIN = () => {
   return (
     <div>
       <span>
-         <h3>Sign in to your account</h3>
+        <h3>Sign in to your account</h3>
       </span>
       <br />
       <div>
@@ -158,15 +159,15 @@ const LOGIN = () => {
           {isLoading ? 'Sending...' : 'Sign In'}
         </Button>
       </div>
-      <div>
+      {!isLoading && <div>
         <span className='textDescription-customizable'> New User?
           <a href="/password" className="textLink-customizable"> Register</a></span>
-      </div>
-      {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span>:
-      (errorMsg && <div>
-        <br />
-        <span className='errorMessage-customizable'>{errorMsg}</span>
-      </div>)}
+      </div>}
+      {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> :
+        (errorMsg && <div>
+          <br />
+          <span className='errorMessage-customizable'>{errorMsg}</span>
+        </div>)}
     </div>
 
   );

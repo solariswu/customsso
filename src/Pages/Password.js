@@ -63,6 +63,7 @@ const LOGIN = () => {
         const result = await fetch(`${apiUrl}/amfa`, {
           method: 'POST',
           body: JSON.stringify(params),
+          credentials:  'include',
         });
 
         switch (result.status) {
@@ -137,12 +138,12 @@ const LOGIN = () => {
         >
           {isLoading ? 'Sending...' : 'Sign In'}
         </Button>
-        <div>
+      </div>
+      {!isLoading && <div>
           <span className='textDescription-customizable'>
             <p className="redirect-customizable"><a
               href="/#">Forgot Password?</a></p></span>
-        </div>
-      </div>
+        </div>}
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errorMsg && <div>
           <br />

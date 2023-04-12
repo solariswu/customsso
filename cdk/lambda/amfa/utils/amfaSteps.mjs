@@ -22,6 +22,14 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     };
   };
 
+  const cookieEnabledHeaders = {
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+    'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+    'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+    'Access-Control-Expose-Headers': 'Set-Cookie',
+    'Access-Control-Allow-Credentials': 'true',
+  };
+
   function hash(content) {
     return createHash('md5').update(content).digest('hex');
   }
@@ -213,11 +221,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                     multiValueHeaders: {
                       'Set-Cookie': [cookieValue]
                     },
-                    headers: {
-                      'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-                      'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
-                      'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-                    },
+                    headers: cookieEnabledHeaders,
                     body: JSON.stringify({ 'location': url })
                   }
                 }
@@ -245,11 +249,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               return {
                 statusCode: 202,
                 isBase64Encoded: false,
-                headers: {
-                  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-                  'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
-                  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-                },
+                headers: cookieEnabledHeaders,
                 body: JSON.stringify(userAttributes)
               }
             case 3:
@@ -273,20 +273,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
           // The user took too long or entered the otp wrong too many times.
           // Send the user back to the login page with this error:
           //    "You took too long or entered your otp wrong too many times. Try your login again."
-          return {
-            statusCode: 401,
-            isBase64Encoded: false,
-            headers: {
-              'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-              'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
-              'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-            },
-            body: JSON.stringify({
-              message: 'You took too long or entered your otp wrong too many times. Try your login again.',
-              clientId: process.env.HOSTED_CLIENT_ID,
-            })
-          }
-        // return response(401, 'You took too long or entered your otp wrong too many times. Try your login again.');
+          return response(401, 'You took too long or entered your otp wrong too many times. Try your login again.');
         default:
           // Anything else: Default - Push the user back to the initial login page with the error:
           //     "We ran into an issue. Please contact the help desk."
