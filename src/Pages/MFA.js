@@ -10,6 +10,7 @@ const OTP = () => {
   const location = useLocation();
 
   const [errMsg, setErrorMsg] = useState('');
+  const [infoMsg, setInfoMsg] = useState('');
   const [isLoading, setLoading] = useState(false);
   const [isFetching, setFetching] = useState(false);
   const [otp, setOtp] = useState({ type: 'e', code: '', addr: '' });
@@ -78,6 +79,7 @@ const OTP = () => {
 
     setLoading(true);
     setErrorMsg('');
+    setInfoMsg('');
     try {
       const result = await fetch(`${amfaConfigs.apiUrl}/amfa`, {
         method: 'POST',
@@ -88,9 +90,9 @@ const OTP = () => {
         case 200:
           const resultMsg = await result.json();
           if (resultMsg.message) {
-            setErrorMsg(resultMsg.message);
+            setInfoMsg(resultMsg.message);
             setTimeout(() => {
-              setErrorMsg('');
+              setInfoMsg('');
             }, 300);
           }
           else {
@@ -150,6 +152,7 @@ const OTP = () => {
 
     setLoading(true);
     setErrorMsg('');
+    setInfoMsg('');
     try {
       const result = await fetch(`${amfaConfigs.apiUrl}/amfa`, {
         method: 'POST',
@@ -247,7 +250,7 @@ const OTP = () => {
                     <div className='col'>Voice:</div>
                     <div className='col'>
                       {phoneNumber ?
-                        <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
+                        <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
                           {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3')} </span> :
                         <span> {'-'} </span>}
                     </div>
@@ -278,6 +281,7 @@ const OTP = () => {
         <div>
           <br />
           <span className='errorMessage-customizable'>{errMsg}</span>
+          <span className='infoMessage-customizable'>{infoMsg}</span>
         </div>
       )}
     </div>

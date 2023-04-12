@@ -28,15 +28,14 @@ export class TenantUserPool {
   oidcProvider: UserPoolIdentityProviderOidc;
   api: RestApi;
 
-  constructor(scope: Construct, apiGateway: RestApi) {
+  constructor(scope: Construct) {
     this.scope = scope;
-    this.api = apiGateway;
 
     this.userpool = this.createUserPool();
     this.customAuthClient = this.addCustomAuthClient();
     this.addCustomAuthLambdaTriggers();
-    this.hostedUIClient = this.addHostedUIAppClient();
     this.oidcProvider = this.createOIDCProvider();
+    this.hostedUIClient = this.addHostedUIAppClient();
     this.addHostedUIDomain();
   }
 
@@ -111,6 +110,7 @@ export class TenantUserPool {
   private createOIDCProvider() {
     const issuerUrl = `https://cognito-idp.${config.region}.amazonaws.com/${this.userpool.userPoolId}`;
     const customauthUrl = `https://${config.tenantId}.${DNS.RootDomainName}`;
+    const serviceApiUrl = `https://api.${config.tenantId}.${DNS.RootDomainName}`;
 
     return new UserPoolIdentityProviderOidc(
       this.scope,
@@ -128,7 +128,7 @@ export class TenantUserPool {
         endpoints: {
           authorization: `${customauthUrl}/oauth2/authorise`,
           jwksUri: `${issuerUrl}/.well-known/jwks.json`,
-          token: `${this.api.url}oauth2/token`,
+          token: `${serviceApiUrl}/oauth2/token`,
           userInfo: `https://${config.tenantId}-amfa.auth.${config.region}.amazoncognito.com/oauth2/userinfo`,
         },
         identifiers: ['amfa'],

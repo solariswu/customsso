@@ -160,6 +160,14 @@ body {
   /* border: 2px solid #D64958; */
   color: #D64958;
 }
+.infoMessage-customizable {
+  padding: 5px;
+  font-size: 14px;
+  width: 100%;
+  background: #F5F5F5;
+  /* border: 2px solid #D64958; */
+  color: #339b43;
+}
 
 .inputField-customizable {
   width: 100%;
