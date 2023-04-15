@@ -15,7 +15,7 @@ const LOGIN = () => {
   const [redirectUri, setRedirectUri] = useState(null);
   const [isLoading, setLoading] = useState(false);
   const [rememberDevice, setRememberDevice] = useState(localStorage.getItem('amfa-remember-device') || 'false');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(localStorage.getItem('amfa-username') || '');
 
   useEffect(() => {
     const state = searchParams.get("state")
@@ -57,6 +57,7 @@ const LOGIN = () => {
       return;
     };
 
+    localStorage.setItem('amfa-username', email.trim());
     const apti = (Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16));
 
     const authParam = window.getAuthParam();
@@ -127,9 +128,10 @@ const LOGIN = () => {
   return (
     <div>
       <span>
-        <h3>Sign in to your account</h3>
+        <h4>Sign in to your account</h4>
       </span>
-      <br />
+        <hr className="hr-customizable" />
+      <span className='idpDescription-customizable'> Login with your {clientName} account </span>
       <div>
         <input
           type="checkbox" id="remember-me" name="remember-me"
@@ -139,12 +141,11 @@ const LOGIN = () => {
         <span style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey' }}>
           This is my device, remember it.
         </span>
+        <br />
+        <br />
       </div>
-      <div className="login-or">
-        <hr className="hr-customizable" />
-      </div>
+
       <div>
-        <span className='idpDescription-customizable'> Login with your {clientName} account </span><br />
         <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
           autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
           onKeyUp={e => confirmLogin(e)}

@@ -9,9 +9,11 @@ import {
 } from '@aws-sdk/client-dynamodb';
 
 const headers = {
-	'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+	'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+	'Access-Control-Expose-Headers': 'Set-Cookie',
+	'Access-Control-Allow-Credentials': 'true',
 };
 
 const validateInputParams = (event) => {

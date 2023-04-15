@@ -28,7 +28,7 @@ const validateInputParams = (payload) => {
 };
 
 const headers = {
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
   'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
   'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
   'Access-Control-Expose-Headers': 'Set-Cookie',
@@ -102,7 +102,7 @@ export const handler = async (event) => {
           return stepTwoResponse;
         case 'sendotp':
           const stepThreeResponse = await amfaSteps(oneEvent, headers, client, 3);
-          return stepThreeResponse; 
+          return stepThreeResponse;
         case 'verifyotp':
           const stepFourResponse = await amfaSteps(oneEvent, headers, client, 4);
           return stepFourResponse;

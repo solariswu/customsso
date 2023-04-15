@@ -294,7 +294,6 @@ body {
 .link-customizable {
     cursor:pointer;
     color:blue;
-    text-decoration:underline;
 }
 .link-customizable:hover {
   text-decoration:none;

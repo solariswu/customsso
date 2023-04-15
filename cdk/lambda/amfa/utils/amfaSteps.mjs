@@ -23,7 +23,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
   };
 
   const cookieEnabledHeaders = {
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
     'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
     'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
     'Access-Control-Expose-Headers': 'Set-Cookie',
@@ -130,7 +130,12 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     // This var creates a behavior key for passwordless auth. By adding the email and uIP, a user will only be able to use passwordless auth from a known previously used location.
 
     const amfaCookieName = hash(`${u}${wr}${salt}`);
-    let c = (event.cookies && event.cookies[amfaCookieName]) ? event.cookies[amfaCookieName] : ''; //'278dcbdee5660876c230650ebb4bd70e';  // For every new MFA Auth login the nodeJS backend needs to read the cookie from teh client if it exists and send it in.
+    let c = '';
+    if (event.cookies && event.cookies.trim().length > 0) {
+      const startIndex = event.cookies.trim().indexOf(amfaCookieName) + amfaCookieName.length + 1;
+      c = event.cookies.trim().substring(startIndex).split(';')[0];
+    }
+    //'278dcbdee5660876c230650ebb4bd70e';  // For every new MFA Auth login the nodeJS backend needs to read the cookie from teh client if it exists and send it in.
 
     let tType = encodeURI('Initial passwordless login verification'); // Transaction typelLabel for audit logs.
     let postURL = asmurl +

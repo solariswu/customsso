@@ -119,11 +119,8 @@ const LOGIN = () => {
 
   return (
     <div>
-      <span><h3>Sign in to your account</h3></span>
-      <br />
-      <div className="login-or">
+      <span><h4>Sign in to your account</h4></span>
         <hr className="hr-customizable" />
-      </div>
       <div>
         <span className='idpDescription-customizable'> Please enter your password </span><br />
         <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"

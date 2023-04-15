@@ -104,6 +104,7 @@ const OTP = () => {
           if (resultMsg401.message) {
             localStorage.setItem('OTPErrorMsg', resultMsg401.message);
             window.location.assign(`${applicationUrl}?amfa=relogin`);
+            return;
           }
           else {
             setErrorMsg('Unknown OTP send error, please contact help desk.');
@@ -119,12 +120,11 @@ const OTP = () => {
           }
           break;
       }
+      setLoading(false);
     }
     catch (err) {
       console.error('error in OTP login', err);
       setErrorMsg('OTP login error, please contact help desk.');
-    }
-    finally {
       setLoading(false);
     }
   }
@@ -204,18 +204,16 @@ const OTP = () => {
 
   return (
     <div>
-      <span> <h3>{mfaPageTitle}</h3> </span>
-      <br />
+      <span> <h4>{mfaPageTitle}</h4> </span>
+      <hr className='hr-customizable' />
       <div>
         <span
-          style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey' }}
+          style={{ lineHeight: '1rem', color: 'grey' }}
         >
           Please click on one of the available verification methods below
           to receive a one time identity code, then enter it below.
         </span>
-      </div>
-      <div className='login-or'>
-        <hr className='hr-customizable' />
+        <br />
       </div>
       {isFetching ?
         'Loading...' :
@@ -225,7 +223,7 @@ const OTP = () => {
               <div className='col'>Email:</div>
               <div className='col'>
                 <span className='link-customizable' onClick={() => username ? stepthree({ otptype: 'e', otpaddr: username }) : null}>
-                  {username ? `${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))}` : '-'}
+                  {username ? `${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))} >` : '-'}
                 </span>
               </div>
             </div>) : option === 'ae' ?
@@ -234,7 +232,7 @@ const OTP = () => {
                 <div className='col'>
                   {aemail ?
                     <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae', otpaddr: aemail })}>
-                      {`${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}`} </span> :
+                      {`${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))} >`} </span> :
                     <span> {'-'} </span>}
                 </div>
               </div> : option === 's' ?
@@ -243,7 +241,7 @@ const OTP = () => {
                   <div className='col'>
                     {phoneNumber ?
                       <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
-                        {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3')} </span> :
+                        {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') + ' >'} </span> :
                       <span> {'-'} </span>}
                   </div>
                 </div> : option === 'v' ?
@@ -252,7 +250,7 @@ const OTP = () => {
                     <div className='col'>
                       {phoneNumber ?
                         <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
-                          {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3')} </span> :
+                          {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') + ' >'} </span> :
                         <span> {'-'} </span>}
                     </div>
                   </div> :
@@ -262,7 +260,8 @@ const OTP = () => {
         ))}
       <div>
         <hr className='hr-customizable' />
-        <input name="otpcode" id="otpcode" className="form-control inputField-customizable" placeholder="******"
+        <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="1234"
+          style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
           autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
           onKeyUp={e => confirmLogin(e)}
           disabled={isLoading}
@@ -272,6 +271,7 @@ const OTP = () => {
           name='verifyotp'
           type='submit'
           className='btn btn-primary submitButton-customizable'
+          style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
           disabled={isLoading}
           onClick={!isLoading ? stepfour : null}
         >
