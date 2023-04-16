@@ -1,30 +1,46 @@
 // App.js
+
+import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route } from 'react-router-dom';
+
 import Home from './Pages/Home';
 import Password from './Pages/Password';
 import MFA from './Pages/MFA';
 import NoMatch from './Pages/NoMatch';
-import { useEffect, useState } from 'react';
 
 import { applicationUrl } from './const';
 
 const App = () => {
-   const [oauthTime, setOauthTime] = useState(300);
+   const [time, setTime] = useState('');
+   const cd = useRef(299);
+   const timer = useRef(null);
+
+   const timerHandler = () => {
+      if (cd.current <= 0) {
+         setTime('');
+         timer.current && clearTimeout(timer.current);
+         localStorage.setItem('OTPErrorMsg', "You took too long or entered your otp wrong too many times. Try your login again.");
+         window.location.assign(`${applicationUrl}?amfa=relogin`);
+         return;
+      }
+      const m = parseInt(cd.current / 60) > 9 ? parseInt(cd.current / 60) : '0' + parseInt(cd.current / 60);
+      const s = parseInt(cd.current % 60) > 9 ? parseInt(cd.current % 60) : '0' + parseInt(cd.current % 60);
+      setTime(`${m}:${s}`);
+      cd.current--;
+      timer.current = setTimeout(() => {
+         timerHandler();
+      }, 1000);
+   };
+
+   const timerCleaner = () => {
+      timer.current && clearTimeout(timer.current);
+   }
 
    useEffect(() => {
-      const interval = setInterval(() => {
-         if (oauthTime > 1) {
-            setOauthTime(oauthTime - 1);
-         }
-         else {
-            localStorage.setItem('OTPErrorMsg', 'You took too long or entered your otp wrong too many times. Try your login again.');
-            window.location.assign(`${applicationUrl}?amfa=relogin`);
-            return;
-         }
-      }, 1000);
+      timerHandler();
 
       return () => {
-         clearInterval(interval);
+         timerCleaner();
       }
    }, []);
 
@@ -54,8 +70,8 @@ const App = () => {
                      >
                         Copyright &copy; 2023 ePersona Inc. v1.0
                      </span><br />
-                     <span>
-                        {oauthTime / 60 > 1 ? `${parseInt(oauthTime / 60)}:${oauthTime % 60 > 9 ? oauthTime % 60 : '0' + oauthTime % 60}` : `0${parseInt(oauthTime / 60)}:${oauthTime % 60 > 9 ? oauthTime % 60 : '0' + oauthTime % 60}`}
+                     <span className='legalText-customizable'>
+                        {time}
                      </span>
                   </div>
                </div>
