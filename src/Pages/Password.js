@@ -8,11 +8,26 @@ const LOGIN = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const closeQuickView = () => {
+    console.log ('back pressed');
+  }
+
   useEffect(() => {
     if (!location.state) {
       navigate('/');
     }
-  }, []);
+
+    window.history.pushState('fake-route', document.title, window.location.href);
+
+    window.addEventListener('popstate', closeQuickView);
+    return () => {
+      window.removeEventListener('popstate', closeQuickView);
+      // If we left without using the back button, aka by using a button on the page, we need to clear out that fake history event
+      if (window.history.state === 'fake-route') {
+        window.history.back();
+      }
+    };
+  }, [location.state, navigate]);
 
   const username = location.state?.username;
   const rememberDevice = location.state?.rememberDevice;

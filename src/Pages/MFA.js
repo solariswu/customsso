@@ -12,7 +12,7 @@ const OTP = () => {
   const [errMsg, setErrorMsg] = useState('');
   const [infoMsg, setInfoMsg] = useState('');
   const [isLoading, setLoading] = useState(false);
-  const [isFetching, setFetching] = useState(false);
+  const [isFetching, setFetching] = useState(true);
   const [otp, setOtp] = useState({ type: 'e', code: '', addr: '' });
   const [otpOptions, setOtpOptions] = useState([]);
 
@@ -20,7 +20,6 @@ const OTP = () => {
   useEffect(() => {
     const getMFAOptions = async () => {
       try {
-        setFetching(true);
         const result = await fetch(amfaConfigs.tenantOtpConfigUrl);
         const json = await result.json();
         setOtpOptions(json.otpOptions);
@@ -34,11 +33,22 @@ const OTP = () => {
 
     if (!location.state) {
       navigate('/');
+      return;
     }
     else {
       getMFAOptions();
+      window.history.pushState('fake-route', document.title, window.location.href);
+
+      window.addEventListener('popstate', () => console.log('back pressed in MFA'));
+      return () => {
+        window.removeEventListener('popstate', () => console.log('back pressed in MFA'));
+        // If we left without using the back button, aka by using a button on the page, we need to clear out that fake history event
+        if (window.history.state === 'fake-route') {
+          window.history.back();
+        }
+      };
     }
-  }, []);
+  }, [location.state, navigate]);
 
   const authParam = window.getAuthParam();
 
@@ -166,6 +176,7 @@ const OTP = () => {
           const response = await result.json();
           if (response.location) {
             window.location.assign(response.location);
+            return;
           }
           break;
         // case 203:
@@ -176,6 +187,7 @@ const OTP = () => {
           if (resultMsg.message) {
             localStorage.setItem('OTPErrorMsg', resultMsg.message);
             window.location.assign(`${applicationUrl}?amfa=relogin`);
+            return;
           }
           else {
             setErrorMsg('Unknown OTP send error, please contact help desk.');
@@ -192,13 +204,12 @@ const OTP = () => {
           }
           break;
       }
+      setLoading(false);
     }
     catch (err) {
+      setLoading(false);
       console.error('error in password login', err);
       setErrorMsg('OTP login error, please contact help desk.');
-    }
-    finally {
-      setLoading(false);
     }
   }
 
