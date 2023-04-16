@@ -7,9 +7,10 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { createHash } from 'node:crypto';
-import { fetchConfigData } from './fetchConfigData.mjs';
 import { fetchCode } from './fetchCode.mjs';
 import { passwordlessLogin } from './passwordlessLogin.mjs';
+
+import { amfaPolicies, amfaConfigs } from './config.mjs';
 
 export const amfaSteps = async (event, headers, cognito, step) => {
 
@@ -35,7 +36,6 @@ export const amfaSteps = async (event, headers, cognito, step) => {
   }
 
   try {
-    const [tenantData, amfaConfigs] = await fetchConfigData();
     // API vars saved in node.js property file in the back-end node.js
     const salt = amfaConfigs.salt; // Pull this from a property file. All MFA services will use this same salt to read and write the one_time_token-Cookie.
 
@@ -86,7 +86,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     const ug = userGroup.Groups[0].GroupName;
     console.log('ug:', ug);
 
-    const l = tenantData[ug] ? encodeURI(tenantData[ug]) : '';
+    const l = amfaPolicies[ug] ? encodeURI(amfaPolicies[ug]) : '';
 
     if (l === '') {
       console.log('Did not find a valid ASM Policy for the user group:', ug);

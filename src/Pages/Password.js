@@ -140,6 +140,7 @@ const LOGIN = () => {
         <span className='idpDescription-customizable'> Please enter your password </span><br />
         <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
           placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
+          autoFocus
           onKeyUp={e => confirmLogin(e)}
           disabled={isLoading}
         />

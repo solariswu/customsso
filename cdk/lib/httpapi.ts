@@ -78,8 +78,6 @@ export class TenantApiGateway {
           TENANT_ID: config.tenantId,
           USERPOOL_ID: userpool.userPoolId,
           DOMAIN_NAME: DNS.RootDomainName,
-          TENANT_CONFIG_URL: config.tenantConfigUrl,
-          AMFA_CONFIG_URL: config.amfaConfigUrl,
           AUTHCODE_TABLE: authCodeTableName,
           APPCLIENT_ID: userPoolClient.userPoolClientId,
           APP_SECRET: userPoolClient.userPoolClientSecret.unsafeUnwrap(),

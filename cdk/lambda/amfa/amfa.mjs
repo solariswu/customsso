@@ -89,7 +89,6 @@ export const handler = async (event) => {
       oneEvent.state = payload.state;
       oneEvent.requestTimeEpoch = event.requestContext.requestTimeEpoch;
 
-      // todo fetch cookie from header
       oneEvent.cookies = event.headers['Cookie'];
       console.log('oneEvent', oneEvent);
 

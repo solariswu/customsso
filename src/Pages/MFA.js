@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 
-import { amfaConfigs, apiUrl, applicationUrl, mfaPageTitle } from '../const';
+import { otpOptions, apiUrl, applicationUrl, mfaPageTitle } from '../const';
 
 const OTP = () => {
   const navigate = useNavigate();
@@ -12,31 +12,16 @@ const OTP = () => {
   const [errMsg, setErrorMsg] = useState('');
   const [infoMsg, setInfoMsg] = useState('');
   const [isLoading, setLoading] = useState(false);
-  const [isFetching, setFetching] = useState(true);
   const [otp, setOtp] = useState({ type: 'e', code: '', addr: '' });
-  const [otpOptions, setOtpOptions] = useState([]);
 
 
   useEffect(() => {
-    const getMFAOptions = async () => {
-      try {
-        const result = await fetch(amfaConfigs.tenantOtpConfigUrl);
-        const json = await result.json();
-        setOtpOptions(json.otpOptions);
-      } catch (error) {
-        console.log(error);
-      }
-      finally {
-        setFetching(false);
-      }
-    }
 
     if (!location.state) {
       navigate('/');
       return;
     }
     else {
-      getMFAOptions();
       window.history.pushState('fake-route', document.title, window.location.href);
 
       window.addEventListener('popstate', () => console.log('back pressed in MFA'));
@@ -226,49 +211,47 @@ const OTP = () => {
         </span>
         <br />
       </div>
-      {isFetching ?
-        'Loading...' :
-        otpOptions.map((option) => (
-          option === 'e' ?
-            (<div className='row align-items-end'>
-              <div className='col'>Email:</div>
+      {otpOptions.map((option) => (
+        option === 'e' ?
+          (<div className='row align-items-end'>
+            <div className='col'>Email:</div>
+            <div className='col'>
+              <span className='link-customizable' onClick={() => username ? stepthree({ otptype: 'e', otpaddr: username }) : null}>
+                {username ? `${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))} >` : '-'}
+              </span>
+            </div>
+          </div>) : option === 'ae' ?
+            <div className='row align-items-end'>
+              <div className='col'>Alt-Email:</div>
               <div className='col'>
-                <span className='link-customizable' onClick={() => username ? stepthree({ otptype: 'e', otpaddr: username }) : null}>
-                  {username ? `${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))} >` : '-'}
-                </span>
+                {aemail ?
+                  <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae', otpaddr: aemail })}>
+                    {`${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))} >`} </span> :
+                  <span> {'-'} </span>}
               </div>
-            </div>) : option === 'ae' ?
+            </div> : option === 's' ?
               <div className='row align-items-end'>
-                <div className='col'>Alt-Email:</div>
+                <div className='col'>SMS:</div>
                 <div className='col'>
-                  {aemail ?
-                    <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae', otpaddr: aemail })}>
-                      {`${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))} >`} </span> :
+                  {phoneNumber ?
+                    <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
+                      {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') + ' >'} </span> :
                     <span> {'-'} </span>}
                 </div>
-              </div> : option === 's' ?
+              </div> : option === 'v' ?
                 <div className='row align-items-end'>
-                  <div className='col'>SMS:</div>
+                  <div className='col'>Voice:</div>
                   <div className='col'>
                     {phoneNumber ?
-                      <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
+                      <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
                         {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') + ' >'} </span> :
                       <span> {'-'} </span>}
                   </div>
-                </div> : option === 'v' ?
-                  <div className='row align-items-end'>
-                    <div className='col'>Voice:</div>
-                    <div className='col'>
-                      {phoneNumber ?
-                        <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
-                          {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') + ' >'} </span> :
-                        <span> {'-'} </span>}
-                    </div>
-                  </div> :
-                  <div className='row align-items-end'>
-                    <div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>
-                  </div>
-        ))}
+                </div> :
+                <div className='row align-items-end'>
+                  <div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>
+                </div>
+      ))}
       <div>
         <hr className='hr-customizable' />
         <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="1234"
