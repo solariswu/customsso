@@ -147,6 +147,7 @@ export class TenantApiGateway {
     amfaLambdaFunctions.map(fnName => {
       const lambdaFn = this.createAmfaLambda(fnName, userpool, userPoolClient, this.authCodeTable.tableName, hostedClientId);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
+      return fnName;
     });
   };
 
@@ -207,7 +208,7 @@ export class TenantApiGateway {
       defaultCorsPreflightOptions,
     });
 
-    oauthEndpointsName.map((name) => {
+    oauthEndpointsName.map(name => {
       const mylambdaFunction = this.createOAuthEndpointLambda(
         name,
         userpool,
@@ -216,6 +217,7 @@ export class TenantApiGateway {
       );
 
       this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, name);
+      return name;
     });
   };
 }

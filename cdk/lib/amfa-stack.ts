@@ -22,7 +22,7 @@ export class AmfaStack extends Stack {
 
     // frontend
     // use the domain created above to create the frontend web app.
-    new WebApplication(this, props.siteCertificate, props.hostedZone);
+    const webapp = new WebApplication(this, props.siteCertificate, props.hostedZone);
 
     // backend
     // amfa apis
@@ -38,5 +38,7 @@ export class AmfaStack extends Stack {
     new CfnOutput(this, 'userPoolId', { value: tenantUserPool.userpool.userPoolId, });
 
     new CfnOutput(this, 'userPoolAppClientId', { value: tenantUserPool.hostedUIClient.userPoolClientId, });
+
+    new CfnOutput(this, 'cloudFrontId', {value: webapp.distribution.distributionId});
   }
 }

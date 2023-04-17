@@ -4,8 +4,12 @@
   "description": "",
   "main": "amfa.mjs",
   "scripts": {
+    "build": "rm -rf dist && esbuild ./*.mjs --entry-names=./[name] --bundle --minify --sourcemap --platform=node --target=node18.4 --outdir=dist --external:@aws-sdk/*",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.17.16"
+  }
 }

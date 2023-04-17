@@ -12,6 +12,8 @@ import { passwordlessLogin } from './passwordlessLogin.mjs';
 
 import { amfaPolicies, amfaConfigs } from './config.mjs';
 
+import { cookie2Name } from '../const.mjs';
+
 export const amfaSteps = async (event, headers, cognito, step) => {
 
   const response = (statusCode, body) => {
@@ -219,12 +221,13 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
                   var date = new Date();
                   const cookieValue = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
+                  const cookie2Value = `${cookie2Name}=${amfaResponseJSON.identifier.substr(-16, 16)}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=None; Path=/`;
 
                   return {
                     statusCode: 200,
                     isBase64Encoded: false,
                     multiValueHeaders: {
-                      'Set-Cookie': [cookieValue]
+                      'Set-Cookie': [cookieValue, cookie2Value],
                     },
                     headers: cookieEnabledHeaders,
                     body: JSON.stringify({ 'location': url })

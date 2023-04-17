@@ -1,4 +1,4 @@
-export const clientName = 'epnd-dev002';
+export const clientName = 'epnd-dev003';
 export const region = 'eu-west-1';
 const rootDomain = 'amfa.aws-amplify.dev';
 export const applicationUrl = 'https://amfa.netlify.app/';
