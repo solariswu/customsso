@@ -68,7 +68,7 @@ const App = () => {
                      <span
                         className='legalText-customizable'
                      >
-                        Copyright &copy; 2023 ePersona Inc. v1.0
+                        Copyright &copy; 2023 aPersona Inc. v1.0
                      </span><br />
                      <span className='legalText-customizable'>
                         {time}

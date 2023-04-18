@@ -4,9 +4,27 @@ body {
   background: #c0c0c0;
 }
 
-@media (min-width: 768px) {
+.banner-customizable {
+  padding: 8px 0px 8px 0px;
+  background-color: lightgray;
+}
+
+.logo-customizable {
+  max-width: 60%;
+  max-height: 30%;
+}
+
+@media (min-width: 910px) {
   .modal-dialog {
       width: 700px;
+  }
+  .banner-customizable {
+    padding: 25px 0px 25px 0px;
+    background-color: lightgray;
+  }
+  .logo-customizable {
+    max-width: 85%;
+    max-height: 45%;
   }
 }
 
@@ -63,6 +81,10 @@ body {
   margin-bottom: 0px !important;
 }
 
+.hr-customizable {
+  margin-bottom: 0px !important;
+}
+
 .panel-left-border {
   border-left-style: solid;
   border-left-color: #F5F5F5;
@@ -99,16 +121,6 @@ body {
   color: #A3A3A3;
   padding-top: 15px;
   padding-bottom: 15px;
-}
-
-.logo-customizable {
-  max-width: 60%;
-  max-height: 30%;
-}
-
-.banner-customizable {
-  padding: 25px 0px 25px 0px;
-  background-color: lightgray;
 }
 
 .label-customizable {

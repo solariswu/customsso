@@ -214,7 +214,7 @@ const OTP = () => {
       {otpOptions.map((option) => (
         option === 'e' ?
           (<div className='row align-items-end'>
-            <div className='col'>Email:</div>
+            <div className='col-4'>Email:</div>
             <div className='col'>
               <span className='link-customizable' onClick={() => username ? stepthree({ otptype: 'e', otpaddr: username }) : null}>
                 {username ? `${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))} >` : '-'}
@@ -222,7 +222,7 @@ const OTP = () => {
             </div>
           </div>) : option === 'ae' ?
             <div className='row align-items-end'>
-              <div className='col'>Alt-Email:</div>
+              <div className='col-4'>Alt-Email:</div>
               <div className='col'>
                 {aemail ?
                   <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae', otpaddr: aemail })}>
@@ -231,7 +231,7 @@ const OTP = () => {
               </div>
             </div> : option === 's' ?
               <div className='row align-items-end'>
-                <div className='col'>SMS:</div>
+                <div className='col-4'>SMS:</div>
                 <div className='col'>
                   {phoneNumber ?
                     <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
@@ -240,7 +240,7 @@ const OTP = () => {
                 </div>
               </div> : option === 'v' ?
                 <div className='row align-items-end'>
-                  <div className='col'>Voice:</div>
+                  <div className='col-4'>Voice:</div>
                   <div className='col'>
                     {phoneNumber ?
                       <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
