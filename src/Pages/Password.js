@@ -99,6 +99,7 @@ const LOGIN = () => {
                 redirectUri,
                 aemail: response2.nickname,
                 phoneNumber: response2.phone_number,
+                vPhoneNumber: response2.name ? response2.name : response2.phoneNumber
               }
             });
             break;

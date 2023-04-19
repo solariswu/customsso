@@ -44,6 +44,7 @@ const OTP = () => {
   const redirectUri = location.state?.redirectUri;
   const aemail = location.state?.aemail;
   const phoneNumber = location.state?.phoneNumber;
+  const vPhoneNumber = location.state?.vPhoneNumber;
 
   const setOTPCode = (e) => {
     setOtp({ ...otp, code: e.target.value });
@@ -235,12 +236,12 @@ const OTP = () => {
                     <span className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
                       {phoneNumber.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1xxx$3xx') + ' >'} </span>
                 </div>
-              </div> : option === 'v' && phoneNumber ?
+              </div> : option === 'v' && vPhoneNumber ?
                 <div className='row align-items-end'>
                   <div className='col-4'>Voice:</div>
                   <div className='col'>
-                      <span className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
-                      {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1xxx$3') + ' >'} </span>
+                      <span className='link-customizable' onClick={() => vPhoneNumber ? stepthree({ otptype: 'v', otpaddr: vPhoneNumber }) : null}>
+                      {vPhoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1xxx$3') + ' >'} </span>
                   </div>
                 </div> : option === 'm' &&
                 <div className='row align-items-end'>
