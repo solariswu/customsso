@@ -211,50 +211,45 @@ const OTP = () => {
         </span>
         <br />
       </div>
+      <br />
       {otpOptions.map((option) => (
-        option === 'e' ?
+        option === 'e' && username ?
           (<div className='row align-items-end'>
             <div className='col-4'>Email:</div>
             <div className='col'>
               <span className='link-customizable' onClick={() => username ? stepthree({ otptype: 'e', otpaddr: username }) : null}>
-                {username ? `${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))} >` : '-'}
+                {`${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))} >`}
               </span>
             </div>
-          </div>) : option === 'ae' ?
+          </div>) : option === 'ae' && aemail ?
             <div className='row align-items-end'>
               <div className='col-4'>Alt-Email:</div>
               <div className='col'>
-                {aemail ?
-                  <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae', otpaddr: aemail })}>
-                    {`${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))} >`} </span> :
-                  <span> {'-'} </span>}
+                <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae', otpaddr: aemail })}>
+                  {`${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))} >`} </span>
               </div>
-            </div> : option === 's' ?
+            </div> : option === 's' && phoneNumber ?
               <div className='row align-items-end'>
                 <div className='col-4'>SMS:</div>
                 <div className='col'>
-                  {phoneNumber ?
-                    <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
-                      {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') + ' >'} </span> :
-                    <span> {'-'} </span>}
+                    <span className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
+                      {phoneNumber.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1xxx$3xx') + ' >'} </span>
                 </div>
-              </div> : option === 'v' ?
+              </div> : option === 'v' && phoneNumber ?
                 <div className='row align-items-end'>
                   <div className='col-4'>Voice:</div>
                   <div className='col'>
-                    {phoneNumber ?
-                      <span href='##' className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
-                        {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1-xxx-$3') + ' >'} </span> :
-                      <span> {'-'} </span>}
+                      <span className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 'v', otpaddr: phoneNumber }) : null}>
+                      {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1xxx$3') + ' >'} </span>
                   </div>
-                </div> :
+                </div> : option === 'm' &&
                 <div className='row align-items-end'>
                   <div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>
                 </div>
       ))}
+      <br />
       <div>
-        <hr className='hr-customizable' />
-        <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="1234"
+        <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
           style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
           autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
           onKeyUp={e => confirmLogin(e)}
@@ -274,10 +269,10 @@ const OTP = () => {
       </div>
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errMsg && (
-          <div>         <br /><span className='errorMessage-customizable'>{errMsg}</span></div>
+          <div><br /><span className='errorMessage-customizable'>{errMsg}</span></div>
         ))}
       {!isLoading && infoMsg &&
-        <div>         <br /><span className='infoMessage-customizable'>{infoMsg}</span></div>
+        <div><br /><span className='infoMessage-customizable'>{infoMsg}</span></div>
       }
     </div>
   );

@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
-import { apiUrl } from '../const';
+import { apiUrl, applicationUrl } from '../const';
 
 const LOGIN = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const closeQuickView = () => {
-    console.log ('back pressed');
+    console.log('back pressed');
   }
 
   useEffect(() => {
@@ -78,7 +78,7 @@ const LOGIN = () => {
         const result = await fetch(`${apiUrl}/amfa`, {
           method: 'POST',
           body: JSON.stringify(params),
-          credentials:  'include',
+          credentials: 'include',
         });
 
         switch (result.status) {
@@ -101,6 +101,10 @@ const LOGIN = () => {
                 phoneNumber: response2.phone_number,
               }
             });
+            break;
+          case 505:
+            localStorage.setItem('OTPErrorMsg', "The login service is not currently available. Please contact the help desk.");
+            window.location.assign(`${applicationUrl}?amfa=relogin`);
             break;
           default:
             const data = await result.json();
@@ -135,7 +139,7 @@ const LOGIN = () => {
   return (
     <div>
       <span><h4>Sign in to your account</h4></span>
-        <hr className="hr-customizable" />
+      <hr className="hr-customizable" />
       <div>
         <span className='idpDescription-customizable'> Please enter your password </span><br />
         <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
@@ -153,10 +157,10 @@ const LOGIN = () => {
         </Button>
       </div>
       {!isLoading && <div>
-          <span className='textDescription-customizable'>
-            <p className="redirect-customizable"><a
-              href="/#">Forgot Password?</a></p></span>
-        </div>}
+        <span className='textDescription-customizable'>
+          <p className="redirect-customizable"><a
+            href="/#">Forgot Password?</a></p></span>
+      </div>}
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errorMsg && <div>
           <br />

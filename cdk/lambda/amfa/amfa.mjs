@@ -3,6 +3,7 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { amfaSteps } from "./utils/amfaSteps.mjs";
+import { amfaConfigs } from './utils/config.mjs';
 
 
 const validateInputParams = (payload) => {
@@ -67,13 +68,6 @@ export const handler = async (event) => {
       const ipAddress = getIPFromHeader(
         event.headers['X-Forwarded-For'].trim()
       );
-      // const origin = event.headers['origin']?.trim();
-
-      // if (
-      //   origin !== `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`
-      // ) {
-      //   return response(403, JSON.stringify({ message: 'origin not allowed' }));
-      // }
 
       let oneEvent = {};
       oneEvent.uIP = ipAddress;
@@ -94,8 +88,13 @@ export const handler = async (event) => {
 
       switch (payload.phase) {
         case 'username':
-          const stepOneResponse = await amfaSteps(oneEvent, headers, client, 1);
-          return stepOneResponse;
+          if (amfaConfigs.enable_passwordless) {
+            const stepOneResponse = await amfaSteps(oneEvent, headers, client, 1);
+            return stepOneResponse;
+          }
+          else {
+            return response(202, 'Your identity requires password login.');
+          }
         case 'password':
           const stepTwoResponse = await amfaSteps(oneEvent, headers, client, 2);
           return stepTwoResponse;

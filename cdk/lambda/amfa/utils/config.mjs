@@ -9,4 +9,5 @@ export const amfaPolicies = {
 
 export const amfaConfigs = {
 	"salt": "arandomstring-here",
+	"enable_passwordless": true,
 }
