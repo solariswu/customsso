@@ -63,7 +63,7 @@ const LOGIN = () => {
     const authParam = window.getAuthParam();
 
     const params = {
-      email,
+      email: email.toLocaleLowerCase(),
       rememberDevice,
       authParam,
       apti,
@@ -98,7 +98,7 @@ const LOGIN = () => {
           // const result = await res.json();
           navigate('/password', {
             state: {
-              username: email,
+              username: email.toLocaleLowerCase(),
               rememberDevice,
               apti,
               state,

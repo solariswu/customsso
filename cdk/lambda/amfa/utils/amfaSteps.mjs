@@ -12,7 +12,7 @@ import { passwordlessLogin } from './passwordlessLogin.mjs';
 
 import { amfaPolicies, amfaConfigs } from './config.mjs';
 
-import { cookie2Name } from '../const.mjs';
+import { cookie2NamePrefix } from '../const.mjs';
 
 export const amfaSteps = async (event, headers, cognito, step) => {
 
@@ -221,7 +221,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
                   var date = new Date();
                   const cookieValue = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=Strict; Path=/`;
-                  const cookie2Value = `${cookie2Name}=${amfaResponseJSON.identifier.substr(-16, 16)}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=Strict; Path=/`;
+                  const cookie2Value = `${cookie2NamePrefix}-${amfaCookieName}=${amfaResponseJSON.identifier.substr(-16, 16)}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=Strict; Path=/`;
 
                   return {
                     statusCode: 200,

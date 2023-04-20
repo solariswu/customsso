@@ -1,1 +1,1 @@
-export const cookie2Name = 'apenc';
+export const cookie2NamePrefix = 'apenc';
