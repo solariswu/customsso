@@ -57,7 +57,10 @@ const LOGIN = () => {
       return;
     };
 
-    localStorage.setItem('amfa-username', email.trim());
+    if (rememberDevice === 'true' ) {
+      localStorage.setItem('amfa-username', email.trim());
+    }
+
     const apti = (Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16));
 
     const authParam = window.getAuthParam();

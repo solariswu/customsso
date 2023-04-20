@@ -9,6 +9,7 @@ import {
   OidcAttributeRequestMethod,
   UserPoolOperation,
   Mfa,
+  UserPoolClientIdentityProvider,
 } from 'aws-cdk-lib/aws-cognito';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { RestApi } from 'aws-cdk-lib/aws-apigateway';
@@ -19,6 +20,7 @@ import { config } from './config';
 import { DNS } from './const';
 import { createAuthChallengeFn } from './lambda';
 
+const AMFAIdPName = 'amfa';
 
 export class TenantUserPool {
   scope: Construct;
@@ -51,6 +53,7 @@ export class TenantUserPool {
         email: true,
         phone: false,
       },
+      //todo: signInCaseSensitive: false,
       // user attributes
       standardAttributes: {
         email: {
@@ -78,6 +81,7 @@ export class TenantUserPool {
     return new UserPoolClient(this.scope, 'customAuthClient', {
       userPool: this.userpool,
       generateSecret: true,
+      preventUserExistenceErrors: true,
       authFlows: {
         // enable custom auth flow
         custom: true,
@@ -104,6 +108,7 @@ export class TenantUserPool {
         logoutUrls: [config.tenantAppUrl, 'http://localhost:3000'],
       },
       userPoolClientName: 'hostedUIClient',
+      supportedIdentityProviders: [UserPoolClientIdentityProvider.custom(AMFAIdPName)]
     });
   };
 
@@ -132,7 +137,7 @@ export class TenantUserPool {
           userInfo: `https://${config.tenantId}-amfa.auth.${config.region}.amazoncognito.com/oauth2/userinfo`,
         },
         identifiers: ['amfa'],
-        name: 'amfa',
+        name: AMFAIdPName,
         scopes: ['openid email phone aws.cognito.signin.user.admin profile'],
       }
     );
