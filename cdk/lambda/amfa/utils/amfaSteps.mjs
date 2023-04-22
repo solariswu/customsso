@@ -219,22 +219,21 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                     return date;
                   }
 
-                  Date.prototype.addMinutes = function (minutes) {
-                    var date = new Date(this.valueOf());
-                    date.setMinutes(date.getMinutes() + minutes);
-                    return date;
-                  }
-
+                  // Date.prototype.addMinutes = function (minutes) {
+                  //   var date = new Date(this.valueOf());
+                  //   date.setMinutes(date.getMinutes() + minutes);
+                  //   return date;
+                  // }
                   var date = new Date();
                   const cookieValue = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=Strict; Path=/`;
-                  const cookie2Value = `${cookie2NamePrefix}-${amfaCookieName}=${amfaResponseJSON.identifier.substr(-16, 16)}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=Strict; Path=/`;
-                  const cookie3Value = `apuser=${amfaCookieName}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; Expires=${date.addMinutes(20).toUTCString()}; Secure; SameSite=Strict; Path=/`
+                  const cookie2Value = `${cookie2NamePrefix}=${amfaResponseJSON.identifier.substr(-16, 16)}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=Strict; Path=/`;
+                  // const cookie3Value = `apuser=${amfaCookieName}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; Expires=${date.addMinutes(20).toUTCString()}; Secure; SameSite=Strict; Path=/`
 
                   return {
                     statusCode: 200,
                     isBase64Encoded: false,
                     multiValueHeaders: {
-                      'Set-Cookie': [cookieValue, cookie2Value, cookie3Value],
+                      'Set-Cookie': [cookieValue, cookie2Value/*, cookie3Value*/],
                     },
                     headers: cookieEnabledHeaders,
                     body: JSON.stringify({ 'location': url })
