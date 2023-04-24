@@ -38,6 +38,7 @@ export class TenantUserPool {
     this.addCustomAuthLambdaTriggers();
     this.oidcProvider = this.createOIDCProvider();
     this.hostedUIClient = this.addHostedUIAppClient();
+    this.hostedUIClient.node.addDependency (this.oidcProvider);
     this.addHostedUIDomain();
   }
 
@@ -53,7 +54,7 @@ export class TenantUserPool {
         email: true,
         phone: false,
       },
-      //todo: signInCaseSensitive: false,
+      signInCaseSensitive: false,
       // user attributes
       standardAttributes: {
         email: {

@@ -2,8 +2,8 @@
 export const ROOT_HOSTED_ZONE = 'amfa.aws-amplify.dev';
 export enum DNS {
 	RootDomainName = 'amfa.aws-amplify.dev',
-	RootHostedZoneId = 'Z0821371A8740A43O41Z',
+	RootHostedZoneId = 'Z09396062FFC9U1Z188F6',
 	RootHostedZoneDelegationRoleName = 'CrossAccountDnsDelegationRole-DO-NOT-DELETE',
-	RootDomainAccountId = '315591320675',
-	RootHostedZoneDelegationRoleArn = `arn:aws:iam::315591320675:role/CrossAccountDnsDelegationRole-DO-NOT-DELETE`,
+	RootDomainAccountId = '531680862493',
+	RootHostedZoneDelegationRoleArn = `arn:aws:iam::531680862493:role/CrossAccountDnsDelegationRole-DO-NOT-DELETE`,
 }

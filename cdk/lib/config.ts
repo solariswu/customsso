@@ -1,7 +1,7 @@
 export const config = {
-	'awsaccount' : '315591320675', // Mar 27
+	'awsaccount' : '531680862493', // Mar 27
 	'region' : 'eu-west-1',
 	'tenantAppUrl': 'https://amfa.netlify.app/',
-	'tenantId' : 'epnd-dev003', // lowercase only
+	'tenantId' : 'epnd-dev004', // lowercase only
 	'magicstring': 'youguesswhat'
 }

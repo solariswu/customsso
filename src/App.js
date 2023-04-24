@@ -56,7 +56,7 @@ const App = () => {
                      <img alt="logo" class="logo-customizable" src={logo} />
                   </center>
                </div>
-               <div style={{ height: '5px', background: 'orange' }} />
+               <div style={{ height: '5px', background: '#63db92' }} />
                <div className="modal-body" style={{ textAlign: 'center' }}>
                   <Routes>
                      <Route path="/" element={<Home />} />
