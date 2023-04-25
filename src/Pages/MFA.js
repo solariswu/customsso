@@ -235,14 +235,14 @@ const OTP = () => {
                 <div className='col-4'>SMS:</div>
                 <div className='col'>
                   <span className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
-                    {phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1xxx$3') + ' >'} </span>
+                    {phoneNumber.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') + ' >'} </span>
                 </div>
               </div> : option === 'v' && vPhoneNumber ?
                 <div className='row align-items-end'>
                   <div className='col-4'>Voice:</div>
                   <div className='col'>
                     <span className='link-customizable' onClick={() => vPhoneNumber ? stepthree({ otptype: 'v', otpaddr: vPhoneNumber }) : null}>
-                      {vPhoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '$1xxx$3') + ' >'} </span>
+                      {vPhoneNumber.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') + ' >'} </span>
                   </div>
                 </div> : option === 'm' &&
                 <div className='row align-items-end'>

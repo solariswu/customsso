@@ -10,6 +10,7 @@ import {
   UserPoolOperation,
   Mfa,
   UserPoolClientIdentityProvider,
+  StringAttribute,
 } from 'aws-cdk-lib/aws-cognito';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { RestApi } from 'aws-cdk-lib/aws-apigateway';
@@ -61,6 +62,10 @@ export class TenantUserPool {
           required: true,
           mutable: true,
         },
+      },
+      customAttributes: {
+        "alter-email": new StringAttribute({ mutable: true }),
+        "voice-number": new StringAttribute({ mutable: true }),
       },
       // temporary password lives for 30 days
       passwordPolicy: {

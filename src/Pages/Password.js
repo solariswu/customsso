@@ -97,9 +97,9 @@ const LOGIN = () => {
                 apti,
                 state,
                 redirectUri,
-                aemail: response2.nickname,
+                aemail: response2['custom:alter-email'],
                 phoneNumber: response2.phone_number,
-                vPhoneNumber: response2.name ? response2.name : response2.phoneNumber
+                vPhoneNumber: response2['custom:voice-number'] ? response2['custom:voice-number'] : response2.phoneNumber
               }
             });
             break;
