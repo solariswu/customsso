@@ -1,5 +1,6 @@
 import {
   CognitoIdentityProviderClient,
+  ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { amfaSteps } from "./utils/amfaSteps.mjs";
@@ -86,9 +87,17 @@ export const handler = async (event) => {
       oneEvent.cookies = event.headers['Cookie'];
       console.log('oneEvent', oneEvent);
 
+
       switch (payload.phase) {
         case 'username':
-          if (amfaConfigs.enable_passwordless) {
+          const res = await client.send(new ListUsersCommand({
+            UserPoolId: process.env.USERPOOL_ID,
+            Filter: `email = "${payload.email}"`,
+          }));
+
+          console.log(res);
+
+          if (amfaConfigs.enable_passwordless && res && res.Users && res.Users.length > 0) {
             const stepOneResponse = await amfaSteps(oneEvent, headers, client, 1);
             return stepOneResponse;
           }

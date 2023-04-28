@@ -61,7 +61,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     if (users.length === 0) {
       console.log('Did not find valid user for email:', event.email);
-      return response(500, 'Did not find valid user for this email');
+      return response(500, 'Did not find valid user for this email, user status is not CONFIRMED');
     };
 
     console.log('UserAttributes:', users[0].Attributes);
@@ -161,8 +161,6 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       p +
       '&otpp=' +
       otpp +
-      '&tType=' +
-      tType +
       '&af1=' +
       af1 +
       '&a=' +
@@ -170,13 +168,15 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     switch (step) {
       case 1:
-        postURL = postURL + '&sfl=' + sfl + '&nsf=' + nsf;
+        tType = encodeURI('Initial passwordless login verification');
+        postURL = postURL + '&sfl=' + sfl + '&nsf=' + nsf + '&tType=' + tType;
         break;
       case 2:
-        tType = encodeURI('Password verification');
+        tType = encodeURI('Password login verification');
+        postURL = postURL + '&tType=' + tType;
         break;
       case 3:
-        tType = encodeURI('OTP resend');
+        tType = encodeURI('Request OTP');
         otpm = event.otptype;
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
         //e for email, s for sms, v for voice, ae for alt-email.
@@ -184,6 +184,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
         break;
       case 4:
+        tType = encodeURI('OTP verify');
         let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
         postURL = asmurl + '/extVerifyOtp.kv?l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
         break;

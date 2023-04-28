@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Spinner } from 'reactstrap';
 
 
-import { apiUrl } from '../const';
+import { allowSelfSignUp, apiUrl } from '../const';
 import { clientName } from '../const';
 
 const LOGIN = () => {
@@ -163,7 +163,7 @@ const LOGIN = () => {
           {isLoading ? 'Sending...' : 'Sign In'}
         </Button>
       </div>
-      {!isLoading && <div>
+      {allowSelfSignUp && !isLoading && <div>
         <span className='textDescription-customizable'> New User?
           <a href="/password" className="textLink-customizable"> Register</a></span>
       </div>}

@@ -55,7 +55,7 @@ export class TenantUserPool {
         email: true,
         phone: false,
       },
-      signInCaseSensitive: false,
+      // signInCaseSensitive: false,
       // user attributes
       standardAttributes: {
         email: {

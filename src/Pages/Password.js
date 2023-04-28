@@ -97,7 +97,7 @@ const LOGIN = () => {
                 apti,
                 state,
                 redirectUri,
-                aemail: response2['custom:alter-email'],
+                aemail: response2['custom:alter-email']?.toLocaleLowerCase(),
                 phoneNumber: response2.phone_number,
                 vPhoneNumber: response2['custom:voice-number'] ? response2['custom:voice-number'] : response2.phoneNumber
               }
@@ -109,27 +109,28 @@ const LOGIN = () => {
             break;
           default:
             const data = await result.json();
-            if (data) {
-              setErrorMsg(data.message ? data.message : data.name ? data.name : JSON.stringify(data));
+            let errMsg = 'Something went wrong, please try your login again.';
+            if (data.message === "NotAuthorizedException") {
+              errMsg = 'Invalid credentials.';
             }
-            else {
-              setErrorMsg('Unknown error, please contact help desk.');
-            }
+            localStorage.setItem('OTPErrorMsg', errMsg);
+            window.location.assign(`${applicationUrl}?amfa=relogin`);
             break;
         }
       }
       else {
         const data = await res.json();
-        if (data) {
-          setErrorMsg(data.message ? data.message : data.name ? data.name : JSON.stringify(data));
+
+        let errMsg = 'Something went wrong, please try your login again.';
+
+        if (data.name === "NotAuthorizedException") {
+          errMsg = 'Invalid credentials.';
         }
-        else {
-          setErrorMsg('Unknown error, please contact help desk.');
-        }
+        localStorage.setItem('OTPErrorMsg', errMsg);
+        window.location.assign(`${applicationUrl}?amfa=relogin`);
       }
     }
     catch (err) {
-      console.error('error in password login', err);
       setErrorMsg('Password login error, please contact help desk.');
     }
     finally {
