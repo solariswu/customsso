@@ -6,6 +6,7 @@ import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, PublicHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGatewayDomain } from "aws-cdk-lib/aws-route53-targets";
+import { Vpc, SubnetType } from 'aws-cdk-lib/aws-ec2';
 
 import { Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -29,6 +30,7 @@ export class TenantApiGateway {
   userpool: UserPool;
   certificate: Certificate;
   hostedZone: PublicHostedZone;
+  vpc: Vpc;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone) {
     this.scope = scope;
@@ -39,6 +41,7 @@ export class TenantApiGateway {
     this.authCodeTable = this.createAuthCodeTable();
 
     this.createApiGateway();
+    this.createVpc();
   }
 
   // create APIGateway
@@ -66,7 +69,28 @@ export class TenantApiGateway {
     });
   };
 
+  private createVpc() {
+    this.vpc = new Vpc(this.scope, 'lambda-vpc', {
+      cidr: '10.0.0.0/16',
+      natGateways: 1,
+      maxAzs: 1,
+      subnetConfiguration: [
+        {
+          name: 'private-subnet-1',
+          subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+          cidrMask: 24,
+        },
+        {
+          name: 'public-subnet-1',
+          subnetType: SubnetType.PUBLIC,
+          cidrMask: 24,
+        },
+      ],
+    });
+  }
+
   private createAmfaLambda(lambdaName: string, userpool: UserPool, userPoolClient: UserPoolClient, authCodeTableName: string, hostedClientId: string) {
+
     const myLambda = new Function(
       this.scope,
       `${lambdaName}lambda-${config.tenantId}`,
@@ -85,6 +109,12 @@ export class TenantApiGateway {
           HOSTED_CLIENT_ID: hostedClientId,
         },
         timeout: Duration.minutes(2),
+        // 👇 place lambda in the VPC
+        vpc: this.vpc,
+        // 👇 place lambda in Private Subnets
+        vpcSubnets: {
+          subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+        },
       }
     );
 

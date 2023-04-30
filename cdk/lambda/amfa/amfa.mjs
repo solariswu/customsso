@@ -51,6 +51,7 @@ const getIPFromHeader = (fwdfor) => {
   const IPs = fwdfor.split(',');
   return IPs[0];
 }
+
 // lambda for rest api
 export const handler = async (event) => {
   console.log('Received event:', JSON.stringify(event, null, 2));
