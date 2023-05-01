@@ -35,7 +35,6 @@ def handler(event, context):
     table = dynamodb.Table(DBTABLE_NAME)
 
     try:
-        # response = table.get_item(Key={'authCode': code})
         response = table.scan(FilterExpression=Attr('authCode').eq(code))
     except ClientError as e:
         print(e.response['Error']['Message'])
@@ -47,7 +46,6 @@ def handler(event, context):
         username = response['Items'][0]['username']
         apti = response['Items'][0]['apti']
         table.delete_item(Key={'username': username, 'apti': apti})
-        # table.delete_item(Key={'authCode': code})
 
         RESCODE = response['ResponseMetadata']['HTTPStatusCode']
         RESBODY = tokens

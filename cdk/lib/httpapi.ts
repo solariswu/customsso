@@ -6,7 +6,7 @@ import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, PublicHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGatewayDomain } from "aws-cdk-lib/aws-route53-targets";
-import { Vpc, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import { Vpc, SubnetType, IpAddresses } from 'aws-cdk-lib/aws-ec2';
 
 import { Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -71,7 +71,7 @@ export class TenantApiGateway {
 
   private createVpc() {
     this.vpc = new Vpc(this.scope, 'lambda-vpc', {
-      cidr: '10.0.0.0/16',
+      ipAddresses: IpAddresses.cidr('10.0.0.0/16'),
       natGateways: 1,
       maxAzs: 1,
       subnetConfiguration: [
@@ -97,7 +97,7 @@ export class TenantApiGateway {
       {
         runtime: Runtime.NODEJS_18_X,
         handler: `${lambdaName}.handler`,
-        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
+        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}/dist`)),
         environment: {
           TENANT_ID: config.tenantId,
           USERPOOL_ID: userpool.userPoolId,
