@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 
-import { otpOptions, apiUrl, applicationUrl, mfaPageTitle } from '../const';
+import { apiUrl, applicationUrl, mfaPageTitle } from '../const';
 
 const OTP = () => {
   const navigate = useNavigate();
@@ -45,6 +45,7 @@ const OTP = () => {
   const aemail = location.state?.aemail;
   const phoneNumber = location.state?.phoneNumber;
   const vPhoneNumber = location.state?.vPhoneNumber;
+  const otpOptions = location.state?.otpOptions;
 
   const setOTPCode = (e) => {
     setOtp({ ...otp, code: e.target.value });
@@ -89,6 +90,7 @@ const OTP = () => {
           if (resultMsg.message) {
             setInfoMsg(resultMsg.message);
             setTimeout(() => {
+              setInfoMsg ('');
             }, 8000);
           }
           else {

@@ -85,10 +85,18 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       return response(500, 'Did not find a valid user group');
     }
 
-    const ug = userGroup.Groups[0].GroupName;
+    let ug = '';
+    let ugRank = 10000;
+
+    for (let i = 0; i < userGroup.Groups.length; i++) {
+      if (amfaPolicies[userGroup.Groups[i].GroupName] && amfaPolicies[userGroup.Groups[i].GroupName].rank < ugRank) {
+        ug = userGroup.Groups[i].GroupName;
+        ugRank = amfaPolicies[userGroup.Groups[i].GroupName].rank;
+      }
+    }
     console.log('ug:', ug);
 
-    const l = amfaPolicies[ug] ? encodeURI(amfaPolicies[ug]) : '';
+    const l = amfaPolicies[ug].policy_name ? encodeURI(amfaPolicies[ug].policy_name) : '';
 
     if (l === '') {
       console.log('Did not find a valid ASM Policy for the user group:', ug);
@@ -254,7 +262,6 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               return response(505, 'The login service is not currently available. Contact the help desk.');
           }
         case 202:
-          // test proposal
           switch (step) {
             case 1:
               // User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
@@ -265,7 +272,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                 statusCode: 202,
                 isBase64Encoded: false,
                 headers: cookieEnabledHeaders,
-                body: JSON.stringify(userAttributes)
+                body: JSON.stringify({...userAttributes, otpOptions: amfaPolicies[ug].permissions})
               }
             case 3:
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'

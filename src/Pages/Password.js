@@ -90,6 +90,7 @@ const LOGIN = () => {
             break;
           case 202:
             const response2 = await result.json();
+            console.log (response2);
             navigate('/mfa', {
               state: {
                 username,
@@ -99,7 +100,8 @@ const LOGIN = () => {
                 redirectUri,
                 aemail: response2['custom:alter-email']?.toLocaleLowerCase(),
                 phoneNumber: response2.phone_number,
-                vPhoneNumber: response2['custom:voice-number'] ? response2['custom:voice-number'] : response2.phoneNumber
+                vPhoneNumber: response2['custom:voice-number'] ? response2['custom:voice-number'] : response2.phoneNumber,
+                otpOptions: response2.otpOptions,
               }
             });
             break;

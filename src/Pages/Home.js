@@ -3,9 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 
-
-import { allowSelfSignUp, apiUrl } from '../const';
-import { clientName } from '../const';
+import { allowSelfSignUp, apiUrl, clientName, applicationUrl } from '../const';
 
 const LOGIN = () => {
 
@@ -24,13 +22,31 @@ const LOGIN = () => {
     setRedirectUri(redirect_uri);
     setState(state);
 
+    const previousState = sessionStorage.getItem('amfa-state');
+
+    // console.log('state:',state);
+    // console.log('previousState:',previousState);
+    // console.log('is equal:', previousState === state);
+
+    if (state === null || state === '' || state === previousState) {
+      window.location.assign(`${applicationUrl}?amfa=relogin`);
+    }
+    else {
+      sessionStorage.setItem('amfa-state', state);
+    }
+
     const otpErrorMsg = localStorage.getItem('OTPErrorMsg');
     if (otpErrorMsg) {
       setErrorMsg(otpErrorMsg);
       localStorage.removeItem('OTPErrorMsg');
     }
 
-  }, [searchParams]);
+    return () => {
+      // setSearchParams({ state: null, redirect_uri });
+      setState(null);
+    }
+
+  }, []);
 
   const navigate = useNavigate();
 
@@ -57,7 +73,7 @@ const LOGIN = () => {
       return;
     };
 
-    if (rememberDevice === 'true' ) {
+    if (rememberDevice === 'true') {
       localStorage.setItem('amfa-username', email.trim());
     }
 
@@ -128,12 +144,13 @@ const LOGIN = () => {
     }
   }
 
+
   return (
     <div>
       <span>
         <h4>Sign in to your account</h4>
       </span>
-        <hr className="hr-customizable" />
+      <hr className="hr-customizable" />
       <span className='idpDescription-customizable'> Login with your {clientName} account </span>
       <div>
         <input

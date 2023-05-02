@@ -1,10 +1,29 @@
 export const amfaPolicies = {
-	"super_admin": "epnd-test-200-Auto Learning-policy",
-	"admin": "epnd-su-72ja37bc51mz",
-	"cohort_owner": "epnd-cohort-owner-52ws89xs12gz",
-	"user": "epnd-user-63em98az26jq47",
-	"test_contry_block": "epnd-test-203-country-location-blocked-policy",
-	"test_200_Auto Learning": "epnd-test-200-Auto Learning-policy"
+	"super_admin": {
+		"policy_name": "epnd-su-rg83ed78xa38",
+		"rank": 1,
+		"permissions": ['e','ae','v']
+	},
+	"admin": {
+		"policy_name": "epnd-su-72ja37bc51mz",
+		"rank": 2,
+		"permissions": ['e','ae', 's','v']
+	},
+	"cohort_owner": {
+		"policy_name": "epnd-cohort-owner-52ws89xs12gz",
+		"rank": 3,
+		"permissions": ['e','ae', 's','v']
+	},
+	"user": {
+		"policy_name": "epnd-user-63em98az26jq47",
+		"rank": 4,
+		"permissions": ['e','ae', 's','v']
+	},
+	"default": {
+		"policy_name": "epnd-default-72ws81aq67jf",
+		"rank": 5,
+		"permissions": ['e']
+	},
 }
 
 export const amfaConfigs = {
