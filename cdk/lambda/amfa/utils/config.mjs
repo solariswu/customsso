@@ -29,4 +29,5 @@ export const amfaPolicies = {
 export const amfaConfigs = {
 	"salt": "arandomstring-here",
 	"enable_passwordless": true,
+	"asmurl": "https://asm2.apersona.com:8443/asm",
 }

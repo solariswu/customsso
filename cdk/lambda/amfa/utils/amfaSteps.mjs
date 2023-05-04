@@ -41,7 +41,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     // API vars saved in node.js property file in the back-end node.js
     const salt = amfaConfigs.salt; // Pull this from a property file. All MFA services will use this same salt to read and write the one_time_token-Cookie.
 
-    const asmurl = 'https://asm2.apersona.com:8443/asm';  // Url of the Adaptive MFA Server.
+    const asmurl = amfaConfigs.asmurl;  // Url of the Adaptive MFA Server.
 
     const listUsersParam = {
       UserPoolId: process.env.USERPOOL_ID,
