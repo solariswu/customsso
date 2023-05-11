@@ -28,6 +28,7 @@ export class TenantUserPool {
   userpool: UserPool;
   hostedUIClient: UserPoolClient;
   customAuthClient: UserPoolClient;
+  secretClient: UserPoolClient;
   oidcProvider: UserPoolIdentityProviderOidc;
   api: RestApi;
 
@@ -40,6 +41,7 @@ export class TenantUserPool {
     this.oidcProvider = this.createOIDCProvider();
     this.hostedUIClient = this.addHostedUIAppClient();
     this.hostedUIClient.node.addDependency (this.oidcProvider);
+    this.secretClient = this.addSecretClient();
     this.addHostedUIDomain();
   }
 
@@ -95,6 +97,19 @@ export class TenantUserPool {
         adminUserPassword: true,
       },
       userPoolClientName: 'customAuthClient',
+    });
+  };
+
+  private addSecretClient() {
+    return new UserPoolClient(this.scope, 'secretClient', {
+      userPool: this.userpool,
+      generateSecret: true,
+      preventUserExistenceErrors: true,
+      authFlows: {
+        userSrp: true,
+        adminUserPassword: true,
+      },
+      userPoolClientName: 'SecretClient',
     });
   };
 

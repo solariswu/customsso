@@ -9,6 +9,8 @@ import { WebApplication } from './webapp';
 import { TenantApiGateway } from './httpapi';
 import { TenantUserPool } from './userpool';
 
+import { config } from './config';
+
 
 export interface AmfaStackProps extends StackProps {
   siteCertificate: Certificate;
@@ -37,7 +39,12 @@ export class AmfaStack extends Stack {
 
     new CfnOutput(this, 'userPoolId', { value: tenantUserPool.userpool.userPoolId, });
 
-    new CfnOutput(this, 'userPoolAppClientId', { value: tenantUserPool.hostedUIClient.userPoolClientId, });
+    new CfnOutput(this, 'NoSecret AppClientId', { value: tenantUserPool.hostedUIClient.userPoolClientId, });
+    new CfnOutput(this, 'Secret AppClientId', { value: tenantUserPool.secretClient.userPoolClientId, });
+    new CfnOutput(this, 'AppClientSecret', { value: tenantUserPool.secretClient.userPoolClientSecret.unsafeUnwrap(), });
+    new CfnOutput(this, 'Authorization Endpoint', { value: `https://${config.tenantId}-amfa.auth.${config.region}.amazoncognito.com/oauth2/authorize?identity_provider=amfa`, });
+    new CfnOutput(this, 'Token Endpoint', { value: `https://${config.tenantId}-amfa.auth.${config.region}.amazoncognito.com/oauth2/token`, });
+    new CfnOutput(this, 'UserInfo Endpoint', { value: `https://${config.tenantId}-amfa.auth.${config.region}.amazoncognito.com/oauth2/userinfo`, });
 
     new CfnOutput(this, 'cloudFrontId', {value: webapp.distribution.distributionId});
   }
