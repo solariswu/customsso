@@ -157,7 +157,7 @@ export class TenantUserPool {
           token: `${serviceApiUrl}/oauth2/token`,
           userInfo: `https://${config.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/userinfo`,
         },
-        identifiers: ['amfa'],
+        identifiers: ['apersona'],
         name: AMFAIdPName,
         scopes: ['openid email phone aws.cognito.signin.user.admin profile'],
       }
