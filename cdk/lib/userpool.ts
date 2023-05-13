@@ -21,7 +21,7 @@ import { config } from './config';
 import { DNS } from './const';
 import { createAuthChallengeFn } from './lambda';
 
-const AMFAIdPName = 'amfa';
+const AMFAIdPName = 'aPersona';
 
 export class TenantUserPool {
   scope: Construct;
@@ -155,7 +155,7 @@ export class TenantUserPool {
           authorization: `${customauthUrl}/oauth2/authorise`,
           jwksUri: `${issuerUrl}/.well-known/jwks.json`,
           token: `${serviceApiUrl}/oauth2/token`,
-          userInfo: `https://${config.tenantId}-amfa.auth.${config.region}.amazoncognito.com/oauth2/userinfo`,
+          userInfo: `https://${config.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/userinfo`,
         },
         identifiers: ['amfa'],
         name: AMFAIdPName,
@@ -192,7 +192,7 @@ export class TenantUserPool {
   ) {
     return this.userpool.addDomain('amfaHostedUI-domain', {
       cognitoDomain: {
-        domainPrefix: `${config.tenantId}-amfa`,
+        domainPrefix: `${config.tenantId}-apersona`,
       },
     });
   };
