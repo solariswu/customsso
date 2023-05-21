@@ -307,7 +307,12 @@ export const amfaSteps = async (event, headers, cognito, step) => {
   }
   catch (error) {
     console.error('Error in step ' + step + ':', error);
-    return response(504, error.message ? error.message : 'Unknown error in amfa steps');
+    if (error.message.indexOf ('fetch failed') === -1) {
+      return response(504, error.message ? error.message : 'Unknown error in amfa steps');
+    }
+    else  {
+      return response(504, 'MFA Service is not responding. Contact the help desk.');
+    }
   }
 }
 
