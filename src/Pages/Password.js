@@ -90,7 +90,7 @@ const LOGIN = () => {
             break;
           case 202:
             const response2 = await result.json();
-            console.log (response2);
+            console.log(response2);
             navigate('/mfa', {
               state: {
                 username,
@@ -160,10 +160,16 @@ const LOGIN = () => {
           {isLoading ? 'Sending...' : 'Sign In'}
         </Button>
       </div>
-      {!isLoading && <div>
-        <span className='textDescription-customizable'>
-          <p className="redirect-customizable"><a
-            href="/#">Forgot Password?</a></p></span>
+      {!isLoading && <div className="link-customizable" onClick={() =>
+        navigate('/pwdreset', {
+          state: {
+            username,
+            rememberDevice,
+            apti,
+            state,
+            redirectUri,
+          }
+        })}>Forgot Password?
       </div>}
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errorMsg && <div>

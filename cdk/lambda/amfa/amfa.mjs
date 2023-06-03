@@ -17,11 +17,17 @@ const validateInputParams = (payload) => {
       return (payload && payload.email && payload.password &&
         payload.apti && payload.rememberDevice && payload.authParam);
     case 'sendotp':
+    case 'pwdreset2':
+    case 'pwdreset3':
       return (payload && payload.otpaddr && payload.otptype &&
         payload.apti && payload.rememberDevice && payload.authParam);
     case 'verifyotp':
+    case 'pwdresetverify2':
+    case 'pwdresetverify3':
       return (payload && payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.rememberDevice && payload.authParam);
+    case 'pwdreset1':
+      return (payload && payload.email && payload.apti && payload.authParam);
     default:
       break;
   }
@@ -90,6 +96,21 @@ export const handler = async (event) => {
 
 
       switch (payload.phase) {
+        case 'pwdreset2':
+          const pwdreset2Res = await amfaSteps(oneEvent, headers, client, 6);
+          return pwdreset2Res;
+        case 'pwdresetverify2':
+          const pwdresetverify2Res = await amfaSteps(oneEvent, headers, client, 7);
+          return pwdresetverify2Res;
+        case 'pwdreset3':
+          const pwdreset3Res = await amfaSteps(oneEvent, headers, client, 8);
+          return pwdreset3Res;
+        case 'pwdresetverify3':
+          const pwdresetverify3Res = await amfaSteps(oneEvent, headers, client, 9);
+          return pwdresetverify3Res;
+        case 'pwdreset1':
+          const pwdreset1Res = await amfaSteps(oneEvent, headers, client, 5);
+          return pwdreset1Res;
         case 'username':
           const res = await client.send(new ListUsersCommand({
             UserPoolId: process.env.USERPOOL_ID,

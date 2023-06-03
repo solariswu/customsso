@@ -5,8 +5,10 @@ import { Routes, Route } from 'react-router-dom';
 
 import Home from './Pages/Home';
 import Password from './Pages/Password';
+import Captcha from './Pages/Captcha';
 import MFA from './Pages/MFA';
 import NoMatch from './Pages/NoMatch';
+import PwdReset from './Pages/PwdReset';
 
 import { applicationUrl } from './const';
 
@@ -53,7 +55,7 @@ const App = () => {
             <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm">
                <div class="banner-customizable">
                   <center>
-                     <img alt="logo" class="logo-customizable" src={logo} />
+                     <img alt="logo" className="logo-customizable" src={logo} />
                   </center>
                </div>
                <div style={{ height: '5px', background: '#63db92' }} />
@@ -63,7 +65,9 @@ const App = () => {
                      <Route path="/authorise" element={<Home />} />
                      <Route path="/oauth2/authorise" element={<Home />} />
                      <Route path="/password" element={<Password />} />
+                     <Route path="/captcha" element={<Captcha />} />
                      <Route path="/mfa" element={<MFA />} />
+                     <Route path="/pwdreset" element={<PwdReset stoptimer={timerCleaner}/>} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <hr className='hr-customizable' />

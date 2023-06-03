@@ -19,6 +19,9 @@ export const amfaPolicies = {
 		"rank": 4,
 		"permissions": ['e','ae', 's','v']
 	},
+	"password-reset": {
+		"policy_name": "EPND-Pwd-Reset-72vc59zx34",
+	},
 	"default": {
 		"policy_name": "epnd-default-72ws81aq67jf",
 		"rank": 5,

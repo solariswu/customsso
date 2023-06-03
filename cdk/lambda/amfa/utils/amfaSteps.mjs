@@ -89,14 +89,43 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     let ugRank = 10000;
 
     for (let i = 0; i < userGroup.Groups.length; i++) {
+      userGroup.Groups[i].GroupName = userGroup.Groups[i].GroupName.toLowerCase();
       if (amfaPolicies[userGroup.Groups[i].GroupName] && amfaPolicies[userGroup.Groups[i].GroupName].rank < ugRank) {
         ug = userGroup.Groups[i].GroupName;
         ugRank = amfaPolicies[userGroup.Groups[i].GroupName].rank;
       }
     }
+
+    if (!amfaPolicies[ug])
+      ug = 'default';
+
     console.log('ug:', ug);
 
-    const l = amfaPolicies[ug].policy_name ? encodeURI(amfaPolicies[ug].policy_name) : '';
+    if (step === 5) {
+
+      const body = JSON.stringify({
+        otpOptions: amfaPolicies[ug].permissions,
+        email: userAttributes.email,
+        phoneNumber: userAttributes.phone_number,
+        aemail: userAttributes['custom:alter-email'],
+        vPhoneNumber: userAttributes['custom:voice-number'],
+      })
+
+      console.log('body:', body);
+
+      return {
+        statusCode: 200,
+        isBase64Encoded: false,
+        headers,
+        body,
+      };
+    }
+
+    let l = amfaPolicies[ug].policy_name ? encodeURI(amfaPolicies[ug].policy_name) : '';
+
+    if (step >= 6 && step <= 10) {
+      l = amfaPolicies['password-reset'].policy_name ? encodeURI(amfaPolicies['password-reset'].policy_name) : '';
+    }
 
     if (l === '') {
       console.log('Did not find a valid ASM Policy for the user group:', ug);
@@ -148,6 +177,13 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     //'278dcbdee5660876c230650ebb4bd70e';  // For every new MFA Auth login the nodeJS backend needs to read the cookie from teh client if it exists and send it in.
 
     let tType = encodeURI('Initial passwordless login verification'); // Transaction typelLabel for audit logs.
+    if (step === 6) {
+      tType = encodeURI('Password reset 1st verify');
+    }
+    if (step === 7) {
+      tType = encodeURI('Password reset 2nd verify');
+    }
+
     let postURL = asmurl +
       '/extAuthenticate.kv?l=' +
       l +
@@ -192,9 +228,27 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
         break;
       case 4:
+      case 7:
+      case 9:
         tType = encodeURI('OTP verify');
         let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
         postURL = asmurl + '/extVerifyOtp.kv?l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
+        break;
+      case 6:
+        tType = encodeURI('Password reset 1st verify');
+        otpm = event.otptype;
+        p = event.otpaddr;
+        sfl = 7;
+        otpp = 0;
+        postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp;
+        break;
+      case 8:
+        tType = encodeURI('Password reset 2nd verify');
+        otpm = event.otptype;
+        p = event.otpaddr;
+        sfl = 7;
+        otpp = 0;
+        postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp;
         break;
       default:
         break;
@@ -228,15 +282,9 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                     return date;
                   }
 
-                  // Date.prototype.addMinutes = function (minutes) {
-                  //   var date = new Date(this.valueOf());
-                  //   date.setMinutes(date.getMinutes() + minutes);
-                  //   return date;
-                  // }
                   var date = new Date();
                   const cookieValue = `${amfaCookieName}=${amfaResponseJSON.identifier}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; HttpOnly; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=Strict; Path=/`;
                   const cookie2Value = `${cookie2NamePrefix}=${amfaResponseJSON.identifier.substr(-16, 16)}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; Expires=${date.addDays(120).toUTCString()}; Secure; SameSite=Strict; Path=/`;
-                  // const cookie3Value = `apuser=${amfaCookieName}; Domain=${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}; Expires=${date.addMinutes(20).toUTCString()}; Secure; SameSite=Strict; Path=/`
 
                   return {
                     statusCode: 200,
@@ -249,9 +297,17 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                   }
                 }
                 else {
-                  // redirect url === null
                   return response(505, 'Service error, please contact the help desk.')
                 }
+              }
+              else {
+                // statusCode 200, but not 'OK' message
+                return response(501, 'The login service is not currently available. Contact the help desk.');
+              }
+            case 7:
+            case 9:
+              if (amfaResponseJSON.message === 'OK') {
+                return response(200, 'OK')
               }
               else {
                 // statusCode 200, but not 'OK' message
@@ -272,12 +328,16 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                 statusCode: 202,
                 isBase64Encoded: false,
                 headers: cookieEnabledHeaders,
-                body: JSON.stringify({...userAttributes, otpOptions: amfaPolicies[ug].permissions})
+                body: JSON.stringify({ ...userAttributes, otpOptions: amfaPolicies[ug].permissions })
               }
             case 3:
+            case 6:
+            case 8:
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
               return response(202, amfaResponseJSON.message)
             case 4:
+            case 7:
+            case 9:
               // The OTP entered was not correct. Push the user back to the OTP Challenge Page:
               // transform the statusCode to 403, as all 202 in frontend means redirect to another page.
               return response(403, 'The identity code you entered was not correct. Please try again.')
@@ -307,10 +367,10 @@ export const amfaSteps = async (event, headers, cognito, step) => {
   }
   catch (error) {
     console.error('Error in step ' + step + ':', error);
-    if (error.message.indexOf ('fetch failed') === -1) {
+    if (error.message.indexOf('fetch failed') === -1) {
       return response(504, error.message ? error.message : 'Unknown error in amfa steps');
     }
-    else  {
+    else {
       return response(504, 'MFA Service is not responding. Contact the help desk.');
     }
   }

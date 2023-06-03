@@ -7,3 +7,4 @@ export const allowSelfSignUp = false;
 
 // UI STRINGS
 export const mfaPageTitle = 'Your login requires an additional verification';
+export const pwdResetPageTitle = 'Password Reset';

@@ -13,6 +13,7 @@
 		"constructs": "^10.0.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
+		"react-google-recaptcha": "^2.1.0",
 		"react-router-dom": "^6.9.0",
 		"react-scripts": "5.0.1",
 		"reactstrap": "^9.1.8",
@@ -23,8 +24,9 @@
 		"build": "react-scripts build",
 		"test": "react-scripts test",
 		"eject": "react-scripts eject",
+		"lambda-build": "cd cdk/lambda/amfa && npm run build && cd ../../..",
 		"cdk-build": "tsc --target ES2018 --moduleResolution node --module commonjs cdk/bin/amfa-cdk.ts",
-		"deploy": "npm run cdk-build && cdk deploy --all --profile burner"
+		"deploy": "npm run lambda-build && npm run cdk-build && cdk deploy --all --profile burner"
 	},
 	"eslintConfig": {
 		"extends": [
