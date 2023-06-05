@@ -27,6 +27,7 @@ export class TenantApiGateway {
   scope: Construct;
   api: RestApi;
   authCodeTable: Table;
+  pwdResetIdTable: Table;
   userpool: UserPool;
   certificate: Certificate;
   hostedZone: PublicHostedZone;
@@ -39,6 +40,8 @@ export class TenantApiGateway {
 
     // DB for storing custom auth session data
     this.authCodeTable = this.createAuthCodeTable();
+
+    this.pwdResetIdTable = this.createPwdResetIdTable();
 
     this.createApiGateway();
     this.createVpc();
@@ -89,7 +92,59 @@ export class TenantApiGateway {
     });
   }
 
-  private createAmfaLambda(lambdaName: string, userpool: UserPool, userPoolClient: UserPoolClient, authCodeTableName: string, hostedClientId: string) {
+  private createPwdResetLambda(userpool: UserPool, resetIdTable: Table) {
+    const lambdaName = 'passwordreset';
+    const myLambda = new Function(
+      this.scope,
+      `${lambdaName}-${config.tenantId}`,
+      {
+        runtime: Runtime.NODEJS_18_X,
+        handler: `${lambdaName}.handler`,
+        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
+        environment: {
+          USERPOOL_ID: userpool.userPoolId,
+          PWDRESET_ID_TABLE: resetIdTable.tableName,
+        },
+        timeout: Duration.minutes(5),
+      }
+    );
+
+    myLambda.role?.attachInlinePolicy(
+      new Policy(this.scope, `${lambdaName}-policy`, {
+        statements: [
+          new PolicyStatement({
+            resources: [
+              userpool.userPoolArn,
+            ],
+            actions: [
+              'cognito-idp:AdminSetUserPassword',
+              'cognito-idp:AdminGetUser',
+            ],
+          }),
+          new PolicyStatement({
+            resources: [
+              resetIdTable.tableArn,
+            ],
+            actions: [
+              'dynamodb:Scan',
+              'dynamodb:GetItem',
+              'dynamodb:DeleteItem',
+            ],
+          }),
+        ],
+      })
+    );
+
+    return myLambda;
+  }
+
+  private createAmfaLambda(
+    lambdaName: string,
+    userpool: UserPool,
+    userPoolClient: UserPoolClient,
+    authCodeTable: Table,
+    hostedClientId: string,
+    pwdResetIdTable: Table) {
 
     const myLambda = new Function(
       this.scope,
@@ -102,13 +157,14 @@ export class TenantApiGateway {
           TENANT_ID: config.tenantId,
           USERPOOL_ID: userpool.userPoolId,
           DOMAIN_NAME: DNS.RootDomainName,
-          AUTHCODE_TABLE: authCodeTableName,
+          AUTHCODE_TABLE: authCodeTable.tableName,
           APPCLIENT_ID: userPoolClient.userPoolClientId,
           APP_SECRET: userPoolClient.userPoolClientSecret.unsafeUnwrap(),
           MAGIC_STRING: config.magicstring,
           HOSTED_CLIENT_ID: hostedClientId,
+          PWDRESET_ID_TABLE: pwdResetIdTable.tableName,
         },
-        timeout: Duration.minutes(2),
+        timeout: Duration.minutes(5),
         // 👇 place lambda in the VPC
         vpc: this.vpc,
         // 👇 place lambda in Private Subnets
@@ -141,7 +197,10 @@ export class TenantApiGateway {
           'dynamodb:GetItem',
           'dynamodb:PutItem',
         ],
-        resources: [`arn:aws:dynamodb:${config.region}:*:table/${authCodeTableName}`],
+        resources: [
+          authCodeTable.tableArn,
+          pwdResetIdTable.tableArn,
+        ],
       });
 
     myLambda.role?.attachInlinePolicy(
@@ -175,7 +234,7 @@ export class TenantApiGateway {
     const amfaLambdaFunctions = ['amfa'];
 
     amfaLambdaFunctions.map(fnName => {
-      const lambdaFn = this.createAmfaLambda(fnName, userpool, userPoolClient, this.authCodeTable.tableName, hostedClientId);
+      const lambdaFn = this.createAmfaLambda(fnName, userpool, userPoolClient, this.authCodeTable, hostedClientId, this.pwdResetIdTable);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
       return fnName;
     });
@@ -230,6 +289,14 @@ export class TenantApiGateway {
     return table;
   }
 
+  private createPwdResetIdTable() {
+    const table = new Table(this.scope, `amfa-pwdresetid-${config.tenantId}`, {
+      partitionKey: { name: 'uuid', type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+    });
+    return table;
+  }
+
   public createOAuthEndpoints(customAuthClient: UserPoolClient, userpool: UserPool) {
     const oauthEndpointsName = ['token', 'admininitauth'];
 
@@ -249,5 +316,9 @@ export class TenantApiGateway {
       this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, name);
       return name;
     });
+
+    // create password reset endpoint
+    const mylambdaFunction = this.createPwdResetLambda (userpool, this.pwdResetIdTable);
+    this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, 'passwordreset');
   };
 }

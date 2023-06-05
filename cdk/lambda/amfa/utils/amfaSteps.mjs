@@ -14,6 +14,8 @@ import { amfaPolicies, amfaConfigs } from './config.mjs';
 
 import { cookie2NamePrefix } from '../const.mjs';
 
+import { genPwdResetID } from './genPwdResetID.mjs';
+
 export const amfaSteps = async (event, headers, cognito, step) => {
 
   const response = (statusCode, body) => {
@@ -307,7 +309,16 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 7:
             case 9:
               if (amfaResponseJSON.message === 'OK') {
-                return response(200, 'OK')
+                let uuid = '';
+                if (step === 7 || step === 9) {
+                   uuid = await genPwdResetID (event.email, event.apti);
+                }
+                return  {
+                  isBase64Encoded: false,
+                  statusCode: 200,
+                  headers,
+                  body: JSON.stringify({ message: 'OK', uuid }),
+                };
               }
               else {
                 // statusCode 200, but not 'OK' message

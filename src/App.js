@@ -13,6 +13,7 @@ import PwdReset from './Pages/PwdReset';
 import { applicationUrl } from './const';
 
 import logo from './logo.png';
+import NewPasswords from './Pages/NewPasswords';
 
 
 const App = () => {
@@ -68,6 +69,7 @@ const App = () => {
                      <Route path="/captcha" element={<Captcha />} />
                      <Route path="/mfa" element={<MFA />} />
                      <Route path="/pwdreset" element={<PwdReset stoptimer={timerCleaner}/>} />
+                     <Route path="/newpasswords" element={<NewPasswords />} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <hr className='hr-customizable' />

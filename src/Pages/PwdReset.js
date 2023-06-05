@@ -197,10 +197,14 @@ const OTP = () => {
 				credentials: 'include',
 			});
 
+			console.log ('verify otp result:', result);
+			console.log ('otp state:', otp);
 			switch (result.status) {
 				case 200:
+					const response = await result.json();
+					console.log ('otp response:', response);
 					if (otp.stage === 1) {
-						setOtp({ ...otp, stage: otp.stage + 1 });
+						setOtp({ ...otp, code: '', addr: '', stage: otp.stage + 1 });
 						let count = 0;
 
 						data.otpOptions.map((option) => {
@@ -232,6 +236,8 @@ const OTP = () => {
 						});
 
 						let idx = data.otpOptions.findIndex(option => option === otp.type);
+						console.log ('idx:', idx);
+						console.log ('count:', count);
 
 						if (idx > -1 && count > 1) {
 							data.otpOptions.splice(idx, 1);
@@ -243,15 +249,49 @@ const OTP = () => {
 								data.otpOptions.splice(idx, 1);
 							}
 						}
+						else {
+							if (count === 1)
+								navigate('/newpasswords', {
+									state: {
+										username,
+										rememberDevice,
+										apti,
+										state,
+										redirectUri,
+										uuid: response.uuid,
+										validated: true,
+									}
+								});
+							else {
+								// could not find the verified OTP method in the array, unexpected
+								localStorage.setItem('OTPErrorMsg', 'Password Reset Failed, please contact help desk.');
+								window.location.assign(`${applicationUrl}?amfa=relogin`);
+							}
+						}
 						setLoading(false);
 						return;
 					}
-					const response = await result.json();
-					if (response.location) {
-						window.location.assign(response.location);
-						return;
+					console.log ('otp state:', otp);
+					console.log ('response:', response);
+					if (otp.stage === 2 && response.uuid && response.uuid.length > 0) {
+						navigate('/newpasswords', {
+							state: {
+								username,
+								rememberDevice,
+								apti,
+								state,
+								redirectUri,
+								uuid: response.uuid,
+								validated: true,
+							}
+						})
 					}
-					break;
+					else {
+						// unexpected
+						localStorage.setItem('OTPErrorMsg', 'Password Reset Failed, please contact help desk.');
+						window.location.assign(`${applicationUrl}?amfa=relogin`);
+					}
+					return;
 				case 401:
 					const resultMsg = await result.json();
 					if (resultMsg.message) {
