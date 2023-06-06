@@ -4,7 +4,7 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { amfaSteps } from "./utils/amfaSteps.mjs";
-import { amfaConfigs } from './utils/config.mjs';
+import { fetchConfig } from './utils/fetchConfig.mjs';
 
 
 const validateInputParams = (payload) => {
@@ -94,7 +94,6 @@ export const handler = async (event) => {
       oneEvent.cookies = event.headers['Cookie'];
       console.log('oneEvent', oneEvent);
 
-
       switch (payload.phase) {
         case 'pwdreset2':
           const pwdreset2Res = await amfaSteps(oneEvent, headers, client, 6);
@@ -118,6 +117,7 @@ export const handler = async (event) => {
           }));
 
           console.log(res);
+          const amfaConfigs = await fetchConfig ('amfaConfigs');
 
           if (amfaConfigs.enable_passwordless && res && res.Users && res.Users.length > 0) {
             const stepOneResponse = await amfaSteps(oneEvent, headers, client, 1);

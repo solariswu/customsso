@@ -158,8 +158,8 @@ const LOGIN = () => {
         <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
           variant="success"
           onClick={{ applicationUrl } ?
-            window.location.assign(`${applicationUrl}?amfa=relogin`) :
-            window.close()}
+            () => window.location.assign(`${applicationUrl}?amfa=relogin`) :
+            () => window.close()}
         >
           {applicationUrl ? 'Return to the Login Page' : 'Close this window'}
         </Button>

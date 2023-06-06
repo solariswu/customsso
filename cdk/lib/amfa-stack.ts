@@ -10,6 +10,7 @@ import { TenantApiGateway } from './httpapi';
 import { TenantUserPool } from './userpool';
 
 import { config } from './config';
+import { createPostDeploymentLambda } from './postdeployment';
 
 
 export interface AmfaStackProps extends StackProps {
@@ -36,6 +37,10 @@ export class AmfaStack extends Stack {
     // create custom auth oauth endpoints
     apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool);
     apigateway.createAmfaApiEndpoints(tenantUserPool.userpool, tenantUserPool.customAuthClient, tenantUserPool.hostedUIClient.userPoolClientId);
+
+    createPostDeploymentLambda (this, apigateway.configTable);
+
+    // output
 
     new CfnOutput(this, 'userPoolId', { value: tenantUserPool.userpool.userPoolId, });
 

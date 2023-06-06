@@ -8,7 +8,7 @@ import { ARecord, PublicHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53
 import { ApiGatewayDomain } from "aws-cdk-lib/aws-route53-targets";
 import { Vpc, SubnetType, IpAddresses } from 'aws-cdk-lib/aws-ec2';
 
-import { Duration } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import { config } from './config';
@@ -28,6 +28,7 @@ export class TenantApiGateway {
   api: RestApi;
   authCodeTable: Table;
   pwdResetIdTable: Table;
+  configTable: Table;
   userpool: UserPool;
   certificate: Certificate;
   hostedZone: PublicHostedZone;
@@ -40,6 +41,8 @@ export class TenantApiGateway {
 
     // DB for storing custom auth session data
     this.authCodeTable = this.createAuthCodeTable();
+
+    this.configTable = this.createAmfaConfigTable();
 
     this.pwdResetIdTable = this.createPwdResetIdTable();
 
@@ -144,7 +147,8 @@ export class TenantApiGateway {
     userPoolClient: UserPoolClient,
     authCodeTable: Table,
     hostedClientId: string,
-    pwdResetIdTable: Table) {
+    pwdResetIdTable: Table,
+    configTable: Table) {
 
     const myLambda = new Function(
       this.scope,
@@ -163,6 +167,7 @@ export class TenantApiGateway {
           MAGIC_STRING: config.magicstring,
           HOSTED_CLIENT_ID: hostedClientId,
           PWDRESET_ID_TABLE: pwdResetIdTable.tableName,
+          AMFACONFIG_TABLE: configTable.tableName,
         },
         timeout: Duration.minutes(5),
         // 👇 place lambda in the VPC
@@ -200,6 +205,7 @@ export class TenantApiGateway {
         resources: [
           authCodeTable.tableArn,
           pwdResetIdTable.tableArn,
+          configTable.tableArn,
         ],
       });
 
@@ -234,7 +240,9 @@ export class TenantApiGateway {
     const amfaLambdaFunctions = ['amfa'];
 
     amfaLambdaFunctions.map(fnName => {
-      const lambdaFn = this.createAmfaLambda(fnName, userpool, userPoolClient, this.authCodeTable, hostedClientId, this.pwdResetIdTable);
+      const lambdaFn = this.createAmfaLambda(fnName, userpool,
+        userPoolClient, this.authCodeTable, hostedClientId,
+        this.pwdResetIdTable, this.configTable);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
       return fnName;
     });
@@ -285,6 +293,14 @@ export class TenantApiGateway {
       partitionKey: { name: 'username', type: AttributeType.STRING },
       sortKey: { name: 'apti', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+    return table;
+  }
+  private createAmfaConfigTable() {
+    const table = new Table(this.scope, `amfa-config-${config.tenantId}`, {
+      partitionKey: { name: 'configtype', type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
     });
     return table;
   }
@@ -293,6 +309,7 @@ export class TenantApiGateway {
     const table = new Table(this.scope, `amfa-pwdresetid-${config.tenantId}`, {
       partitionKey: { name: 'uuid', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
     return table;
   }
@@ -318,7 +335,7 @@ export class TenantApiGateway {
     });
 
     // create password reset endpoint
-    const mylambdaFunction = this.createPwdResetLambda (userpool, this.pwdResetIdTable);
+    const mylambdaFunction = this.createPwdResetLambda(userpool, this.pwdResetIdTable);
     this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, 'passwordreset');
   };
 }

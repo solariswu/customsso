@@ -10,11 +10,10 @@ import { createHash } from 'node:crypto';
 import { fetchCode } from './fetchCode.mjs';
 import { passwordlessLogin } from './passwordlessLogin.mjs';
 
-import { amfaPolicies, amfaConfigs } from './config.mjs';
-
 import { cookie2NamePrefix } from '../const.mjs';
 
 import { genPwdResetID } from './genPwdResetID.mjs';
+import { fetchConfig } from './fetchConfig.mjs';
 
 export const amfaSteps = async (event, headers, cognito, step) => {
 
@@ -40,6 +39,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
   }
 
   try {
+    const amfaConfigs = await fetchConfig('amfaConfigs');
     // API vars saved in node.js property file in the back-end node.js
     const salt = amfaConfigs.salt; // Pull this from a property file. All MFA services will use this same salt to read and write the one_time_token-Cookie.
 
@@ -89,6 +89,8 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     let ug = '';
     let ugRank = 10000;
+
+    const amfaPolicies = await fetchConfig ('amfaPolicies');
 
     for (let i = 0; i < userGroup.Groups.length; i++) {
       userGroup.Groups[i].GroupName = userGroup.Groups[i].GroupName.toLowerCase();
