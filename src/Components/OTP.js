@@ -5,7 +5,7 @@ import { Button, Spinner } from 'reactstrap';
 
 import { apiUrl, applicationUrl, pwdResetPageTitle } from '../const';
 
-const OTP = () => {
+export const OTP = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
 
@@ -18,14 +18,14 @@ const OTP = () => {
 
 	useEffect(() => {
 
-		const fetchData = async () => {
+		const getOtpOptions = async () => {
 			// get the data from the api
 			const params = {
-				email: location.state?.username,
-				rememberDevice: location.state?.rememberDevice,
+				email: location.state?.email,
+				rememberDevice: false,
 				authParam: window.getAuthParam(),
 				apti: location.state?.apti,
-				phase: 'pwdreset1'
+				phase: 'getOtpOptions'
 			};
 
 			setLoading(true);
@@ -63,9 +63,20 @@ const OTP = () => {
 			window.history.pushState('fake-route', document.title, window.location.href);
 
 			window.addEventListener('popstate', () => console.log('back pressed in MFA'));
-			// call the function
-			fetchData()
 
+			switch (location.state.type) {
+				case 'passwordreset':
+					// call the function
+					getOtpOptions();
+					break;
+				case 'updateotp':
+					setData(location.state);
+					setShowOTP(true);
+					break;
+				default:
+					navigate('/');
+					return;
+			}
 			return () => {
 				window.removeEventListener('popstate', () => console.log('back pressed in MFA'));
 				// If we left without using the back button, aka by using a button on the page, we need to clear out that fake history event
@@ -80,11 +91,8 @@ const OTP = () => {
 
 	const authParam = window.getAuthParam();
 
-	const username = location.state?.username;
-	const rememberDevice = location.state?.rememberDevice;
+	const email = location.state?.email;
 	const apti = location.state?.apti;
-	const state = location.state?.state;
-	const redirectUri = location.state?.redirectUri;
 
 	const setOTPCode = (e) => {
 		setOtp({ ...otp, code: e.target.value });
@@ -100,8 +108,8 @@ const OTP = () => {
 		setOtp({ ...otp, type: otptype, addr: otpaddr });
 
 		const sendOtpParams = {
-			email: username,
-			rememberDevice,
+			email,
+			rememberDevice: false,
 			authParam,
 			apti,
 			otptype,
@@ -158,8 +166,8 @@ const OTP = () => {
 			setLoading(false);
 		}
 		catch (err) {
-			console.error('error in OTP pwdreset', err);
-			setErrorMsg('Password Reset OTP error, please contact help desk.');
+			console.error('error in Dual OTP', err);
+			setErrorMsg('Dual OTP error, please contact help desk.');
 			setLoading(false);
 		}
 	}
@@ -173,14 +181,14 @@ const OTP = () => {
 		}
 
 		const verifyOtpParams = {
-			email: username,
-			rememberDevice,
+			email,
+			rememberDevice: false,
 			authParam,
 			apti,
 			otptype: otp.type,
 			otpcode: otp.code,
-			state,
-			redirectUri,
+			state: '',
+			redirectUri: '',
 			phase: `pwdresetverify${otp.stage + 1}`,
 		};
 
@@ -197,12 +205,12 @@ const OTP = () => {
 				credentials: 'include',
 			});
 
-			console.log ('verify otp result:', result);
-			console.log ('otp state:', otp);
+			console.log('verify otp result:', result);
+			console.log('otp state:', otp);
 			switch (result.status) {
 				case 200:
 					const response = await result.json();
-					console.log ('otp response:', response);
+					console.log('otp response:', response);
 					if (otp.stage === 1) {
 						setOtp({ ...otp, code: '', addr: '', stage: otp.stage + 1 });
 						let count = 0;
@@ -236,8 +244,8 @@ const OTP = () => {
 						});
 
 						let idx = data.otpOptions.findIndex(option => option === otp.type);
-						console.log ('idx:', idx);
-						console.log ('count:', count);
+						console.log('idx:', idx);
+						console.log('count:', count);
 
 						if (idx > -1 && count > 1) {
 							data.otpOptions.splice(idx, 1);
@@ -251,44 +259,40 @@ const OTP = () => {
 						}
 						else {
 							if (count === 1)
-								navigate('/newpasswords', {
+								navigate(`/${location.state.type}`, {
 									state: {
-										username,
-										rememberDevice,
+										email,
 										apti,
-										state,
-										redirectUri,
 										uuid: response.uuid,
 										validated: true,
+										otpData: data,
 									}
 								});
 							else {
 								// could not find the verified OTP method in the array, unexpected
-								localStorage.setItem('OTPErrorMsg', 'Password Reset Failed, please contact help desk.');
+								localStorage.setItem('OTPErrorMsg', 'Dual OTP verification error, please contact help desk.');
 								window.location.assign(`${applicationUrl}?amfa=relogin`);
 							}
 						}
 						setLoading(false);
 						return;
 					}
-					console.log ('otp state:', otp);
-					console.log ('response:', response);
+					console.log('otp state:', otp);
+					console.log('response:', response);
 					if (otp.stage === 2 && response.uuid && response.uuid.length > 0) {
-						navigate('/newpasswords', {
+						navigate(`/${location.state.type}`, {
 							state: {
-								username,
-								rememberDevice,
+								email,
 								apti,
-								state,
-								redirectUri,
 								uuid: response.uuid,
 								validated: true,
+								otpData: data,
 							}
 						})
 					}
 					else {
 						// unexpected
-						localStorage.setItem('OTPErrorMsg', 'Password Reset Failed, please contact help desk.');
+						localStorage.setItem('OTPErrorMsg', 'Dual OTP verification error, please contact help desk.');
 						window.location.assign(`${applicationUrl}?amfa=relogin`);
 					}
 					return;
@@ -339,12 +343,12 @@ const OTP = () => {
 			</div>
 			<br />
 			{showOTP && data.otpOptions.map((option) => (
-				option === 'e' && username ?
+				option === 'e' && email ?
 					(<div className='row align-items-end'>
 						<div className='col-4'>Email:</div>
 						<div className='col'>
-							<span className='link-customizable' onClick={() => username ? sendOtp({ otptype: 'e', otpaddr: username }) : null}>
-								{`${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))} >`}
+							<span className='link-customizable' onClick={() => email ? sendOtp({ otptype: 'e', otpaddr: email }) : null}>
+								{`${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))} >`}
 							</span>
 						</div>
 					</div>) : option === 'ae' && data.aemail ?
@@ -403,11 +407,3 @@ const OTP = () => {
 		</div>
 	);
 }
-
-const PwdReset = ({ stoptimer }) => {
-	stoptimer();
-	return (
-		<OTP />
-	)
-}
-export default PwdReset;

@@ -17,7 +17,7 @@ const headers = {
 };
 
 const validateInputParams = (event) => {
-	return event.username.trim().length > 0 && event.password.trim().length > 0 &&
+	return event.email.trim().length > 0 && event.password.trim().length > 0 &&
 		event.apti.trim().length > 0 && event.state.trim().length > 0;
 };
 
@@ -36,7 +36,7 @@ const getUserWithPassword = async (payload, cognito, secretHash) => {
 
 	const params = {
 		AuthParameters: {
-			USERNAME: payload.username,
+			USERNAME: payload.email,
 			PASSWORD: payload.password,
 			SECRET_HASH: secretHash,
 		},
@@ -59,7 +59,7 @@ const getUser = async (payload, cognito) => {
 
 	const secretHash = crypto
 		.createHmac('SHA256', appclientSecret)
-		.update(payload.username + appclientId)
+		.update(payload.email + appclientId)
 		.digest('base64');
 
 	return await getUserWithPassword(payload, cognito, secretHash);
@@ -82,7 +82,7 @@ const storeTokens = async (user, payload, authCode, dynamodb, requestTimeEpoch) 
 	const params = {
 		Item: {
 			username: {
-				S:  payload.username,
+				S:  payload.email,
 			},
 			apti: {
 				S: payload.apti,
@@ -135,7 +135,7 @@ export const handler = async (event) => {
 				const authCode = makeId(32);
 				await storeTokens(user, payload, authCode, dynamodb, event.requestContext.requestTimeEpoch);
 
-				const res = { username: payload.username, apti: payload.apti };
+				const res = { email: payload.email, apti: payload.apti };
 				return {
 					statusCode: 200,
 					headers,

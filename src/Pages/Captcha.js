@@ -127,7 +127,7 @@ const LOGIN = () => {
 					// const result = await res.json();
 					navigate('/password', {
 						state: {
-							username: email.toLocaleLowerCase(),
+							email: email.toLocaleLowerCase(),
 							apti,
 							state,
 							redirectUri

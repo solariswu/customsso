@@ -6,31 +6,32 @@ import {
 import { amfaSteps } from "./utils/amfaSteps.mjs";
 import { fetchConfig } from './utils/fetchConfig.mjs';
 
-
 const validateInputParams = (payload) => {
   // check required params here
   switch (payload.phase) {
     case 'username':
       return (payload && payload.email &&
-        payload.apti && payload.rememberDevice && payload.authParam);
+        payload.apti && payload.authParam);
     case 'password':
       return (payload && payload.email && payload.password &&
-        payload.apti && payload.rememberDevice && payload.authParam);
+        payload.apti  && payload.authParam);
     case 'sendotp':
     case 'pwdreset2':
     case 'pwdreset3':
       return (payload && payload.otpaddr && payload.otptype &&
-        payload.apti && payload.rememberDevice && payload.authParam);
+        payload.apti && payload.authParam);
     case 'verifyotp':
     case 'pwdresetverify2':
     case 'pwdresetverify3':
       return (payload && payload.email && payload.otpcode && payload.otptype &&
-        payload.apti && payload.rememberDevice && payload.authParam);
-    case 'pwdreset1':
+        payload.apti  && payload.authParam);
+    case 'getOtpOptions':
       return (payload && payload.email && payload.apti && payload.authParam);
     default:
       break;
   }
+
+  console.log ('Invalid payload', payload);
 
   return false;
 };
@@ -107,9 +108,9 @@ export const handler = async (event) => {
         case 'pwdresetverify3':
           const pwdresetverify3Res = await amfaSteps(oneEvent, headers, client, 9);
           return pwdresetverify3Res;
-        case 'pwdreset1':
-          const pwdreset1Res = await amfaSteps(oneEvent, headers, client, 5);
-          return pwdreset1Res;
+        case 'getOtpOptions':
+          const getOtpOptionsRes = await amfaSteps(oneEvent, headers, client, 5);
+          return getOtpOptionsRes;
         case 'username':
           const res = await client.send(new ListUsersCommand({
             UserPoolId: process.env.USERPOOL_ID,

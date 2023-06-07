@@ -37,7 +37,7 @@ const OTP = () => {
 
   const authParam = window.getAuthParam();
 
-  const username = location.state?.username;
+  const email = location.state?.email;
   const rememberDevice = location.state?.rememberDevice;
   const apti = location.state?.apti;
   const state = location.state?.state;
@@ -61,7 +61,7 @@ const OTP = () => {
     setOtp({ ...otp, type: otptype, addr: otpaddr });
 
     const sendOtpParams = {
-      email: username,
+      email,
       rememberDevice,
       authParam,
       apti,
@@ -136,7 +136,7 @@ const OTP = () => {
     }
 
     const verifyOtpParams = {
-      email: username,
+      email,
       rememberDevice,
       authParam,
       apti,
@@ -217,12 +217,12 @@ const OTP = () => {
       </div>
       <br />
       {otpOptions.map((option) => (
-        option === 'e' && username ?
+        option === 'e' && email ?
           (<div className='row align-items-end'>
             <div className='col-4'>Email:</div>
             <div className='col'>
-              <span className='link-customizable' onClick={() => username ? stepthree({ otptype: 'e', otpaddr: username }) : null}>
-                {`${username[0]}xxx@${username[username.lastIndexOf('@') + 1]}xx.${username.substring((username.lastIndexOf('.') + 1))} >`}
+              <span className='link-customizable' onClick={() => email ? stepthree({ otptype: 'e', otpaddr: email }) : null}>
+                {`${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))} >`}
               </span>
             </div>
           </div>) : option === 'ae' && aemail ?

@@ -29,7 +29,7 @@ const LOGIN = () => {
     };
   }, [location.state, navigate]);
 
-  const username = location.state?.username;
+  const email = location.state?.email;
   const rememberDevice = location.state?.rememberDevice;
   const apti = location.state?.apti;
   const state = location.state?.state;
@@ -54,7 +54,7 @@ const LOGIN = () => {
     const authParam = window.getAuthParam();
 
     const params = {
-      email: username,
+      email,
       password,
       rememberDevice,
       authParam,
@@ -66,7 +66,7 @@ const LOGIN = () => {
 
     const options = {
       method: 'POST',
-      body: JSON.stringify({ username, password, apti, state, redirectUri }),
+      body: JSON.stringify({ email, password, apti, state, redirectUri }),
     };
 
     setLoading(true);
@@ -93,7 +93,7 @@ const LOGIN = () => {
             console.log(response2);
             navigate('/mfa', {
               state: {
-                username,
+                email,
                 rememberDevice,
                 apti,
                 state,
@@ -161,13 +161,11 @@ const LOGIN = () => {
         </Button>
       </div>
       {!isLoading && <div className="link-customizable" onClick={() =>
-        navigate('/pwdreset', {
+        navigate('/dualotp', {
           state: {
-            username,
-            rememberDevice,
+            email,
             apti,
-            state,
-            redirectUri,
+            type: 'passwordreset'
           }
         })}>Forgot Password?
       </div>}

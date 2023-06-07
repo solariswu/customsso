@@ -8,12 +8,14 @@ import Password from './Pages/Password';
 import Captcha from './Pages/Captcha';
 import MFA from './Pages/MFA';
 import NoMatch from './Pages/NoMatch';
-import PwdReset from './Pages/PwdReset';
+import DualOTP from './Pages/DualOTP';
+import NewPasswords from './Pages/NewPasswords';
+import SelfService from './Pages/SelfService';
+import OTPMethods from './Pages/OTPMethods';
 
 import { applicationUrl } from './const';
 
 import logo from './logo.png';
-import NewPasswords from './Pages/NewPasswords';
 
 
 const App = () => {
@@ -66,10 +68,12 @@ const App = () => {
                      <Route path="/authorise" element={<Home />} />
                      <Route path="/oauth2/authorise" element={<Home />} />
                      <Route path="/password" element={<Password />} />
+                     <Route path="/dualotp" element={<DualOTP stoptimer={timerCleaner}/>} />
                      <Route path="/captcha" element={<Captcha />} />
                      <Route path="/mfa" element={<MFA />} />
-                     <Route path="/pwdreset" element={<PwdReset stoptimer={timerCleaner}/>} />
-                     <Route path="/newpasswords" element={<NewPasswords />} />
+                     <Route path="/passwordreset" element={<NewPasswords />} />
+                     <Route path="/updateotp" element={<OTPMethods />} />
+                     <Route path="/selfservice" element={<SelfService />} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <hr className='hr-customizable' />

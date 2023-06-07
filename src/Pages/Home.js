@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Spinner } from 'reactstrap';
 
 import { allowSelfSignUp, apiUrl, clientName, applicationUrl } from '../const';
+import { getApti, validateEmail } from './utils';
 
 const LOGIN = () => {
 
@@ -24,10 +25,6 @@ const LOGIN = () => {
 
     const previousState = sessionStorage.getItem('amfa-state');
 
-    // console.log('state:',state);
-    // console.log('previousState:',previousState);
-    // console.log('is equal:', previousState === state);
-
     if (state === null || state === '' || state === previousState) {
       window.location.assign(`${applicationUrl}?amfa=relogin`);
     }
@@ -42,7 +39,6 @@ const LOGIN = () => {
     }
 
     return () => {
-      // setSearchParams({ state: null, redirect_uri });
       setState(null);
     }
 
@@ -66,9 +62,8 @@ const LOGIN = () => {
   }
 
   const stepone = async (e) => {
-    const mailformat = /^\b[A-Z0-9._+%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b$/i;
-    // /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    if (!email || !email.match(mailformat)) {
+
+    if (!email || validateEmail(email)) {
       setErrorMsg('Please enter a valid email address');
       return;
     };
@@ -77,8 +72,7 @@ const LOGIN = () => {
       localStorage.setItem('amfa-username', email.trim());
     }
 
-    const apti = (Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16));
-
+    const apti = getApti();
     const authParam = window.getAuthParam();
 
     const params = {
@@ -117,7 +111,7 @@ const LOGIN = () => {
           // const result = await res.json();
           navigate('/password', {
             state: {
-              username: email.toLocaleLowerCase(),
+              email: email.toLocaleLowerCase(),
               rememberDevice,
               apti,
               state,

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
+import { validatePassword } from './utils';
 
 
 const LOGIN = () => {
@@ -30,7 +31,7 @@ const LOGIN = () => {
     };
   }, [location.state, navigate]);
 
-  const username = location.state?.username;
+  const email = location.state?.email;
   const uuid = location.state?.uuid;
   const apti = location.state?.apti;
 
@@ -45,35 +46,6 @@ const LOGIN = () => {
     if (e.key === "Enter") {
       handleSubmit(e);
     }
-  }
-
-  const minLength = (value) => {
-    if (value && value.length >= 8) return undefined;
-    return 'Password must be at least 8 characters';
-  }
-  const hasLowercase = (value) => {
-    if (value && /[a-z]/.test(value)) return undefined;
-    return 'Password must contain at least one lowercase letter';
-  }
-  const hasUppercase = (value) => {
-    if (value && /[A-Z]/.test(value)) return undefined;
-    return 'Password must contain at least one uppercase letter';
-  }
-  const hasNumber = (value) => {
-    if (value && /[0-9]/.test(value)) return undefined;
-    return 'Password must contain at least one number';
-  }
-  const hasSpecial = (value) => {
-    if (value && /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(value)) return undefined;
-    return 'Password must contain at least one special character';
-  }
-  const validatePassword = (value) => {
-    if (minLength(value)) return minLength(value);
-    if (hasLowercase(value)) return hasLowercase(value);
-    if (hasUppercase(value)) return hasUppercase(value);
-    if (hasNumber(value)) return hasNumber(value);
-    if (hasSpecial(value)) return hasSpecial(value);
-    return undefined;
   }
 
   const validTwoPasswords = () => {
@@ -115,7 +87,7 @@ const LOGIN = () => {
 
       const options = {
         method: 'POST',
-        body: JSON.stringify({ email: username, password, uuid, apti }),
+        body: JSON.stringify({ email, password, uuid, apti }),
       };
 
       setLoading(true);
