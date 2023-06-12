@@ -148,7 +148,7 @@ const LOGIN = () => {
       <hr className="hr-customizable" />
       {isResetDone ? <ResetDone /> :
         <div>
-          <span className='idpDescription-customizable'> Ensert your new password </span>
+          <span className='idpDescription-customizable'> Enter your new password </span>
           <div className="input-group">
             <input id="signInFormPassword" name="password" type={passwordType} className="form-control inputField-customizable"
               style={{ height: '40px' }}

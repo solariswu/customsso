@@ -7,12 +7,18 @@ const LOGIN = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
 
+	const data = location.state?.otpData ? location.state.otpData : null;
+	const email = location.state?.email;
+	const apti = location.state?.apti;
+	const uuid = location.state?.uuid;
+
 	const closeQuickView = () => {
 		console.log('back pressed');
 	}
 
 	useEffect(() => {
-		if (!location.state) {
+		console.log('otp methods, location state:', location.state);
+		if (!location.state || !location.state.validated) {
 			navigate('/');
 		}
 
@@ -28,56 +34,109 @@ const LOGIN = () => {
 		};
 	}, [location.state, navigate]);
 
-	const email = location.state?.email;
 
 	return (
 		<div>
 			<span><h4>Self Service: verify methods</h4></span>
 			<hr className="hr-customizable" />
-			<div style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-			>
-				<ul>
-					<li>
-						<span>Email:</span>
-					</li>
-					<li>
-						<span>{email}</span>
-					</li>
-				</ul>
+			<div class="row">
+				<div class="col" style={{ margin: 'auto 20px', display: 'inline', height: '40px' }}>
+					<div class="row"
+						style={{ fontWeight: 'bold' }}
+					>
+						Alt-Email:
+					</div>
+					<div class="row" style={{ color: '#C0C0C0' }}>
+						{data?.aemail ? data.aemail : '---'}
+					</div>
+				</div>
+				<div class="col-4">
+					<Button
+						name='updateEmail'
+						type='submit'
+						className='btn btn-primary submitButton-customizable'
+						onClick={null}
+					>
+						Update
+					</Button>
+				</div>
 			</div>
-
-			<Button
-				name='updateEmail'
-				type='submit'
-				className='btn btn-primary submitButton-customizable'
-				style={{ width: '20%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-				onClick={null}
-			>
-				Update
-			</Button>
-
 			<hr className='hr-customizable' />
-			<div style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-			>
-				<ul>
-					<li>
-						<span>Email:</span>
-					</li>
-					<li>
-						<span>{email}</span>
-					</li>
-				</ul>
+			<div class="row">
+				<div class="col" style={{ margin: 'auto 20px', display: 'inline', height: '40px' }}>
+					<div class="row"
+						style={{ fontWeight: 'bold' }}
+					>
+						Mobile Number:
+					</div>
+					<div class="row" style={{ color: '#C0C0C0' }}>
+						{data?.phoneNumber ? data.phoneNumber : '---'}
+					</div>
+				</div>
+				<div class="col-4">
+					<Button
+						name='updatePhone'
+						type='submit'
+						className='btn btn-primary submitButton-customizable'
+						onClick={null}
+					>
+						Update
+					</Button>
+				</div>
+			</div>
+			<hr className='hr-customizable' />
+			<div class="row">
+				<div class="col" style={{ margin: 'auto 20px', display: 'inline', height: '40px' }}>
+					<div class="row"
+						style={{ fontWeight: 'bold' }}
+					>
+						Voice Number:
+					</div>
+					<div class="row" style={{ color: '#C0C0C0' }}>
+						{data?.vPhoneNumber ? data.vPhoneNumber : data.phoneNumber ? data.phoneNumber : '---'}
+					</div>
+				</div>
+				<div class="col-4">
+					<Button
+						name='updateVoice'
+						type='submit'
+						className='btn btn-primary submitButton-customizable'
+						onClick={null}
+					>
+						Update
+					</Button>
+				</div>
+			</div>
+			<hr className='hr-customizable' />
+			<div class="row">
+				<div class="col" style={{ margin: 'auto 20px', display: 'inline', height: '40px' }}>
+					<div class="row"
+						style={{ fontWeight: 'bold' }}
+					>
+						Update Password:
+					</div>
+					<div class="row" style={{ color: '#C0C0C0' }}></div>
+				</div>
+				<div class="col-4">
+					<Button
+						name='updatePassword'
+						type='submit'
+						className='btn btn-primary submitButton-customizable'
+						onClick={() =>navigate('/passwordreset', {
+							state: {
+								email,
+								apti,
+								uuid,
+								validated: true,
+								otpData: data,
+							}
+						})}
+					>
+						Update
+					</Button>
+				</div>
 			</div>
 
-			<Button
-				name='updateEmail'
-				type='submit'
-				className='btn btn-primary submitButton-customizable'
-				style={{ width: '20%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-				onClick={null}
-			>
-				Update
-			</Button>
 		</div >
 	);
 }

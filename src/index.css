@@ -1,7 +1,7 @@
 body {
   font-family: 'Arial';
   color: #3b3b3b;
-  background: #c0c0c0;
+  background: white;
 }
 
 .banner-customizable {
@@ -41,7 +41,8 @@ body {
 .modal-content {
   width: 100% !important;
   margin: 0px auto;
-  border: 0px;
+  border: 1px;
+  border-color: #c0c0c0;
   overflow: hidden;
   border-radius: 1%;
 }
@@ -312,4 +313,14 @@ body {
   text-decoration: underline;
   color: #0062cc;
   /* text-shadow: 1px 1px 1px #555; */
+}
+.footer-customizable {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: white;
+  color: grey;
+  text-align: center;
+  font-size: 12px;
 }

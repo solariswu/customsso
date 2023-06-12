@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 
-import { apiUrl, applicationUrl, pwdResetPageTitle } from '../const';
+import { apiUrl, applicationUrl, pwdResetPageTitle, selfServicePageTitle } from '../const';
 
 export const OTP = () => {
 	const navigate = useNavigate();
@@ -45,8 +45,9 @@ export const OTP = () => {
 					return;
 				}
 				// set state with the result
-				setShowOTP(true);
 				setData(json);
+				setShowOTP(true);
+				console.log(json);
 			} catch (error) {
 				console.error(error);
 				setLoading(false);
@@ -60,22 +61,25 @@ export const OTP = () => {
 			return;
 		}
 		else {
+			setShowOTP(false);
+			setOtp({ type: 'e', code: '', addr: '', stage: 1 });
+			setLoading(false);
+			setData(null);
+			setErrorMsg('');
+			setInfoMsg('');
+
 			window.history.pushState('fake-route', document.title, window.location.href);
 
 			window.addEventListener('popstate', () => console.log('back pressed in MFA'));
 
-			switch (location.state.type) {
-				case 'passwordreset':
-					// call the function
-					getOtpOptions();
-					break;
-				case 'updateotp':
-					setData(location.state);
-					setShowOTP(true);
-					break;
-				default:
-					navigate('/');
-					return;
+			if (location.state.type === 'passwordreset' || location.state.type === 'updateotp') {
+				// call the function
+				getOtpOptions();
+			}
+			else {
+				// if the type is not passwordreset or updateotp, then we need to navigate to the home page
+				navigate('/');
+				return;
 			}
 			return () => {
 				window.removeEventListener('popstate', () => console.log('back pressed in MFA'));
@@ -87,12 +91,14 @@ export const OTP = () => {
 			};
 		}
 
-	}, [location.state, navigate]);
+	}, []);
 
 	const authParam = window.getAuthParam();
 
 	const email = location.state?.email;
 	const apti = location.state?.apti;
+
+	const amfaStepPrefix = location.state.type === 'passwordreset' ? 'pwdreset' : 'selfservice';
 
 	const setOTPCode = (e) => {
 		setOtp({ ...otp, code: e.target.value });
@@ -107,6 +113,7 @@ export const OTP = () => {
 	const sendOtp = async ({ otptype, otpaddr }) => {
 		setOtp({ ...otp, type: otptype, addr: otpaddr });
 
+
 		const sendOtpParams = {
 			email,
 			rememberDevice: false,
@@ -114,7 +121,7 @@ export const OTP = () => {
 			apti,
 			otptype,
 			otpaddr,
-			phase: `pwdreset${otp.stage + 1}`,
+			phase: `${amfaStepPrefix}${otp.stage + 1}`,
 		};
 
 		console.log('send otp params:', sendOtpParams);
@@ -189,7 +196,7 @@ export const OTP = () => {
 			otpcode: otp.code,
 			state: '',
 			redirectUri: '',
-			phase: `pwdresetverify${otp.stage + 1}`,
+			phase: `${amfaStepPrefix}verify${otp.stage + 1}`,
 		};
 
 		console.log('verify otp params:', verifyOtpParams);
@@ -215,6 +222,7 @@ export const OTP = () => {
 						setOtp({ ...otp, code: '', addr: '', stage: otp.stage + 1 });
 						let count = 0;
 
+						console.log('data', data);
 						data.otpOptions.map((option) => {
 							switch (option) {
 								case 'e':
@@ -258,7 +266,7 @@ export const OTP = () => {
 							}
 						}
 						else {
-							if (count === 1)
+							if (count === 1) {
 								navigate(`/${location.state.type}`, {
 									state: {
 										email,
@@ -268,6 +276,8 @@ export const OTP = () => {
 										otpData: data,
 									}
 								});
+								// console.log ('count === 1, location.state:', location.state);
+							}
 							else {
 								// could not find the verified OTP method in the array, unexpected
 								localStorage.setItem('OTPErrorMsg', 'Dual OTP verification error, please contact help desk.');
@@ -322,14 +332,14 @@ export const OTP = () => {
 		}
 		catch (err) {
 			setLoading(false);
-			console.error('error in otp password reset', err);
+			console.error('error in otp password reset/selfservice', err);
 			setErrorMsg('OTP verify error, please contact help desk.');
 		}
 	}
 
 	return (
 		<div>
-			<span> <h4>{pwdResetPageTitle}</h4> </span>
+			<span> <h4>{location.state?.type === 'passwordreset' ? pwdResetPageTitle : selfServicePageTitle}</h4> </span>
 			<hr className='hr-customizable' />
 			<div>
 				<span

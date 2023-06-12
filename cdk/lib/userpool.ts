@@ -18,10 +18,8 @@ import { Duration } from 'aws-cdk-lib';
 
 
 import { config } from './config';
-import { DNS } from './const';
+import { DNS, AMFAIdPName } from './const';
 import { createAuthChallengeFn } from './lambda';
-
-const AMFAIdPName = 'aPersona';
 
 export class TenantUserPool {
   scope: Construct;
@@ -152,10 +150,10 @@ export class TenantUserPool {
         },
         attributeRequestMethod: OidcAttributeRequestMethod.GET,
         endpoints: {
-          authorization: `${customauthUrl}/oauth2/authorise`,
+          authorization: `${customauthUrl}/oauth2/authorize`,
           jwksUri: `${issuerUrl}/.well-known/jwks.json`,
           token: `${serviceApiUrl}/oauth2/token`,
-          userInfo: `https://${config.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/userinfo`,
+          userInfo: `https://${config.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/userInfo`,
         },
         identifiers: ['apersona'],
         name: AMFAIdPName,

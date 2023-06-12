@@ -21,7 +21,7 @@ const LOGIN = () => {
 	}
 
 	const handleSubmit = async (e) => {
-		if (!email || !validateEmail(email)) {
+		if (!email || validateEmail(email)) {
 			setErrorMsg('Please enter a valid email address');
 			return;
 		};
@@ -86,8 +86,8 @@ const LOGIN = () => {
 					onKeyUp={e => confirmLogin(e)}
 					autoFocus
 					disabled={isLoading}
-				/>
-				<span className='idpDescription-customizable'> Please enter your password </span><br />
+				/><br />
+				<span className='idpDescription-customizable'> Please enter your password </span>
 				<input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
 					placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
 					onKeyUp={e => confirmLogin(e)}

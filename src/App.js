@@ -52,6 +52,17 @@ const App = () => {
       }
    }, []);
 
+   const Footer = () => (<div className='footer-customizable'>
+      <span
+         className='legalText-customizable'
+      >
+         Copyright &copy; 2023 aPersona Inc. v1.0
+      </span><br />
+      <span className='legalText-customizable'>
+         {time}
+      </span>
+   </div>)
+
    return (
       <div className="container">
          <div className="modal-dialog">
@@ -65,10 +76,10 @@ const App = () => {
                <div className="modal-body" style={{ textAlign: 'center' }}>
                   <Routes>
                      <Route path="/" element={<Home />} />
-                     <Route path="/authorise" element={<Home />} />
-                     <Route path="/oauth2/authorise" element={<Home />} />
+                     <Route path="/authorize" element={<Home />} />
+                     <Route path="/oauth2/authorize" element={<Home />} />
                      <Route path="/password" element={<Password />} />
-                     <Route path="/dualotp" element={<DualOTP stoptimer={timerCleaner}/>} />
+                     <Route path="/dualotp" element={<DualOTP stoptimer={timerCleaner} />} />
                      <Route path="/captcha" element={<Captcha />} />
                      <Route path="/mfa" element={<MFA />} />
                      <Route path="/passwordreset" element={<NewPasswords />} />
@@ -77,16 +88,7 @@ const App = () => {
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <hr className='hr-customizable' />
-                  <div className='footer-customizable'>
-                     <span
-                        className='legalText-customizable'
-                     >
-                        Copyright &copy; 2023 aPersona Inc. v1.0
-                     </span><br />
-                     <span className='legalText-customizable'>
-                        {time}
-                     </span>
-                  </div>
+                  <Footer />
                </div>
             </div>
          </div>

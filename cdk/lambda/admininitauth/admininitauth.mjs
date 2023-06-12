@@ -18,7 +18,7 @@ const headers = {
 
 const validateInputParams = (event) => {
 	return event.email.trim().length > 0 && event.password.trim().length > 0 &&
-		event.apti.trim().length > 0 && event.state.trim().length > 0;
+		event.apti.trim().length > 0;
 };
 
 function makeId(length) {
@@ -132,9 +132,10 @@ export const handler = async (event) => {
 			const user = await getUser(payload, cognito);
 
 			if (user.AuthenticationResult) {
-				const authCode = makeId(32);
-				await storeTokens(user, payload, authCode, dynamodb, event.requestContext.requestTimeEpoch);
-
+				if (payload.state) {
+					const authCode = makeId(32);
+					await storeTokens(user, payload, authCode, dynamodb, event.requestContext.requestTimeEpoch);
+				}
 				const res = { email: payload.email, apti: payload.apti };
 				return {
 					statusCode: 200,

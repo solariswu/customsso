@@ -82,15 +82,10 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     const userGroup = await cognito.send(new AdminListGroupsForUserCommand(param));
     console.log('userGroup:', userGroup);
 
-    if (!userGroup || !userGroup.Groups || userGroup.Groups.length === 0) {
-      console.log('Did not find a valid user group');
-      return response(500, 'Did not find a valid user group');
-    }
-
-    let ug = '';
+    let ug = 'default';
     let ugRank = 10000;
 
-    const amfaPolicies = await fetchConfig ('amfaPolicies');
+    const amfaPolicies = await fetchConfig('amfaPolicies');
 
     for (let i = 0; i < userGroup.Groups.length; i++) {
       userGroup.Groups[i].GroupName = userGroup.Groups[i].GroupName.toLowerCase();
@@ -105,7 +100,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     console.log('ug:', ug);
 
-    if (step === 5) {
+    if (step === 'getOtpOptions') {
 
       const body = JSON.stringify({
         otpOptions: amfaPolicies[ug].permissions,
@@ -127,8 +122,12 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     let l = amfaPolicies[ug].policy_name ? encodeURI(amfaPolicies[ug].policy_name) : '';
 
-    if (step >= 6 && step <= 10) {
+    if (step.startsWith('pwdreset')) {
       l = amfaPolicies['password-reset'].policy_name ? encodeURI(amfaPolicies['password-reset'].policy_name) : '';
+    }
+
+    if (step.startsWith('selfservice')) {
+      l = amfaPolicies['self-service'].policy_name ? encodeURI(amfaPolicies['self-service'].policy_name) : '';
     }
 
     if (l === '') {
@@ -180,14 +179,6 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     }
     //'278dcbdee5660876c230650ebb4bd70e';  // For every new MFA Auth login the nodeJS backend needs to read the cookie from teh client if it exists and send it in.
 
-    let tType = encodeURI('Initial passwordless login verification'); // Transaction typelLabel for audit logs.
-    if (step === 6) {
-      tType = encodeURI('Password reset 1st verify');
-    }
-    if (step === 7) {
-      tType = encodeURI('Password reset 2nd verify');
-    }
-
     let postURL = asmurl +
       '/extAuthenticate.kv?l=' +
       l +
@@ -214,40 +205,49 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       '&a=' +
       a;
 
+    const tTypeList = {
+      'username': 'Initial passwordless login verification',
+      'password': 'Password login verification',
+      'sendotp': 'Request OTP',
+      'verifyotp': 'OTP verify',
+      'pwdreset2': 'Password reset 1st verify',
+      'pwdresetverify2': 'OTP verify',
+      'pwdreset3': 'Password reset 2nd verify',
+      'pwdresetverify3': 'OTP verify',
+      'selfservice2': 'Self service 1st verify',
+      'selfserviceverify2': 'OTP verify',
+      'selfservice3': 'Self service 2nd verify',
+      'selfserviceverify3': 'OTP verify',
+    }
+
+    const tType = encodeURI(tTypeList[step] ? tTypeList[step] : 'Unknown');
+
     switch (step) {
-      case 1:
-        tType = encodeURI('Initial passwordless login verification');
+      case 'username':
         postURL = postURL + '&sfl=' + sfl + '&nsf=' + nsf + '&tType=' + tType;
         break;
-      case 2:
-        tType = encodeURI('Password login verification');
+      case 'password':
         postURL = postURL + '&tType=' + tType;
         break;
-      case 3:
-        tType = encodeURI('Request OTP');
+      case 'sendotp':
         otpm = event.otptype;
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
         //e for email, s for sms, v for voice, ae for alt-email.
         p = event.otpaddr;
         postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
         break;
-      case 4:
-      case 7:
-      case 9:
-        tType = encodeURI('OTP verify');
+      case 'verifyotp':
+      case 'pwdresetverify2':
+      case 'pwdresetverify3':
+      case 'selfserviceverify2':
+      case 'selfserviceverify3':
         let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
         postURL = asmurl + '/extVerifyOtp.kv?l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
         break;
-      case 6:
-        tType = encodeURI('Password reset 1st verify');
-        otpm = event.otptype;
-        p = event.otpaddr;
-        sfl = 7;
-        otpp = 0;
-        postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp;
-        break;
-      case 8:
-        tType = encodeURI('Password reset 2nd verify');
+      case 'pwdreset2':
+      case 'pwdreset3':
+      case 'selfservice2':
+      case 'selfservice3':
         otpm = event.otptype;
         p = event.otpaddr;
         sfl = 7;
@@ -272,11 +272,11 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       switch (amfaResponseJSON.code) {
         case 200:
           switch (step) {
-            case 1:
-            case 2:
-            case 4:
+            case 'username':
+            case 'password':
+            case 'verifyotp':
               if (amfaResponseJSON.message === 'OK') {
-                const url = step === 1 ? await passwordlessLogin(event, cognito) :
+                const url = step === 'username' ? await passwordlessLogin(event, cognito) :
                   await fetchCode(event.email, event.apti);
                 console.log('url:', url);
                 if (url) {
@@ -308,14 +308,13 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                 // statusCode 200, but not 'OK' message
                 return response(501, 'The login service is not currently available. Contact the help desk.');
               }
-            case 7:
-            case 9:
+            case 'pwdresetverify2':
+            case 'pwdresetverify3':
+            case 'selfserviceverify2':
+            case 'selfserviceverify3':
               if (amfaResponseJSON.message === 'OK') {
-                let uuid = '';
-                if (step === 7 || step === 9) {
-                   uuid = await genPwdResetID (event.email, event.apti);
-                }
-                return  {
+                const uuid = await genPwdResetID(event.email, event.apti);
+                return {
                   isBase64Encoded: false,
                   statusCode: 200,
                   headers,
@@ -327,15 +326,15 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                 return response(501, 'The login service is not currently available. Contact the help desk.');
               }
             default:
-              // step 3 would not get 200, but 202 when the otp was sent.
+              // step 'sendotp', 'pwdreset2', 'pwdreset3', 'selfservice2', 'selfservice3' would not get 200, but 202 when the otp was sent.
               return response(505, 'The login service is not currently available. Contact the help desk.');
           }
         case 202:
           switch (step) {
-            case 1:
+            case 'username':
               // User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
               return response(202, 'Your identity requires password login.')
-            case 2:
+            case 'password':
               // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
               return {
                 statusCode: 202,
@@ -343,14 +342,18 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                 headers: cookieEnabledHeaders,
                 body: JSON.stringify({ ...userAttributes, otpOptions: amfaPolicies[ug].permissions })
               }
-            case 3:
-            case 6:
-            case 8:
+            case 'sendotp':
+            case 'pwdreset2':
+            case 'pwdreset3':
+            case 'selfservice2':
+            case 'selfservice3':
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
               return response(202, amfaResponseJSON.message)
-            case 4:
-            case 7:
-            case 9:
+            case 'verifyotp':
+            case 'pwdresetverify2':
+            case 'pwdresetverify3':
+            case 'selfserviceverify2':
+            case 'selfserviceverify3':
               // The OTP entered was not correct. Push the user back to the OTP Challenge Page:
               // transform the statusCode to 403, as all 202 in frontend means redirect to another page.
               return response(403, 'The identity code you entered was not correct. Please try again.')
@@ -379,7 +382,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     return response(503, 'amfa response error');
   }
   catch (error) {
-    console.error('Error in step ' + step + ':', error);
+    console.error('Error in step "' + step + '" :', error);
     if (error.message.indexOf('fetch failed') === -1) {
       return response(504, error.message ? error.message : 'Unknown error in amfa steps');
     }

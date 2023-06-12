@@ -14,24 +14,28 @@ const validateInputParams = (payload) => {
         payload.apti && payload.authParam);
     case 'password':
       return (payload && payload.email && payload.password &&
-        payload.apti  && payload.authParam);
+        payload.apti && payload.authParam);
     case 'sendotp':
     case 'pwdreset2':
     case 'pwdreset3':
+    case 'selfservice2':
+    case 'selfservice3':
       return (payload && payload.otpaddr && payload.otptype &&
         payload.apti && payload.authParam);
     case 'verifyotp':
     case 'pwdresetverify2':
     case 'pwdresetverify3':
+    case 'selfserviceverify2':
+    case 'selfserviceverify3':
       return (payload && payload.email && payload.otpcode && payload.otptype &&
-        payload.apti  && payload.authParam);
+        payload.apti && payload.authParam);
     case 'getOtpOptions':
       return (payload && payload.email && payload.apti && payload.authParam);
     default:
       break;
   }
 
-  console.log ('Invalid payload', payload);
+  console.log('Invalid payload', payload);
 
   return false;
 };
@@ -96,21 +100,6 @@ export const handler = async (event) => {
       console.log('oneEvent', oneEvent);
 
       switch (payload.phase) {
-        case 'pwdreset2':
-          const pwdreset2Res = await amfaSteps(oneEvent, headers, client, 6);
-          return pwdreset2Res;
-        case 'pwdresetverify2':
-          const pwdresetverify2Res = await amfaSteps(oneEvent, headers, client, 7);
-          return pwdresetverify2Res;
-        case 'pwdreset3':
-          const pwdreset3Res = await amfaSteps(oneEvent, headers, client, 8);
-          return pwdreset3Res;
-        case 'pwdresetverify3':
-          const pwdresetverify3Res = await amfaSteps(oneEvent, headers, client, 9);
-          return pwdresetverify3Res;
-        case 'getOtpOptions':
-          const getOtpOptionsRes = await amfaSteps(oneEvent, headers, client, 5);
-          return getOtpOptionsRes;
         case 'username':
           const res = await client.send(new ListUsersCommand({
             UserPoolId: process.env.USERPOOL_ID,
@@ -118,32 +107,35 @@ export const handler = async (event) => {
           }));
 
           console.log(res);
-          const amfaConfigs = await fetchConfig ('amfaConfigs');
+          const amfaConfigs = await fetchConfig('amfaConfigs');
 
           if (amfaConfigs.enable_passwordless && res && res.Users && res.Users.length > 0) {
-            const stepOneResponse = await amfaSteps(oneEvent, headers, client, 1);
+            const stepOneResponse = await amfaSteps(oneEvent, headers, client, payload.phase);
             return stepOneResponse;
           }
           else {
             return response(202, 'Your identity requires password login.');
           }
         case 'password':
-          const stepTwoResponse = await amfaSteps(oneEvent, headers, client, 2);
-          return stepTwoResponse;
         case 'sendotp':
-          const stepThreeResponse = await amfaSteps(oneEvent, headers, client, 3);
-          return stepThreeResponse;
         case 'verifyotp':
-          const stepFourResponse = await amfaSteps(oneEvent, headers, client, 4);
-          return stepFourResponse;
+        case 'getOtpOptions':
+        case 'pwdreset2':
+        case 'pwdresetverify2':
+        case 'pwdreset3':
+        case 'pwdresetverify3':
+        case 'selfservice2':
+        case 'selfserviceverify2':
+        case 'selfservice3':
+        case 'selfserviceverify3':
+          const stepResponse = await amfaSteps(oneEvent, headers, client, payload.phase);
+          return stepResponse;
         default:
           break;
       }
     } else {
       error = 'incoming params error.';
     }
-
-
   } catch (err) {
     console.log(err);
     return response(

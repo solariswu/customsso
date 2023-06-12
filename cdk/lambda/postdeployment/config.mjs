@@ -22,6 +22,12 @@ export const amfaPolicies = {
 	"password-reset": {
 		"policy_name": "EPND-Pwd-Reset-72vc59zx34",
 	},
+	"self-service": {
+		"policy_name": "EPND-Self-Service-72vc59zx34",
+	},
+	"user-registration": {
+		"policy_name": "EPND-User-Registration-72vc59zx34",
+	},
 	"default": {
 		"policy_name": "epnd-default-72ws81aq67jf",
 		"rank": 5,
