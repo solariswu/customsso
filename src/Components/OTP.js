@@ -9,12 +9,20 @@ export const OTP = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	const [errMsg, setErrorMsg] = useState('');
-	const [infoMsg, setInfoMsg] = useState('');
+	const [msg, setMsg] = useState({msg: '', type: ''});
+
 	const [isLoading, setLoading] = useState(false);
 	const [otp, setOtp] = useState({ type: 'e', code: '', addr: '', stage: 1 });
 	const [data, setData] = useState(null);
 	const [showOTP, setShowOTP] = useState(false);
+
+	const setInfoMsg = (msg) => {
+		setMsg({msg, type: 'info'});
+	}
+
+	const setErrorMsg = (msg) => {
+		setMsg({msg, type: 'error'});
+	}
 
 	useEffect(() => {
 
@@ -66,7 +74,6 @@ export const OTP = () => {
 			setLoading(false);
 			setData(null);
 			setErrorMsg('');
-			setInfoMsg('');
 
 			window.history.pushState('fake-route', document.title, window.location.href);
 
@@ -128,7 +135,6 @@ export const OTP = () => {
 
 		setLoading(true);
 		setErrorMsg('');
-		setInfoMsg('');
 		try {
 			const result = await fetch(`${apiUrl}/amfa`, {
 				method: 'POST',
@@ -183,7 +189,6 @@ export const OTP = () => {
 
 		if (!otp.code || otp.code.length < 1) {
 			setErrorMsg('Please enter the verification code');
-			setInfoMsg('');
 			return;
 		}
 
@@ -204,7 +209,6 @@ export const OTP = () => {
 		setLoading(true);
 		setOtp({ ...otp, code: '', addr: '' });
 		setErrorMsg('');
-		setInfoMsg('');
 		try {
 			const result = await fetch(`${apiUrl}/amfa`, {
 				method: 'POST',
@@ -404,16 +408,13 @@ export const OTP = () => {
 					disabled={isLoading}
 					onClick={!isLoading ? verifyOtp : null}
 				>
-					{isLoading ? 'Sending...' : 'Verify'}
+					{isLoading ? showOTP ? 'Sending...' : 'Checking...' : 'Verify'}
 				</Button>
 			</div>
-			{isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
-				errMsg && (
-					<div><br /><span className='errorMessage-customizable'>{errMsg}</span></div>
+			{isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" style={{"marginTop": "8px"}}>{''}</Spinner></span> : (
+				msg?.msg && (
+					<div><br /><span className={msg.type === 'error' ? 'errorMessage-customizable' : 'infoMessage-customizable'}>{msg.msg}</span></div>
 				))}
-			{!isLoading && infoMsg &&
-				<div><br /><span className='infoMessage-customizable'>{infoMsg}</span></div>
-			}
 		</div>
 	);
 }

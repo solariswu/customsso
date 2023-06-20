@@ -160,7 +160,7 @@ const LOGIN = () => {
           {isLoading ? 'Sending...' : 'Sign In'}
         </Button>
       </div>
-      {!isLoading && <div className="link-customizable" onClick={() =>
+      {!isLoading && <span className='textDescription-customizable'><div className="textLink-customizable" onClick={() =>
         navigate('/dualotp', {
           state: {
             email,
@@ -168,7 +168,7 @@ const LOGIN = () => {
             type: 'passwordreset'
           }
         })}>Forgot Password?
-      </div>}
+      </div></span>}
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errorMsg && <div>
           <br />

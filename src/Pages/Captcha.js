@@ -13,7 +13,7 @@ const LOGIN = () => {
 
 	const [errorMsg, setErrorMsg] = useState(null);
 	const [isLoading, setLoading] = useState(false);
-	const [email, setEmail] = useState(localStorage.getItem('amfa-username') || '');
+	const [email, setEmail] = useState('');
 
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -24,9 +24,9 @@ const LOGIN = () => {
 	const state = location.state?.state;
 	const redirectUri = location.state?.redirectUri;
 
-	const confirmLogin = (e) => {
+	const confirmSignUp = (e) => {
 		if (e.key === "Enter") {
-			pwdreset();
+			signUp();
 		}
 	}
 	const verifyToken = async (token) => {
@@ -75,7 +75,7 @@ const LOGIN = () => {
 		return false;
 	}
 
-	const pwdreset = async (e) => {
+	const signUp = async (e) => {
 		const mailformat = /^\b[A-Z0-9._+%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b$/i;
 		setErrorMsg('');
 
@@ -94,43 +94,27 @@ const LOGIN = () => {
 			return;
 		}
 
-		const authParam = window.getAuthParam();
-
 		const params = {
 			email: email.toLocaleLowerCase(),
-			authParam,
+			// authParam: window.getAuthParam(),
 			apti,
-			phase: 'pwdreset'
 		};
 
 		const options = {
 			method: 'POST',
 			body: JSON.stringify(params),
-			credentials: 'include',
 		};
 
 		try {
-			const res = await fetch(`${apiUrl}/amfa`, options);
+			const res = await fetch(`${apiUrl}/checkuser`, options);
 
 			switch (res.status) {
 				case 200:
-					const response = await res.json();
-					if (response.location) {
-						window.location.assign(response.location);
-						return;
-					}
-					else {
-						setErrorMsg('Passwordless login error, please contact help desk.');
-					}
-					break;
-				case 202:
 					// const result = await res.json();
-					navigate('/password', {
+					navigate('/passwordreset', {
 						state: {
 							email: email.toLocaleLowerCase(),
 							apti,
-							state,
-							redirectUri
 						}
 					});
 					break;
@@ -147,25 +131,24 @@ const LOGIN = () => {
 			setLoading(false);
 		}
 		catch (err) {
-			console.error('error in pwdreset', err);
-			setErrorMsg('Password Reset error, please contact help desk.');
+			console.error('error in sign up', err);
+			setErrorMsg('new account sign up error, please contact help desk.');
 			setLoading(false);
 		}
 	}
 
-
 	return (
 		<div>
 			<span>
-				<h4>Password Reset</h4>
+				<h4>Registration</h4>
 			</span>
 			<hr className="hr-customizable" />
 			<span className='idpDescription-customizable'> Enter your {clientName} account ID </span>
 
 			<div>
 				<input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
-					autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
-					onKeyUp={e => confirmLogin(e)}
+					autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value.toLocaleLowerCase())}
+					onKeyUp={e => confirmSignUp(e)}
 					disabled={isLoading}
 				/>
 				<br />
@@ -177,7 +160,7 @@ const LOGIN = () => {
 					name="confirm" type="submit"
 					className="btn btn-primary submitButton-customizable"
 					disabled={isLoading}
-					onClick={!isLoading ? pwdreset : null}
+					onClick={!isLoading ? signUp : null}
 				>
 					{isLoading ? 'Sending...' : 'Sign In'}
 				</Button>

@@ -6,12 +6,15 @@ import * as crypto from 'crypto';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 
-export const genPwdResetID = async (username, apti) => {
+export const genPwdResetID = async (username, apti, otpaddr) => {
 	console.log('generate pwd reset id for user:', username);
-	console.log('generate pwd reset id, apti :', apti);
+	console.log('generate pwd reset id, apti:', apti);
+	console.log('generate pwd reset id, otpaddr:', otpaddr);
 
 	const uuid = crypto.randomUUID();
 	const timestamp = Date.now();
+
+	const myotpaddr = otpaddr ? otpaddr : '';
 
 	const params = {
 		Item: {
@@ -23,6 +26,9 @@ export const genPwdResetID = async (username, apti) => {
 			},
 			apti: {
 				S: apti,
+			},
+			otpaddr: {
+				S: myotpaddr,
 			},
 			timestamp: {
 				N: `${timestamp}`,

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 
-import { allowSelfSignUp, apiUrl, clientName, applicationUrl } from '../const';
+import { allowSelfSignUp, allowSelfService, apiUrl, clientName, applicationUrl } from '../const';
 import { getApti, validateEmail } from './utils';
 
 const LOGIN = () => {
@@ -17,6 +17,8 @@ const LOGIN = () => {
   const [email, setEmail] = useState(localStorage.getItem('amfa-username') || '');
 
   useEffect(() => {
+    document.title = 'Login';
+
     const state = searchParams.get("state")
     const redirect_uri = searchParams.get("redirect_uri")
 
@@ -161,7 +163,7 @@ const LOGIN = () => {
 
       <div>
         <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
-          autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
+          autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value.toLocaleLowerCase())}
           onKeyUp={e => confirmLogin(e)}
           disabled={isLoading}
         />
@@ -178,6 +180,10 @@ const LOGIN = () => {
         <span className='textDescription-customizable'> New User?
           <a href="/password" className="textLink-customizable"> Register</a></span>
       </div>}
+      {allowSelfService && !isLoading && <div>
+        <span className='textDescription-customizable'>
+          <a href='/selfservice' className='textLink-customizable'> Update your profile</a></span>
+        </div>}
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> :
         (errorMsg && <div>
           <br />

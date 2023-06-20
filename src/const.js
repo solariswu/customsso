@@ -3,9 +3,10 @@ export const region = 'eu-west-1';
 const rootDomain = 'amfa.aws-amplify.dev';
 export const applicationUrl = 'https://amfa.netlify.app/';
 export const apiUrl = `https://api.${clientName}.${rootDomain}`;
-export const allowSelfSignUp = false;
+export const allowSelfSignUp = true;
+export const allowSelfService = true;
 
 // UI STRINGS
 export const mfaPageTitle = 'Your login requires an additional verification';
 export const pwdResetPageTitle = 'Password Reset';
-export const selfServicePageTitle = 'Self Service';
+export const selfServicePageTitle = 'Update Profile';

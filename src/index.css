@@ -166,7 +166,7 @@ body {
 }
 
 .errorMessage-customizable {
-  padding: 5px;
+  padding: 5px 10px 0 0;
   font-size: 14px;
   width: 100%;
   background: #f5f5f5;
@@ -174,7 +174,7 @@ body {
   color: #d64958;
 }
 .infoMessage-customizable {
-  padding: 5px;
+  padding: 5px 10px 0 0;
   font-size: 14px;
   width: 100%;
   background: #f5f5f5;

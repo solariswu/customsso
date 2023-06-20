@@ -34,10 +34,9 @@ const LOGIN = () => {
 		};
 	}, [location.state, navigate]);
 
-
 	return (
 		<div>
-			<span><h4>Self Service: verify methods</h4></span>
+			<span><h4>Update Profile: verify methods</h4></span>
 			<hr className="hr-customizable" />
 			<div class="row">
 				<div class="col" style={{ margin: 'auto 20px', display: 'inline', height: '40px' }}>
@@ -55,7 +54,16 @@ const LOGIN = () => {
 						name='updateEmail'
 						type='submit'
 						className='btn btn-primary submitButton-customizable'
-						onClick={null}
+						onClick={() => navigate('/updateprofile', {
+							state: {
+								email,
+								apti,
+								uuid,
+								validated: true,
+								updateType: 'Alt Email',
+								profile: data.aemail,
+							}
+						})}
 					>
 						Update
 					</Button>
@@ -78,7 +86,16 @@ const LOGIN = () => {
 						name='updatePhone'
 						type='submit'
 						className='btn btn-primary submitButton-customizable'
-						onClick={null}
+						onClick={() => navigate('/updateprofile', {
+							state: {
+								email,
+								apti,
+								uuid,
+								validated: true,
+								updateType: 'Phone Number',
+								profile: data.phoneNumber,
+							}
+						})}
 					>
 						Update
 					</Button>
@@ -101,7 +118,16 @@ const LOGIN = () => {
 						name='updateVoice'
 						type='submit'
 						className='btn btn-primary submitButton-customizable'
-						onClick={null}
+						onClick={() => navigate('/updateprofile', {
+							state: {
+								email,
+								apti,
+								uuid,
+								validated: true,
+								updateType: 'Voice Number',
+								profile: data.vPhoneNumber,
+							}
+						})}
 					>
 						Update
 					</Button>
@@ -122,7 +148,7 @@ const LOGIN = () => {
 						name='updatePassword'
 						type='submit'
 						className='btn btn-primary submitButton-customizable'
-						onClick={() =>navigate('/passwordreset', {
+						onClick={() => navigate('/passwordreset', {
 							state: {
 								email,
 								apti,

@@ -16,6 +16,7 @@ import OTPMethods from './Pages/OTPMethods';
 import { applicationUrl } from './const';
 
 import logo from './logo.png';
+import UpdateProfile from './Pages/UpdateProfile';
 
 
 const App = () => {
@@ -85,6 +86,7 @@ const App = () => {
                      <Route path="/passwordreset" element={<NewPasswords />} />
                      <Route path="/updateotp" element={<OTPMethods />} />
                      <Route path="/selfservice" element={<SelfService />} />
+                     <Route path="/updateprofile" element={<UpdateProfile />}/>
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <hr className='hr-customizable' />

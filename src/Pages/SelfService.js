@@ -2,11 +2,18 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
-import { apiUrl, clientName } from '../const';
+import { apiUrl, clientName, allowSelfService } from '../const';
 import { getApti, validateEmail } from './utils';
 
 const LOGIN = () => {
 	const navigate = useNavigate();
+
+	if (!allowSelfService) {
+		navigate('/');
+	}
+
+	document.title = 'Update Profile';
+
 	const apti = getApti();
 
 	const [errorMsg, setErrorMsg] = useState(null);
@@ -77,12 +84,13 @@ const LOGIN = () => {
 
 	return (
 		<div>
-			<span><h4>Self Service</h4></span>
+			<span><h4>Update Profile</h4></span>
 			<hr className="hr-customizable" />
 			<span className='idpDescription-customizable'> Login with your {clientName} account </span>
 			<div>
 				<input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
-					autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
+					autoCapitalize="none" required aria-label="email"
+					value={email} type="email" onChange={(e) => setEmail(e.target.value.toLocaleLowerCase())}
 					onKeyUp={e => confirmLogin(e)}
 					autoFocus
 					disabled={isLoading}
@@ -101,7 +109,8 @@ const LOGIN = () => {
 					{isLoading ? 'Sending...' : 'Sign In'}
 				</Button>
 			</div>
-			{!isLoading && <div className="link-customizable" onClick={() =>
+
+			{!isLoading && <span className='textDescription-customizable'><div className="textLink-customizable" onClick={() =>
 				navigate('/dualotp', {
 					state: {
 						email,
@@ -109,10 +118,9 @@ const LOGIN = () => {
 						type: 'passwordreset'
 					}
 				})}>Forgot Password?
-			</div>}
-			{isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
+			</div></span>}
+			{isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" style={{ marginTop: '10px' }} >{''}</Spinner></span> : (
 				errorMsg && <div>
-					<br />
 					<span className='errorMessage-customizable'>{errorMsg}</span>
 				</div>)}
 		</div >

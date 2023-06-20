@@ -191,6 +191,8 @@ export class TenantApiGateway {
           'cognito-idp:AdminListGroupsForUser',
           'cognito-idp:ListUsers',
           'cognito-idp:AdminInitiateAuth',
+          'cognito-idp:AdminUpdateUserAttributes',
+          'dynamodb:DeleteItem',
         ],
         resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
       });

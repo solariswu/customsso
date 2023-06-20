@@ -20,6 +20,7 @@ const validateInputParams = (payload) => {
     case 'pwdreset3':
     case 'selfservice2':
     case 'selfservice3':
+    case 'updateProfileSendOTP':
       return (payload && payload.otpaddr && payload.otptype &&
         payload.apti && payload.authParam);
     case 'verifyotp':
@@ -29,6 +30,9 @@ const validateInputParams = (payload) => {
     case 'selfserviceverify3':
       return (payload && payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam);
+    case 'updateProfile':
+      return (payload && payload.email && payload.otpcode && payload.otptype &&
+        payload.apti && payload.authParam && payload.uuid);
     case 'getOtpOptions':
       return (payload && payload.email && payload.apti && payload.authParam);
     default:
@@ -48,10 +52,10 @@ const headers = {
   'Access-Control-Allow-Credentials': 'true',
 };
 
-const response = (statusCode = 200, body) => {
+const response = (statusCode = 200, body, requestId) => {
   return {
     statusCode,
-    headers,
+    headers: {...headers, requestId},
     body,
   };
 };
@@ -68,6 +72,7 @@ export const handler = async (event) => {
   console.log('Received event:', JSON.stringify(event, null, 2));
 
   const requestId = Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16);
+  console.log ('amfa requestid: ', requestId);
 
   let error = '';
 
@@ -95,6 +100,8 @@ export const handler = async (event) => {
       oneEvent.redirectUri = payload.redirectUri;
       oneEvent.state = payload.state;
       oneEvent.requestTimeEpoch = event.requestContext.requestTimeEpoch;
+      oneEvent.uuid = payload.uuid;
+      oneEvent.requestId = requestId;
 
       oneEvent.cookies = event.headers['Cookie'];
       console.log('oneEvent', oneEvent);
@@ -114,24 +121,11 @@ export const handler = async (event) => {
             return stepOneResponse;
           }
           else {
-            return response(202, 'Your identity requires password login.');
+            return response(202, 'Your identity requires password login.', requestId);
           }
-        case 'password':
-        case 'sendotp':
-        case 'verifyotp':
-        case 'getOtpOptions':
-        case 'pwdreset2':
-        case 'pwdresetverify2':
-        case 'pwdreset3':
-        case 'pwdresetverify3':
-        case 'selfservice2':
-        case 'selfserviceverify2':
-        case 'selfservice3':
-        case 'selfserviceverify3':
+        default:
           const stepResponse = await amfaSteps(oneEvent, headers, client, payload.phase);
           return stepResponse;
-        default:
-          break;
       }
     } else {
       error = 'incoming params error.';
@@ -142,9 +136,10 @@ export const handler = async (event) => {
       err.statusCode ? err.statusCode : 500,
       JSON.stringify({
         message: 'input param parse error',
-      })
+      }),
+      requestId
     );
   }
 
-  return response(500, JSON.stringify({ message: error }));
+  return response(500, JSON.stringify({ message: error }), requestId);
 };

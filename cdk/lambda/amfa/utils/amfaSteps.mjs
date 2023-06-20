@@ -15,13 +15,17 @@ import { cookie2NamePrefix } from '../const.mjs';
 import { genPwdResetID } from './genPwdResetID.mjs';
 import { fetchConfig } from './fetchConfig.mjs';
 
+import { checkUpdateProfileUuid, updateProfile } from './updateProfile.mjs';
+
 export const amfaSteps = async (event, headers, cognito, step) => {
 
-  const response = (statusCode, body) => {
+  const response = (statusCode, body, requestIdIn) => {
+    const requestId = requestIdIn ? requestIdIn : '';
+
     return {
       isBase64Encoded: false,
       statusCode,
-      headers,
+      headers: { ...headers, requestId },
       body: JSON.stringify({ message: body }),
     };
   };
@@ -36,6 +40,13 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
   function hash(content) {
     return createHash('md5').update(content).digest('hex');
+  }
+
+  if (step === 'updateProfile') {
+    const isValidUuid = await checkUpdateProfileUuid(event);
+    if (!isValidUuid) {
+      return response(400, 'Invalid UUID', event.requestId);
+    }
   }
 
   try {
@@ -54,7 +65,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     if (!listUsersRes || !listUsersRes.Users || listUsersRes.Users.length === 0) {
       console.log('Did not find valid user for email:', event.email);
-      return response(500, 'Did not find valid user for this email');
+      return response(500, 'Did not find valid user for this email', event.requestId);
     };
 
     const users = listUsersRes.Users.filter((user) => {
@@ -63,7 +74,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     if (users.length === 0) {
       console.log('Did not find valid user for email:', event.email);
-      return response(500, 'Did not find valid user for this email, user status is not CONFIRMED');
+      return response(500, 'Did not find valid user for this email, user status is not CONFIRMED', event.requestId);
     };
 
     console.log('UserAttributes:', users[0].Attributes);
@@ -126,7 +137,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       l = amfaPolicies['password-reset'].policy_name ? encodeURI(amfaPolicies['password-reset'].policy_name) : '';
     }
 
-    if (step.startsWith('selfservice')) {
+    if (step.startsWith('selfservice') || step.startsWith('updateProfile')) {
       l = amfaPolicies['self-service'].policy_name ? encodeURI(amfaPolicies['self-service'].policy_name) : '';
     }
 
@@ -134,7 +145,8 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       console.log('Did not find a valid ASM Policy for the user group:', ug);
       return response(
         500,
-        `Did not find a valid ASM Policy for the user group:${ug})`
+        `Did not find a valid ASM Policy for the user group:${ug})`,
+        event.requestId
       );
     }
 
@@ -218,6 +230,8 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       'selfserviceverify2': 'OTP verify',
       'selfservice3': 'Self service 2nd verify',
       'selfserviceverify3': 'OTP verify',
+      'updateProfileSendOTP': 'Update profile verify',
+      'updateProfile': 'OTP verify',
     }
 
     const tType = encodeURI(tTypeList[step] ? tTypeList[step] : 'Unknown');
@@ -241,6 +255,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       case 'pwdresetverify3':
       case 'selfserviceverify2':
       case 'selfserviceverify3':
+      case 'updateProfile':
         let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
         postURL = asmurl + '/extVerifyOtp.kv?l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
         break;
@@ -248,6 +263,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       case 'pwdreset3':
       case 'selfservice2':
       case 'selfservice3':
+      case 'updateProfileSendOTP':
         otpm = event.otptype;
         p = event.otpaddr;
         sfl = 7;
@@ -272,6 +288,16 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       switch (amfaResponseJSON.code) {
         case 200:
           switch (step) {
+            case 'updateProfile':
+              if (amfaResponseJSON.message === 'OK') {
+                // update profile
+                await updateProfile(event.email, event.otptype, event.otpaddr, event.uuid, cognito);
+                return response(200, 'OK', event.requestId);
+              }
+              else {
+                // statusCode 200, but not 'OK' message
+                return response(506, 'The login service is not currently available. Contact the help desk.', event.requestId);
+              }
             case 'username':
             case 'password':
             case 'verifyotp':
@@ -301,12 +327,12 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                   }
                 }
                 else {
-                  return response(505, 'Service error, please contact the help desk.')
+                  return response(505, 'Service error, please contact the help desk.', event.requestId)
                 }
               }
               else {
                 // statusCode 200, but not 'OK' message
-                return response(501, 'The login service is not currently available. Contact the help desk.');
+                return response(501, 'The login service is not currently available. Contact the help desk.', event.requestId);
               }
             case 'pwdresetverify2':
             case 'pwdresetverify3':
@@ -317,29 +343,29 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                 return {
                   isBase64Encoded: false,
                   statusCode: 200,
-                  headers,
+                  headers: {...headers, requestId: event.requestId},
                   body: JSON.stringify({ message: 'OK', uuid }),
                 };
               }
               else {
                 // statusCode 200, but not 'OK' message
-                return response(501, 'The login service is not currently available. Contact the help desk.');
+                return response(501, 'The login service is not currently available. Contact the help desk.', event.requestId);
               }
             default:
               // step 'sendotp', 'pwdreset2', 'pwdreset3', 'selfservice2', 'selfservice3' would not get 200, but 202 when the otp was sent.
-              return response(505, 'The login service is not currently available. Contact the help desk.');
+              return response(505, 'The login service is not currently available. Contact the help desk.', event.requestId);
           }
         case 202:
           switch (step) {
             case 'username':
               // User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
-              return response(202, 'Your identity requires password login.')
+              return response(202, 'Your identity requires password login.', event.requestId)
             case 'password':
               // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
               return {
                 statusCode: 202,
                 isBase64Encoded: false,
-                headers: cookieEnabledHeaders,
+                headers: {...cookieEnabledHeaders, requestId: event.requestId},
                 body: JSON.stringify({ ...userAttributes, otpOptions: amfaPolicies[ug].permissions })
               }
             case 'sendotp':
@@ -348,15 +374,24 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'selfservice2':
             case 'selfservice3':
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
-              return response(202, amfaResponseJSON.message)
+              return response(202, amfaResponseJSON.message, event.requestId)
+            case 'updateProfileSendOTP':
+              const uuid = await genPwdResetID(event.email, event.apti, event.otpaddr);
+              return {
+                isBase64Encoded: false,
+                statusCode: 202,
+                headers: {...headers, requestId: event.requestId},
+                body: JSON.stringify({ message: amfaResponseJSON.message, uuid }),
+              };
             case 'verifyotp':
             case 'pwdresetverify2':
             case 'pwdresetverify3':
             case 'selfserviceverify2':
             case 'selfserviceverify3':
+            case 'updateProfile':
               // The OTP entered was not correct. Push the user back to the OTP Challenge Page:
               // transform the statusCode to 403, as all 202 in frontend means redirect to another page.
-              return response(403, 'The identity code you entered was not correct. Please try again.')
+              return response(403, 'The identity code you entered was not correct. Please try again.', event.requestId)
             default:
               // no such case
               break;
@@ -366,28 +401,28 @@ export const amfaSteps = async (event, headers, cognito, step) => {
           // Country blocked or threat actor location detected.
           // Push the user back to the initial login page with this error:
           //    "Your location is not permitted. Contact the help desk."
-          return response(203, 'Your location is not permitted. Contact the help desk.');
+          return response(203, 'Your location is not permitted. Contact the help desk.', event.requestId);
         case 401:
           // The user took too long or entered the otp wrong too many times.
           // Send the user back to the login page with this error:
           //    "You took too long or entered your otp wrong too many times. Try your login again."
-          return response(401, 'You took too long or entered your otp wrong too many times. Try your login again.');
+          return response(401, 'You took too long or entered your otp wrong too many times. Try your login again.', event.requestId);
         default:
           // Anything else: Default - Push the user back to the initial login page with the error:
           //     "We ran into an issue. Please contact the help desk."
-          return response(502, 'We ran into an issue. Please contact the help desk.');
+          return response(502, 'We ran into an issue. Please contact the help desk.', event.requestId);
       }
     }
 
-    return response(503, 'amfa response error');
+    return response(503, 'amfa response error', event.requestId);
   }
   catch (error) {
     console.error('Error in step "' + step + '" :', error);
     if (error.message.indexOf('fetch failed') === -1) {
-      return response(504, error.message ? error.message : 'Unknown error in amfa steps');
+      return response(504, error.message ? error.message : 'Unknown error in amfa steps', event.requestId);
     }
     else {
-      return response(504, 'MFA Service is not responding. Contact the help desk.');
+      return response(504, 'MFA Service is not responding. Contact the help desk.', event.requestId);
     }
   }
 }

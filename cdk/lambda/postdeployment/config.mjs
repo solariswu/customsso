@@ -36,7 +36,10 @@ export const amfaPolicies = {
 }
 
 export const amfaConfigs = {
-	"salt": "arandomstring-here",
-	"enable_passwordless": true,
 	"asmurl": "https://asm2.apersona.com:8443/asm",
+	"enable_passwordless": true,
+	"enable_password_reset": true,
+	"enable_self_service": true,
+	"enable_user_registration": true,
+	"salt": "a-random-string-here",
 }
