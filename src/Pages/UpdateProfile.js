@@ -12,33 +12,38 @@ const CONTENT = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	const closeQuickView = () => {
-		console.log('back pressed');
-	}
+	// const closeQuickView = () => {
+	// 	console.log('back pressed');
+	// }
 
 	useEffect(() => {
 		if (!location.state || !location.state.validated) {
-			navigate('/selfservice');
+			navigate('/selfservice', {
+				state: {
+					selfservicemsg: null,
+				}
+			});
 		}
 
-		window.history.pushState('fake-route', document.title, window.location.href);
+		// window.history.pushState('fake-route', document.title, window.location.href);
 
-		window.addEventListener('popstate', closeQuickView);
-		return () => {
-			window.removeEventListener('popstate', closeQuickView);
-			// If we left without using the back button, aka by using a button on the page, we need to clear out that fake history event
-			if (window.history.state === 'fake-route') {
-				window.history.back();
-			}
-		};
+		// window.addEventListener('popstate', closeQuickView);
+		// return () => {
+		// 	window.removeEventListener('popstate', closeQuickView);
+		// 	// If we left without using the back button, aka by using a button on the page, we need to clear out that fake history event
+		// 	if (window.history.state === 'fake-route') {
+		// 		window.history.back();
+		// 	}
+		// };
 	}, [location.state, navigate]);
 
 	const email = location.state?.email;
 	const apti = location.state?.apti;
 	const updateType = location.state?.updateType;
-	const profile = location.state?.profile ? location.state.profile : '';
+	const legacyProfile = location.state?.profile ? location.state.profile : '';
 
 	const [msg, setMsg] = useState({ msg: `Click "Registraction", a verification code would be sent to new ${updateType}`, type: 'info' });
+	const [profile, setProfile] = useState('');
 	const [newProfile, setNewProfile] = useState('');
 	const [isLoading, setLoading] = useState(false);
 	const [isResetDone, setResetDone] = useState(false);
@@ -75,6 +80,7 @@ const CONTENT = () => {
 
 		if (newData === '') {
 			alert(`Do you want to remove this ${updateType} verification method?`);
+			// to do
 			return false;
 		}
 
@@ -92,6 +98,11 @@ const CONTENT = () => {
 
 	const handleOTPVerify = async (e) => {
 
+		if (!otpcode || otpcode.length < 1) {
+			setErrorMsg('Please enter the verification code');
+			return;
+		}
+
 		const options = {
 			method: 'POST',
 			body: JSON.stringify({
@@ -102,7 +113,6 @@ const CONTENT = () => {
 				rememberDevice: false,
 				authParam: window.getAuthParam(),
 				otpcode,
-				otpaddr: newProfile.trim(),
 				otptype: otpList[updateType.toLowerCase()],
 				phase: 'updateProfile'
 			}),
@@ -116,6 +126,19 @@ const CONTENT = () => {
 			switch (res.status) {
 				case 200:
 					setResetDone(true);
+					break;
+				case 403:
+					const resMsg = await res.json();
+					if (resMsg) {
+						setErrorMsg(resMsg.message ? resMsg.message : resMsg.name ? resMsg.name : JSON.stringify(resMsg));
+					}
+					else {
+						let errMsg = 'Something went wrong, please try again.';
+						if (res.message === "NotAuthorizedException") {
+							errMsg = 'Invalid credentials.';
+						}
+						setErrorMsg(errMsg);
+					}
 					break;
 				default:
 					const data = await res.json();
@@ -148,7 +171,8 @@ const CONTENT = () => {
 				body: JSON.stringify({
 					email,
 					otptype: otpList[updateType.toLowerCase()],
-					otpaddr: newProfile.trim(),
+					newProfile,
+					profile,
 					apti,
 					rememberDevice: false,
 					authParam: window.getAuthParam(),
@@ -225,7 +249,6 @@ const CONTENT = () => {
 				</Button>
 			</div >
 		)
-
 	}
 
 	return (
@@ -234,34 +257,47 @@ const CONTENT = () => {
 			<hr className="hr-customizable" />
 			{isResetDone ? <ResetDone /> :
 				<div>
-					<span className='idpDescription-customizable'> Your current {updateType} </span>
-					<div className="input-group">
-						<input id="profile" name="profile" type="email" className="form-control inputField-customizable"
-							style={{ height: '40px' }}
-							value={profile}
-							disabled
+					<span className='idpDescription-customizable'> Enter your current {updateType} </span>
+					{updateType.toLowerCase() === 'alt email' ?
+
+						<div className="input-group">
+							<input id="profile" name="profile" type="email" className="form-control inputField-customizable"
+								style={{ height: '40px' }}
+								placeholder="user@email.com" value={legacyProfile === '' ? legacyProfile : profile} onChange={(e) => setProfile(e.target.value)}
+								autoFocus
+								disabled={isLoading || legacyProfile === ''}
+							/>
+						</div> :
+						<PhoneInput
+							international
+							countryCallingCodeEditable={false}
+							defaultCountry="US"
+							placeholder="phone number"
+							value={legacyProfile === '' ? legacyProfile : profile}
+							onChange={setNewProfile}
+							disabled={isLoading || legacyProfile === ''}
 						/>
-					</div>
+					}
 					<span className='idpDescription-customizable'> Enter your new {updateType} </span>
 					<p><span> Leave it empty if you want to remove this {updateType} verification method</span></p>
-					<div className="input-group">
-						{updateType?.toLowerCase() === 'alt email' ?
+					{updateType?.toLowerCase() === 'alt email' ?
+						<div className="input-group">
 							<input id="signInFormNewProfile" name="newProfile" type="email" className="form-control inputField-customizable"
 								style={{ height: '40px' }}
-								placeholder="user@email.com" required value={newProfile} onChange={(e) => setNewProfile(e.target.value.toLocaleLowerCase())}
-								autoFocus
+								placeholder="user@email.com" value={newProfile} onChange={(e) => setNewProfile(e.target.value)}
 								onKeyUp={e => confirmSubmit(e)}
 								disabled={isLoading}
-							/> :
-							<PhoneInput
-								international
-								countryCallingCodeEditable={false}
-								defaultCountry="US"
-								placeholder="phone number"
-								value={newProfile}
-								onChange={setNewProfile} />
-						}
-					</div>
+							/> </div> :
+						<PhoneInput
+							international
+							countryCallingCodeEditable={false}
+							defaultCountry="US"
+							placeholder="phone number"
+							value={newProfile}
+							onChange={setNewProfile}
+							disabled={isLoading}
+						/>
+					}
 					<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
 						variant="success"
 						disabled={isLoading}
@@ -297,6 +333,18 @@ const CONTENT = () => {
 							{isLoading ? 'Sending...' : 'Verify'}
 						</Button>
 					</div>
+					<span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
+						navigate('/updateotp', {
+							state: {
+								email,
+								apti,
+								uuid: location.state ? location.state.uuid : '',
+								validated: true,
+								otpData: location.state ? location.state.otpData : '',
+							}
+						})
+					}>Back
+					</div></span>
 				</div>}
 		</div >
 	);

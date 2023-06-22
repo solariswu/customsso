@@ -141,6 +141,41 @@ export class TenantApiGateway {
     return myLambda;
   }
 
+  private createFeConfigLambda(configTable: Table) {
+    const lambdaName = 'feconfig';
+    const myLambda = new Function(
+      this.scope,
+      `${lambdaName}-${config.tenantId}`,
+      {
+        runtime: Runtime.NODEJS_18_X,
+        handler: `${lambdaName}.handler`,
+        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
+        environment: {
+          AMFACONFIG_TABLE: configTable.tableName,
+        },
+        timeout: Duration.minutes(5),
+      }
+    );
+
+    myLambda.role?.attachInlinePolicy(
+      new Policy(this.scope, `${lambdaName}-policy`, {
+        statements: [
+          new PolicyStatement({
+            resources: [
+              configTable.tableArn,
+            ],
+            actions: [
+              'dynamodb:Scan',
+              'dynamodb:GetItem',
+            ],
+          }),
+        ],
+      })
+    );
+
+    return myLambda;
+  }
+
   private createAmfaLambda(
     lambdaName: string,
     userpool: UserPool,
@@ -224,7 +259,8 @@ export class TenantApiGateway {
   private attachLambdaToApiGWService(
     api: IResource,
     lambdaFunction: Function,
-    path: string
+    path: string,
+    isPost : boolean = true,
   ) {
     // 👇 add /lambda path to API Service resource
     const lambdaApi = api.addResource(path, {
@@ -233,7 +269,7 @@ export class TenantApiGateway {
     });
 
     lambdaApi.addMethod(
-      'POST',
+      isPost? 'POST' : 'GET',
       new LambdaIntegration(lambdaFunction, { proxy: true }),
     );
   };
@@ -339,5 +375,8 @@ export class TenantApiGateway {
     // create password reset endpoint
     const mylambdaFunction = this.createPwdResetLambda(userpool, this.pwdResetIdTable);
     this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, 'passwordreset');
-  };
+
+    this.attachLambdaToApiGWService(rootPathAPI, this.createFeConfigLambda(this.configTable), 'feconfig', false);
+  }
+  ;
 }

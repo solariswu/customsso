@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 
-import { allowSelfSignUp, allowSelfService, apiUrl, clientName, applicationUrl } from '../const';
+import { apiUrl, clientName, applicationUrl } from '../const';
 import { getApti, validateEmail } from './utils';
 
 const LOGIN = () => {
@@ -13,11 +13,40 @@ const LOGIN = () => {
   const [state, setState] = useState(null);
   const [redirectUri, setRedirectUri] = useState(null);
   const [isLoading, setLoading] = useState(false);
+  const [config, setConfig] = useState(null);
   const [rememberDevice, setRememberDevice] = useState(localStorage.getItem('amfa-remember-device') || 'false');
   const [email, setEmail] = useState(localStorage.getItem('amfa-username') || '');
 
   useEffect(() => {
     document.title = 'Login';
+
+    const getAmfaConfigs = async () => {
+      // get the data from the api
+
+      try {
+        const response = await fetch(`${apiUrl}/oauth2/feconfig`);
+        const json = await response.json();
+        console.log(json);
+
+        if (response.status === 200) {
+          setConfig(json);
+        }
+        else {
+          // convert the data to json
+          json.message ?
+            setErrorMsg(json.message) :
+            setErrorMsg('Error fetching config from the server');
+          return;
+        }
+      }
+      catch (error) {
+        console.error(error);
+        setErrorMsg('Error fetching config from the server');
+        return;
+      }
+    }
+
+    getAmfaConfigs();
 
     const state = searchParams.get("state")
     const redirect_uri = searchParams.get("redirect_uri")
@@ -78,7 +107,7 @@ const LOGIN = () => {
     const authParam = window.getAuthParam();
 
     const params = {
-      email: email.toLocaleLowerCase(),
+      email,
       rememberDevice,
       authParam,
       apti,
@@ -113,7 +142,7 @@ const LOGIN = () => {
           // const result = await res.json();
           navigate('/password', {
             state: {
-              email: email.toLocaleLowerCase(),
+              email,
               rememberDevice,
               apti,
               state,
@@ -163,7 +192,7 @@ const LOGIN = () => {
 
       <div>
         <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
-          autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value.toLocaleLowerCase())}
+          autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
           onKeyUp={e => confirmLogin(e)}
           disabled={isLoading}
         />
@@ -176,14 +205,14 @@ const LOGIN = () => {
           {isLoading ? 'Sending...' : 'Sign In'}
         </Button>
       </div>
-      {allowSelfSignUp && !isLoading && <div>
+      {config?.allowSelfSignUp && !isLoading && <div>
         <span className='textDescription-customizable'> New User?
           <a href="/password" className="textLink-customizable"> Register</a></span>
       </div>}
-      {allowSelfService && !isLoading && <div>
+      {config?.allowSelfService && !isLoading && <div>
         <span className='textDescription-customizable'>
           <a href='/selfservice' className='textLink-customizable'> Update your profile</a></span>
-        </div>}
+      </div>}
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> :
         (errorMsg && <div>
           <br />

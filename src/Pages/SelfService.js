@@ -1,25 +1,53 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
-import { apiUrl, clientName, allowSelfService } from '../const';
+import { apiUrl, clientName } from '../const';
 import { getApti, validateEmail } from './utils';
 
 const LOGIN = () => {
+	const location = useLocation();
 	const navigate = useNavigate();
-
-	if (!allowSelfService) {
-		navigate('/');
-	}
+	const [config, setConfig] = useState(null);
 
 	document.title = 'Update Profile';
 
 	const apti = getApti();
 
-	const [errorMsg, setErrorMsg] = useState(null);
+	const [errorMsg, setErrorMsg] = useState(location.state?.selfservicemsg);
 	const [email, setEmail] = useState(localStorage.getItem('amfa-username') || '');
 	const [password, setPassword] = useState('');
 	const [isLoading, setLoading] = useState(false);
+
+	useEffect(() => {
+		const getAmfaConfigs = async () => {
+			// get the data from the api
+
+			try {
+				const response = await fetch(`${apiUrl}/oauth2/feconfig`);
+				const json = await response.json();
+				console.log(json);
+
+				if (response.status === 200) {
+					setConfig(json);
+				}
+				else {
+					// convert the data to json
+					json.message ?
+						setErrorMsg(json.message) :
+						setErrorMsg('Error fetching config from the server');
+					return;
+				}
+			}
+			catch (error) {
+				console.error(error);
+				setErrorMsg('Error fetching config from the server');
+				return;
+			}
+		}
+
+		getAmfaConfigs();
+	}, []);
 
 	const confirmLogin = (e) => {
 		if (e.key === "Enter") {
@@ -28,6 +56,8 @@ const LOGIN = () => {
 	}
 
 	const handleSubmit = async (e) => {
+		setErrorMsg ('');
+
 		if (!email || validateEmail(email)) {
 			setErrorMsg('Please enter a valid email address');
 			return;
@@ -49,17 +79,12 @@ const LOGIN = () => {
 			const res = await fetch(`${apiUrl}/oauth2/admininitauth`, options);
 
 			if (res.status === 200) {
-				const response2 = await res.json();
 
 				navigate('/dualotp', {
 					state: {
 						email,
 						apti,
 						type: 'updateotp',
-						aemail: response2['custom:alter-email']?.toLocaleLowerCase(),
-						phoneNumber: response2.phone_number,
-						vPhoneNumber: response2['custom:voice-number'] ? response2['custom:voice-number'] : response2.phoneNumber,
-						otpOptions: response2.otpOptions,
 					}
 				});
 			}
@@ -82,35 +107,43 @@ const LOGIN = () => {
 		}
 	}
 
+	if (config && config.allowSelfService === false) {
+		navigate('/');
+		return;
+	}
+
+
+
 	return (
 		<div>
 			<span><h4>Update Profile</h4></span>
 			<hr className="hr-customizable" />
 			<span className='idpDescription-customizable'> Login with your {clientName} account </span>
-			<div>
-				<input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
-					autoCapitalize="none" required aria-label="email"
-					value={email} type="email" onChange={(e) => setEmail(e.target.value.toLocaleLowerCase())}
-					onKeyUp={e => confirmLogin(e)}
-					autoFocus
-					disabled={isLoading}
-				/><br />
-				<span className='idpDescription-customizable'> Please enter your password </span>
-				<input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
-					placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
-					onKeyUp={e => confirmLogin(e)}
-					disabled={isLoading}
-				/>
-				<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
-					variant="success"
-					disabled={isLoading}
-					onClick={!isLoading ? handleSubmit : null}
-				>
-					{isLoading ? 'Sending...' : 'Sign In'}
-				</Button>
-			</div>
+			{config?.allowSelfService &&
+				<div>
+					<input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
+						autoCapitalize="none" required aria-label="email"
+						value={email} type="email" onChange={(e) => setEmail(e.target.value)}
+						onKeyUp={e => confirmLogin(e)}
+						autoFocus
+						disabled={isLoading}
+					/><br />
+					<span className='idpDescription-customizable'> Please enter your password </span>
+					<input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
+						placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
+						onKeyUp={e => confirmLogin(e)}
+						disabled={isLoading}
+					/>
+					<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
+						variant="success"
+						disabled={isLoading}
+						onClick={!isLoading ? handleSubmit : null}
+					>
+						{isLoading ? 'Sending...' : 'Sign In'}
+					</Button>
+				</div>}
 
-			{!isLoading && <span className='textDescription-customizable'><div className="textLink-customizable" onClick={() =>
+			{!isLoading && <span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
 				navigate('/dualotp', {
 					state: {
 						email,
@@ -119,7 +152,7 @@ const LOGIN = () => {
 					}
 				})}>Forgot Password?
 			</div></span>}
-			{isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" style={{ marginTop: '10px' }} >{''}</Spinner></span> : (
+			{isLoading || !config ? <span className='errorMessage-customizable'><Spinner color="primary" style={{ marginTop: '10px' }} >{''}</Spinner></span> : (
 				errorMsg && <div>
 					<span className='errorMessage-customizable'>{errorMsg}</span>
 				</div>)}

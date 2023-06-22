@@ -21,7 +21,7 @@ const validateInputParams = (payload) => {
     case 'selfservice2':
     case 'selfservice3':
     case 'updateProfileSendOTP':
-      return (payload && payload.otpaddr && payload.otptype &&
+      return (payload && payload.email && payload.otptype &&
         payload.apti && payload.authParam);
     case 'verifyotp':
     case 'pwdresetverify2':
@@ -89,18 +89,19 @@ export const handler = async (event) => {
 
       let oneEvent = {};
       oneEvent.uIP = ipAddress;
-      oneEvent.email = payload.email;
+      oneEvent.email = payload.email?.trim()?.toLowerCase();
       oneEvent.apti = payload.apti;
       oneEvent.rememberDevice = payload.rememberDevice;
       oneEvent.authParam = payload.authParam;
       oneEvent.origin = `${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`;
-      oneEvent.otptype = payload.otptype;
+      oneEvent.otptype = payload.otptype?.toLowerCase();
       oneEvent.otpcode = payload.otpcode;
-      oneEvent.otpaddr = payload.otpaddr;
       oneEvent.redirectUri = payload.redirectUri;
       oneEvent.state = payload.state;
       oneEvent.requestTimeEpoch = event.requestContext.requestTimeEpoch;
       oneEvent.uuid = payload.uuid;
+      oneEvent.newProfile = payload.newProfile?.toLowerCase();
+      oneEvent.profile = payload.profile?.toLowerCase();
       oneEvent.requestId = requestId;
 
       oneEvent.cookies = event.headers['Cookie'];
@@ -110,7 +111,7 @@ export const handler = async (event) => {
         case 'username':
           const res = await client.send(new ListUsersCommand({
             UserPoolId: process.env.USERPOOL_ID,
-            Filter: `email = "${payload.email}"`,
+            Filter: `email = "${oneEvent.email}"`,
           }));
 
           console.log(res);
@@ -131,7 +132,7 @@ export const handler = async (event) => {
       error = 'incoming params error.';
     }
   } catch (err) {
-    console.log(err);
+    console.log('error details:', err);
     return response(
       err.statusCode ? err.statusCode : 500,
       JSON.stringify({

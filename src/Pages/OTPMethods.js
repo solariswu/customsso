@@ -62,6 +62,7 @@ const LOGIN = () => {
 								validated: true,
 								updateType: 'Alt Email',
 								profile: data.aemail,
+								otpData: data,
 							}
 						})}
 					>
@@ -94,6 +95,7 @@ const LOGIN = () => {
 								validated: true,
 								updateType: 'Phone Number',
 								profile: data.phoneNumber,
+								otpData: data,
 							}
 						})}
 					>
@@ -126,6 +128,7 @@ const LOGIN = () => {
 								validated: true,
 								updateType: 'Voice Number',
 								profile: data.vPhoneNumber,
+								otpData: data,
 							}
 						})}
 					>
@@ -155,6 +158,7 @@ const LOGIN = () => {
 								uuid,
 								validated: true,
 								otpData: data,
+								backable: true,
 							}
 						})}
 					>

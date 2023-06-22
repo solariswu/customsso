@@ -87,7 +87,12 @@ const LOGIN = () => {
 
       const options = {
         method: 'POST',
-        body: JSON.stringify({ email, password, uuid, apti }),
+        body: JSON.stringify({
+          email,
+          password,
+          uuid,
+          apti
+        }),
       };
 
       setLoading(true);
@@ -225,6 +230,19 @@ const LOGIN = () => {
             {isLoading ? 'Sending...' : 'Complete'}
           </Button>
         </div>}
+      {location.state && location.state.backable &&
+        <span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
+          navigate('/updateotp', {
+            state: {
+              email,
+              apti,
+              uuid: location.state ? location.state.uuid : '',
+              validated: true,
+              otpData: location.state ? location.state.otpData : '',
+            }
+          })
+        }>Back
+        </div></span>}
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errorMsg && <div>
           <br />

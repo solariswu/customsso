@@ -42,10 +42,11 @@ export const handler = async (event) => {
 		console.log(email);
 		console.log('payload', payload);
 
-		if (email === payload.email && apti === payload.apti) {
+		if (email.trim().toLowerCase() === payload.email.trim().toLowerCase()
+			 && apti === payload.apti) {
 			const input = { // AdminSetUserPasswordRequest
 				UserPoolId: process.env.USERPOOL_ID, // required
-				Username: email, // required
+				Username: email.trim().toLowerCase(), // required
 				Password: payload.password, // required
 				Permanent: true,
 			};
@@ -76,5 +77,4 @@ export const handler = async (event) => {
 			body: JSON.stringify(error),
 		};
 	}
-
 }

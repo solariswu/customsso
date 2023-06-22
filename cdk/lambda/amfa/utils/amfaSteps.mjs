@@ -111,14 +111,49 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     console.log('ug:', ug);
 
+    switch (event.otptype) {
+      case 'e':
+        event.otpaddr = event.email;
+        break;
+      case 'ae':
+        event.otpaddr = userAttributes['custom:alter-email'];
+        break;
+      case 's':
+        event.otpaddr = userAttributes.phone_number;
+        break;
+      case 'v':
+        event.otpaddr = userAttributes['custom:voice-number'];
+        break;
+      default:
+        break;
+    }
+
+    event.otpaddr = event.otpaddr?.toLowerCase();
+
+    if (step === 'updateProfileSendOTP' && event.otpaddr !== event.profile ) {
+      // legacy profile not correct
+      return response(400, 'Value does not mtach our record.', event.requestId);
+    }
+
+    if (step === 'updateProfileSendOTP' || step === 'updateProfile') {
+      event.otpaddr = event.newProfile?.toLowerCase();
+    }
+
     if (step === 'getOtpOptions') {
+      const phoneNumber = userAttributes.phone_number ? userAttributes.phone_number.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
+      let aemail = userAttributes['custom:alter-email'] ? userAttributes['custom:alter-email'] : null;
+      (aemail && aemail.indexOf('@') > 0) ?
+        aemail = `${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}`
+        : aemail = null;
+
+      const vPhoneNumber = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'].replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
 
       const body = JSON.stringify({
         otpOptions: amfaPolicies[ug].permissions,
         email: userAttributes.email,
-        phoneNumber: userAttributes.phone_number,
-        aemail: userAttributes['custom:alter-email'],
-        vPhoneNumber: userAttributes['custom:voice-number'],
+        phoneNumber,
+        aemail,
+        vPhoneNumber,
       })
 
       console.log('body:', body);
@@ -248,7 +283,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
         //e for email, s for sms, v for voice, ae for alt-email.
         p = event.otpaddr;
-        postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
+        postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti+ '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
         break;
       case 'verifyotp':
       case 'pwdresetverify2':
@@ -268,7 +303,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         p = event.otpaddr;
         sfl = 7;
         otpp = 0;
-        postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp;
+        postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp;
         break;
       default:
         break;
@@ -343,7 +378,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                 return {
                   isBase64Encoded: false,
                   statusCode: 200,
-                  headers: {...headers, requestId: event.requestId},
+                  headers: { ...headers, requestId: event.requestId },
                   body: JSON.stringify({ message: 'OK', uuid }),
                 };
               }
@@ -365,7 +400,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               return {
                 statusCode: 202,
                 isBase64Encoded: false,
-                headers: {...cookieEnabledHeaders, requestId: event.requestId},
+                headers: { ...cookieEnabledHeaders, requestId: event.requestId },
                 body: JSON.stringify({ ...userAttributes, otpOptions: amfaPolicies[ug].permissions })
               }
             case 'sendotp':
@@ -380,7 +415,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               return {
                 isBase64Encoded: false,
                 statusCode: 202,
-                headers: {...headers, requestId: event.requestId},
+                headers: { ...headers, requestId: event.requestId },
                 body: JSON.stringify({ message: amfaResponseJSON.message, uuid }),
               };
             case 'verifyotp':

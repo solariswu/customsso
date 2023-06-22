@@ -29,7 +29,7 @@ export const checkUpdateProfileUuid = async (payload) => {
 		const apti = results.Item.apti.S;
 		const otpaddr = results.Item.otpaddr.S;
 
-		return (email === payload.email && apti === payload.apti && otpaddr === payload.otpaddr)
+		return (email === payload.email && apti === payload.apti && otpaddr === payload.newProfile)
 
 	}
 	catch (error) {

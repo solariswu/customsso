@@ -95,7 +95,7 @@ const LOGIN = () => {
 		}
 
 		const params = {
-			email: email.toLocaleLowerCase(),
+			email,
 			// authParam: window.getAuthParam(),
 			apti,
 		};
@@ -113,7 +113,7 @@ const LOGIN = () => {
 					// const result = await res.json();
 					navigate('/passwordreset', {
 						state: {
-							email: email.toLocaleLowerCase(),
+							email,
 							apti,
 						}
 					});
@@ -147,7 +147,7 @@ const LOGIN = () => {
 
 			<div>
 				<input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
-					autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value.toLocaleLowerCase())}
+					autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
 					onKeyUp={e => confirmSignUp(e)}
 					disabled={isLoading}
 				/>

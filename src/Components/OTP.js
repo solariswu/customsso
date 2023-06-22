@@ -9,7 +9,7 @@ export const OTP = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	const [msg, setMsg] = useState({msg: '', type: ''});
+	const [msg, setMsg] = useState({ msg: '', type: '' });
 
 	const [isLoading, setLoading] = useState(false);
 	const [otp, setOtp] = useState({ type: 'e', code: '', addr: '', stage: 1 });
@@ -17,11 +17,11 @@ export const OTP = () => {
 	const [showOTP, setShowOTP] = useState(false);
 
 	const setInfoMsg = (msg) => {
-		setMsg({msg, type: 'info'});
+		setMsg({ msg, type: 'info' });
 	}
 
 	const setErrorMsg = (msg) => {
-		setMsg({msg, type: 'error'});
+		setMsg({ msg, type: 'error' });
 	}
 
 	useEffect(() => {
@@ -117,9 +117,8 @@ export const OTP = () => {
 		}
 	}
 
-	const sendOtp = async ({ otptype, otpaddr }) => {
-		setOtp({ ...otp, type: otptype, addr: otpaddr });
-
+	const sendOtp = async ({ otptype }) => {
+		setOtp({ ...otp, type: otptype });
 
 		const sendOtpParams = {
 			email,
@@ -127,7 +126,6 @@ export const OTP = () => {
 			authParam,
 			apti,
 			otptype,
-			otpaddr,
 			phase: `${amfaStepPrefix}${otp.stage + 1}`,
 		};
 
@@ -152,29 +150,35 @@ export const OTP = () => {
 						}, 8000);
 					}
 					else {
-						setErrorMsg('Unknown OTP send error, please contact help desk.');
+						navigate('/selfservice', {
+							state: {
+								selfservicemsg: 'Unknown OTP send error, please contact help desk.'
+							}
+						})
+						return;
 					}
 					break;
 				case 401:
 					const resultMsg401 = await result.json();
-					if (resultMsg401.message) {
-						localStorage.setItem('OTPErrorMsg', resultMsg401.message);
-						window.location.assign(`${applicationUrl}?amfa=relogin`);
-						return;
-					}
-					else {
-						setErrorMsg('Unknown OTP send error, please contact help desk.');
-					}
-					break;
+					navigate('/selfservice', {
+						state: {
+							selfservicemsg: resultMsg401.message ? resultMsg401.message :
+								'Unknown OTP send error, please contact help desk.'
+						}
+					})
+					return;
 				default:
 					const res = await result.json();
+					let msg = 'Unknown error, please contact help desk.';
 					if (res) {
-						setErrorMsg(res.message ? res.message : res.name ? res.name : JSON.stringify(res));
+						msg = res.message ? res.message : res.name ? res.name : JSON.stringify(res);
 					}
-					else {
-						setErrorMsg('Unknown error, please contact help desk.');
-					}
-					break;
+					navigate('/selfservice', {
+						state: {
+							selfservicemsg: msg
+						}
+					})
+					return;;
 			}
 			setLoading(false);
 		}
@@ -278,6 +282,7 @@ export const OTP = () => {
 										uuid: response.uuid,
 										validated: true,
 										otpData: data,
+										backable: false,
 									}
 								});
 								// console.log ('count === 1, location.state:', location.state);
@@ -301,36 +306,55 @@ export const OTP = () => {
 								uuid: response.uuid,
 								validated: true,
 								otpData: data,
+								backable: false,
 							}
 						})
 					}
 					else {
 						// unexpected
-						localStorage.setItem('OTPErrorMsg', 'Dual OTP verification error, please contact help desk.');
-						window.location.assign(`${applicationUrl}?amfa=relogin`);
+						navigate('/selfservice', {
+							state: {
+								selfservicemsg: 'Dual OTP verification error, please contact help desk.'
+							}
+						})
 					}
 					return;
 				case 401:
 					const resultMsg = await result.json();
-					if (resultMsg.message) {
-						localStorage.setItem('OTPErrorMsg', resultMsg.message);
-						window.location.assign(`${applicationUrl}?amfa=relogin`);
-						return;
+
+					navigate('/selfservice', {
+						state: {
+							selfservicemsg: resultMsg.message ? resultMsg.message : 'Unknown error, please contact help desk.'
+						}
+					})
+					return;
+				case 403:
+					const resMsg = await result.json();
+					if (resMsg) {
+						setErrorMsg(resMsg.message ? resMsg.message : resMsg.name ? resMsg.name : JSON.stringify(resMsg));
 					}
 					else {
-						setErrorMsg('Unknown OTP send error, please contact help desk.');
+						navigate('/selfservice', {
+							state: {
+								selfservicemsg: 'Unknown error, please contact help desk.'
+							}
+						});
+						return;
 					}
 					break;
 				case 203:
 				default:
 					const res = await result.json();
-					if (data) {
-						setErrorMsg(res.message ? res.message : res.name ? res.name : JSON.stringify(res));
+					let msg = 'Unknown error, please contact help desk.'
+					if (res) {
+						msg = res.message ? res.message : res.name ? res.name : JSON.stringify(res);
 					}
-					else {
-						setErrorMsg('Unknown error, please contact help desk.');
-					}
-					break;
+
+					navigate('/selfservice', {
+						state: {
+							selfservicemsg: msg
+						}
+					});
 			}
 			setLoading(false);
 		}
@@ -361,7 +385,7 @@ export const OTP = () => {
 					(<div className='row align-items-end'>
 						<div className='col-4'>Email:</div>
 						<div className='col'>
-							<span className='link-customizable' onClick={() => email ? sendOtp({ otptype: 'e', otpaddr: email }) : null}>
+							<span className='link-customizable' onClick={() => email ? sendOtp({ otptype: 'e' }) : null}>
 								{`${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))} >`}
 							</span>
 						</div>
@@ -369,22 +393,22 @@ export const OTP = () => {
 						<div className='row align-items-end'>
 							<div className='col-4'>Alt-Email:</div>
 							<div className='col'>
-								<span className='link-customizable' onClick={() => sendOtp({ otptype: 'ae', otpaddr: data.aemail })}>
-									{`${data.aemail[0]}xxx@${data.aemail[data.aemail.lastIndexOf('@') + 1]}xx.${data.aemail.substring((data.aemail.lastIndexOf('.') + 1))} >`} </span>
+								<span className='link-customizable' onClick={() => sendOtp({ otptype: 'ae' })}>
+									{`${data.aemail} >`} </span>
 							</div>
 						</div> : option === 's' && data.phoneNumber ?
 							<div className='row align-items-end'>
 								<div className='col-4'>SMS:</div>
 								<div className='col'>
-									<span className='link-customizable' onClick={() => data.phoneNumber ? sendOtp({ otptype: 's', otpaddr: data.phoneNumber }) : null}>
-										{data.phoneNumber.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') + ' >'} </span>
+									<span className='link-customizable' onClick={() => data.phoneNumber ? sendOtp({ otptype: 's' }) : null}>
+										{data.phoneNumber + ' >'} </span>
 								</div>
 							</div> : option === 'v' && data.vPhoneNumber ?
 								<div className='row align-items-end'>
 									<div className='col-4'>Voice:</div>
 									<div className='col'>
-										<span className='link-customizable' onClick={() => data.vPhoneNumber ? sendOtp({ otptype: 'v', otpaddr: data.vPhoneNumber }) : null}>
-											{data.vPhoneNumber.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') + ' >'} </span>
+										<span className='link-customizable' onClick={() => data.vPhoneNumber ? sendOtp({ otptype: 'v' }) : null}>
+											{data.vPhoneNumber + ' >'} </span>
 									</div>
 								</div> : option === 'm' &&
 								<div className='row align-items-end'>
@@ -411,7 +435,7 @@ export const OTP = () => {
 					{isLoading ? showOTP ? 'Sending...' : 'Checking...' : 'Verify'}
 				</Button>
 			</div>
-			{isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" style={{"marginTop": "8px"}}>{''}</Spinner></span> : (
+			{isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" style={{ "marginTop": "8px" }}>{''}</Spinner></span> : (
 				msg?.msg && (
 					<div><br /><span className={msg.type === 'error' ? 'errorMessage-customizable' : 'infoMessage-customizable'}>{msg.msg}</span></div>
 				))}

@@ -98,7 +98,7 @@ const LOGIN = () => {
                 apti,
                 state,
                 redirectUri,
-                aemail: response2['custom:alter-email']?.toLocaleLowerCase(),
+                aemail: response2['custom:alter-email'],
                 phoneNumber: response2.phone_number,
                 vPhoneNumber: response2['custom:voice-number'] ? response2['custom:voice-number'] : response2.phoneNumber,
                 otpOptions: response2.otpOptions,
@@ -160,7 +160,7 @@ const LOGIN = () => {
           {isLoading ? 'Sending...' : 'Sign In'}
         </Button>
       </div>
-      {!isLoading && <span className='textDescription-customizable'><div className="textLink-customizable" onClick={() =>
+      {!isLoading && <span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
         navigate('/dualotp', {
           state: {
             email,

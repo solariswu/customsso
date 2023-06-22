@@ -57,8 +57,8 @@ const OTP = () => {
     }
   }
 
-  const stepthree = async ({ otptype, otpaddr }) => {
-    setOtp({ ...otp, type: otptype, addr: otpaddr });
+  const stepthree = async ({ otptype }) => {
+    setOtp({ ...otp, type: otptype});
 
     const sendOtpParams = {
       email,
@@ -66,7 +66,6 @@ const OTP = () => {
       authParam,
       apti,
       otptype,
-      otpaddr,
       state,
       redirectUri,
       phase: 'sendotp'
@@ -221,7 +220,7 @@ const OTP = () => {
           (<div className='row align-items-end'>
             <div className='col-4'>Email:</div>
             <div className='col'>
-              <span className='link-customizable' onClick={() => email ? stepthree({ otptype: 'e', otpaddr: email }) : null}>
+              <span className='link-customizable' onClick={() => email ? stepthree({ otptype: 'e' }) : null}>
                 {`${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))} >`}
               </span>
             </div>
@@ -229,21 +228,21 @@ const OTP = () => {
             <div className='row align-items-end'>
               <div className='col-4'>Alt-Email:</div>
               <div className='col'>
-                <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae', otpaddr: aemail })}>
+                <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae'})}>
                   {`${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))} >`} </span>
               </div>
             </div> : option === 's' && phoneNumber ?
               <div className='row align-items-end'>
                 <div className='col-4'>SMS:</div>
                 <div className='col'>
-                  <span className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's', otpaddr: phoneNumber }) : null}>
+                  <span className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's' }) : null}>
                     {phoneNumber.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') + ' >'} </span>
                 </div>
               </div> : option === 'v' && vPhoneNumber ?
                 <div className='row align-items-end'>
                   <div className='col-4'>Voice:</div>
                   <div className='col'>
-                    <span className='link-customizable' onClick={() => vPhoneNumber ? stepthree({ otptype: 'v', otpaddr: vPhoneNumber }) : null}>
+                    <span className='link-customizable' onClick={() => vPhoneNumber ? stepthree({ otptype: 'v' }) : null}>
                       {vPhoneNumber.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') + ' >'} </span>
                   </div>
                 </div> : option === 'm' &&
