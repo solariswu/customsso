@@ -12,10 +12,6 @@ const CONTENT = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	// const closeQuickView = () => {
-	// 	console.log('back pressed');
-	// }
-
 	useEffect(() => {
 		if (!location.state || !location.state.validated) {
 			navigate('/selfservice', {
@@ -25,22 +21,14 @@ const CONTENT = () => {
 			});
 		}
 
-		// window.history.pushState('fake-route', document.title, window.location.href);
-
-		// window.addEventListener('popstate', closeQuickView);
-		// return () => {
-		// 	window.removeEventListener('popstate', closeQuickView);
-		// 	// If we left without using the back button, aka by using a button on the page, we need to clear out that fake history event
-		// 	if (window.history.state === 'fake-route') {
-		// 		window.history.back();
-		// 	}
-		// };
 	}, [location.state, navigate]);
 
 	const email = location.state?.email;
 	const apti = location.state?.apti;
 	const updateType = location.state?.updateType;
 	const legacyProfile = location.state?.profile ? location.state.profile : '';
+
+	console.log ('legacyProfile: ', legacyProfile);
 
 	const [msg, setMsg] = useState({ msg: `Click "Registration", a verification code would be sent to new ${updateType}`, type: 'info' });
 	const [profile, setProfile] = useState('');
@@ -74,14 +62,13 @@ const CONTENT = () => {
 		let validateResult = 'unKnown Error';
 
 		const newData = newProfile.trim();
-		if (newData === profile.trim()) {
+		if (profile && newData === profile.trim()) {
 			setErrorMsg(`New ${updateType} is same as old ${updateType}`);
 			return false;
 		}
 
 		if (newData === '') {
-			alert(`Do you want to remove this ${updateType} verification method?`);
-			// to do
+			setErrorMsg(`You need to input new ${updateType}`);
 			return false;
 		}
 
@@ -259,29 +246,29 @@ const CONTENT = () => {
 			<hr className="hr-customizable" />
 			{isResetDone ? <ResetDone /> :
 				<div>
-					<span className='idpDescription-customizable'> Enter your current {updateType} </span>
-					{updateType.toLowerCase() === 'alt email' ?
+					{legacyProfile !== '' && <><span className='idpDescription-customizable'> Enter your current {updateType} </span>
+						{updateType.toLowerCase() === 'alt email' ?
 
-						<div className="input-group">
-							<input id="profile" name="profile" type="email" className="form-control inputField-customizable"
-								style={{ height: '40px' }}
-								placeholder={legacyProfile === '' ? 'None': "user@email.com"}
-								value={legacyProfile === '' ? legacyProfile : profile}
-								onChange={(e) => setProfile(e.target.value)}
-								autoFocus
-								disabled={isLoading || legacyProfile === ''}
+							<div className="input-group">
+								<input id="profile" name="profile" type="email" className="form-control inputField-customizable"
+									style={{ height: '40px' }}
+									placeholder={"user@email.com"}
+									value={profile}
+									onChange={(e) => setProfile(e.target.value)}
+									autoFocus
+									disabled={isLoading}
+								/>
+							</div> :
+							<PhoneInput
+								international
+								countryCallingCodeEditable={false}
+								defaultCountry="US"
+								placeholder="phone number"
+								value={profile}
+								onChange={setProfile}
+								disabled={isLoading}
 							/>
-						</div> :
-						<PhoneInput
-							international
-							countryCallingCodeEditable={false}
-							defaultCountry="US"
-							placeholder="phone number"
-							value={legacyProfile === '' ? legacyProfile : profile}
-							onChange={setNewProfile}
-							disabled={isLoading || legacyProfile === ''}
-						/>
-					}
+						}</>}
 					<span className='idpDescription-customizable'> Enter your new {updateType} </span>
 					{updateType?.toLowerCase() === 'alt email' ?
 						<div className="input-group">
@@ -316,27 +303,27 @@ const CONTENT = () => {
 							</div> :
 							<div style={{ height: '20px' }} />
 					)}
-					{ profileInFly !== '' &&
-					<div>
-						<input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
-							style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-							autoCapitalize="none" required aria-label="otp code" value={otpcode}
-							onChange={(e) => setOtpcode(e.target.value)}
-							onKeyUp={e => confirmOTPVerify(e)}
-							disabled={isLoading}
-						/>
+					{profileInFly !== '' &&
+						<div>
+							<input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
+								style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
+								autoCapitalize="none" required aria-label="otp code" value={otpcode}
+								onChange={(e) => setOtpcode(e.target.value)}
+								onKeyUp={e => confirmOTPVerify(e)}
+								disabled={isLoading}
+							/>
 
-						<Button
-							name='verifyotp'
-							type='submit'
-							className='btn btn-primary submitButton-customizable'
-							style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-							disabled={isLoading}
-							onClick={!isLoading ? handleOTPVerify : null}
-						>
-							{isLoading ? 'Sending...' : 'Verify'}
-						</Button>
-					</div>}
+							<Button
+								name='verifyotp'
+								type='submit'
+								className='btn btn-primary submitButton-customizable'
+								style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
+								disabled={isLoading}
+								onClick={!isLoading ? handleOTPVerify : null}
+							>
+								{isLoading ? 'Sending...' : 'Verify'}
+							</Button>
+						</div>}
 					<span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
 						navigate('/updateotp', {
 							state: {

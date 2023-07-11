@@ -165,7 +165,7 @@ const LOGIN = () => {
 								uuid,
 								validated: true,
 								updateType: 'Voice Number',
-								profile: data.vPhoneNumber ? data.vPhoneNumber : data.phoneNumber,
+								profile: data.vPhoneNumber,
 								otpData: data,
 							}
 						})}
