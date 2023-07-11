@@ -12,7 +12,7 @@ export const OTP = () => {
 	const [msg, setMsg] = useState({ msg: '', type: '' });
 
 	const [isLoading, setLoading] = useState(false);
-	const [otp, setOtp] = useState({ type: 'e', code: '', addr: '', stage: 1 });
+	const [otp, setOtp] = useState({ type: '', code: '', addr: '', stage: 1 });
 	const [data, setData] = useState(null);
 	const [showOTP, setShowOTP] = useState(false);
 
@@ -70,7 +70,7 @@ export const OTP = () => {
 		}
 		else {
 			setShowOTP(false);
-			setOtp({ type: 'e', code: '', addr: '', stage: 1 });
+			setOtp({ type: '', code: '', addr: '', stage: 1 });
 			setLoading(false);
 			setData(null);
 			setErrorMsg('');
@@ -227,7 +227,7 @@ export const OTP = () => {
 					const response = await result.json();
 					console.log('otp response:', response);
 					if (otp.stage === 1) {
-						setOtp({ ...otp, code: '', addr: '', stage: otp.stage + 1 });
+						setOtp({ ...otp, type: '', code: '', addr: '', stage: otp.stage + 1 });
 						let count = 0;
 
 						console.log('data', data);
@@ -429,7 +429,7 @@ export const OTP = () => {
 					type='submit'
 					className='btn btn-primary submitButton-customizable'
 					style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-					disabled={isLoading}
+					disabled={isLoading || otp.type === ''}
 					onClick={!isLoading ? verifyOtp : null}
 				>
 					{isLoading ? showOTP ? 'Sending...' : 'Checking...' : 'Verify'}
