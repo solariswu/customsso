@@ -62,7 +62,7 @@ export const updateProfile = async (email, otptype, profile, uuid, cognitoClient
 			});
 			UserAttributes.push({
 				Name: 'phone_number_verified',
-				Value: 'true',
+				Value: (profile && profile.length > 0) ? 'true' : 'false',
 			});
 			break;
 		default:

@@ -165,6 +165,23 @@ body {
   border-color: #204d74;
 }
 
+.submitButton-customizable-danger {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 20px 0px 10px 0px;
+  height: 40px;
+  width: 100%;
+  color: #fff;
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.submitButton-customizable-danger:hover {
+  color: #fff;
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
 .errorMessage-customizable {
   padding: 5px 10px 0 0;
   font-size: 14px;

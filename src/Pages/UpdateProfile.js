@@ -42,13 +42,14 @@ const CONTENT = () => {
 	const updateType = location.state?.updateType;
 	const legacyProfile = location.state?.profile ? location.state.profile : '';
 
-	const [msg, setMsg] = useState({ msg: `Click "Registraction", a verification code would be sent to new ${updateType}`, type: 'info' });
+	const [msg, setMsg] = useState({ msg: `Click "Registration", a verification code would be sent to new ${updateType}`, type: 'info' });
 	const [profile, setProfile] = useState('');
 	const [newProfile, setNewProfile] = useState('');
 	const [isLoading, setLoading] = useState(false);
 	const [isResetDone, setResetDone] = useState(false);
 	const [otpcode, setOtpcode] = useState('');
 	const [uuid, setUuid] = useState('');
+	const [profileInFly, setProfileInFly] = useState('');
 
 	const setErrorMsg = (msg) => {
 		setMsg({ msg, type: 'error' });
@@ -198,6 +199,7 @@ const CONTENT = () => {
 								setInfoMsg('');
 							}, 8000);
 							setUuid(resultMsg.uuid);
+							setProfileInFly(newProfile);
 						}
 						else {
 							setErrorMsg('Unknown OTP send error, please contact help desk.');
@@ -263,7 +265,9 @@ const CONTENT = () => {
 						<div className="input-group">
 							<input id="profile" name="profile" type="email" className="form-control inputField-customizable"
 								style={{ height: '40px' }}
-								placeholder="user@email.com" value={legacyProfile === '' ? legacyProfile : profile} onChange={(e) => setProfile(e.target.value)}
+								placeholder={legacyProfile === '' ? 'None': "user@email.com"}
+								value={legacyProfile === '' ? legacyProfile : profile}
+								onChange={(e) => setProfile(e.target.value)}
 								autoFocus
 								disabled={isLoading || legacyProfile === ''}
 							/>
@@ -279,7 +283,6 @@ const CONTENT = () => {
 						/>
 					}
 					<span className='idpDescription-customizable'> Enter your new {updateType} </span>
-					<p><span> Leave it empty if you want to remove this {updateType} verification method</span></p>
 					{updateType?.toLowerCase() === 'alt email' ?
 						<div className="input-group">
 							<input id="signInFormNewProfile" name="newProfile" type="email" className="form-control inputField-customizable"
@@ -300,7 +303,7 @@ const CONTENT = () => {
 					}
 					<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
 						variant="success"
-						disabled={isLoading}
+						disabled={isLoading || profileInFly === newProfile}
 						onClick={!isLoading ? sendOTP : null}
 					>
 						{isLoading ? 'Sending...' : `Register New ${updateType}`}
@@ -313,6 +316,7 @@ const CONTENT = () => {
 							</div> :
 							<div style={{ height: '20px' }} />
 					)}
+					{ profileInFly !== '' &&
 					<div>
 						<input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
 							style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
@@ -332,7 +336,7 @@ const CONTENT = () => {
 						>
 							{isLoading ? 'Sending...' : 'Verify'}
 						</Button>
-					</div>
+					</div>}
 					<span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
 						navigate('/updateotp', {
 							state: {

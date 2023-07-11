@@ -17,7 +17,7 @@ import { applicationUrl } from './const';
 
 import logo from './logo.png';
 import UpdateProfile from './Pages/UpdateProfile';
-
+import RemoveProfile from './Pages/RemoveProfile';
 
 const App = () => {
    const [time, setTime] = useState('');
@@ -86,7 +86,8 @@ const App = () => {
                      <Route path="/passwordreset" element={<NewPasswords />} />
                      <Route path="/updateotp" element={<OTPMethods />} />
                      <Route path="/selfservice" element={<SelfService />} />
-                     <Route path="/updateprofile" element={<UpdateProfile />}/>
+                     <Route path="/updateprofile" element={<UpdateProfile />} />
+                     <Route path='/removeprofile' element={<RemoveProfile />} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <hr className='hr-customizable' />

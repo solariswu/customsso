@@ -39,7 +39,7 @@ const LOGIN = () => {
 			<span><h4>Update Profile: verify methods</h4></span>
 			<hr className="hr-customizable" />
 			<div class="row">
-				<div class="col" style={{ margin: 'auto 20px', display: 'inline', height: '40px' }}>
+				<div class="col" style={{ margin: 'auto 10px', display: 'inline', height: '40px' }}>
 					<div class="row"
 						style={{ fontWeight: 'bold' }}
 					>
@@ -49,11 +49,11 @@ const LOGIN = () => {
 						{data?.aemail ? data.aemail : '---'}
 					</div>
 				</div>
-				<div class="col-4">
+				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
 					<Button
 						name='updateEmail'
 						type='submit'
-						className='btn btn-primary submitButton-customizable'
+						className='btn btn-sm btn-success'
 						onClick={() => navigate('/updateprofile', {
 							state: {
 								email,
@@ -69,10 +69,29 @@ const LOGIN = () => {
 						Update
 					</Button>
 				</div>
+				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
+					<Button
+						name='RemoveEmail'
+						type='submit'
+						className='btn btn-sm btn-danger'
+						onClick={() => navigate('/removeprofile', {
+							state: {
+								email,
+								apti,
+								uuid,
+								validated: true,
+								updateType: 'Alt Email',
+								otpData: data,
+							}
+						})}
+					>
+						Remove
+					</Button>
+				</div>
 			</div>
 			<hr className='hr-customizable' />
 			<div class="row">
-				<div class="col" style={{ margin: 'auto 20px', display: 'inline', height: '40px' }}>
+				<div class="col" style={{ margin: 'auto 10px', display: 'inline', height: '40px' }}>
 					<div class="row"
 						style={{ fontWeight: 'bold' }}
 					>
@@ -82,11 +101,11 @@ const LOGIN = () => {
 						{data?.phoneNumber ? data.phoneNumber : '---'}
 					</div>
 				</div>
-				<div class="col-4">
+				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
 					<Button
 						name='updatePhone'
 						type='submit'
-						className='btn btn-primary submitButton-customizable'
+						className='btn btn-sm btn-success'
 						onClick={() => navigate('/updateprofile', {
 							state: {
 								email,
@@ -102,10 +121,29 @@ const LOGIN = () => {
 						Update
 					</Button>
 				</div>
+				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
+					<Button
+						name='RemovePhone'
+						type='submit'
+						className='btn btn-danger btn-sm'
+						onClick={() => navigate('/removeprofile', {
+							state: {
+								email,
+								apti,
+								uuid,
+								validated: true,
+								updateType: 'Phone Number',
+								otpData: data,
+							}
+						})}
+					>
+						Remove
+					</Button>
+				</div>
 			</div>
 			<hr className='hr-customizable' />
 			<div class="row">
-				<div class="col" style={{ margin: 'auto 20px', display: 'inline', height: '40px' }}>
+				<div class="col" style={{ margin: 'auto 10px', display: 'inline', height: '40px' }}>
 					<div class="row"
 						style={{ fontWeight: 'bold' }}
 					>
@@ -115,11 +153,11 @@ const LOGIN = () => {
 						{data?.vPhoneNumber ? data.vPhoneNumber : data.phoneNumber ? data.phoneNumber : '---'}
 					</div>
 				</div>
-				<div class="col-4">
+				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
 					<Button
 						name='updateVoice'
 						type='submit'
-						className='btn btn-primary submitButton-customizable'
+						className='btn btn-sm btn-success'
 						onClick={() => navigate('/updateprofile', {
 							state: {
 								email,
@@ -127,7 +165,7 @@ const LOGIN = () => {
 								uuid,
 								validated: true,
 								updateType: 'Voice Number',
-								profile: data.vPhoneNumber,
+								profile: data.vPhoneNumber ? data.vPhoneNumber : data.phoneNumber,
 								otpData: data,
 							}
 						})}
@@ -135,10 +173,29 @@ const LOGIN = () => {
 						Update
 					</Button>
 				</div>
+				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
+					<Button
+						name='RemoveVoice'
+						type='submit'
+						className='btn btn-danger btn-sm'
+						onClick={() => navigate('/removeprofile', {
+							state: {
+								email,
+								apti,
+								uuid,
+								validated: true,
+								updateType: 'Voice Number',
+								otpData: data,
+							}
+						})}
+					>
+						Remove
+					</Button>
+				</div>
 			</div>
 			<hr className='hr-customizable' />
 			<div class="row">
-				<div class="col" style={{ margin: 'auto 20px', display: 'inline', height: '40px' }}>
+				<div class="col" style={{ margin: 'auto 10px', display: 'inline', height: '40px' }}>
 					<div class="row"
 						style={{ fontWeight: 'bold' }}
 					>

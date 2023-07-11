@@ -42,7 +42,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     return createHash('md5').update(content).digest('hex');
   }
 
-  if (step === 'updateProfile') {
+  if (step === 'updateProfile' || step === 'removeProfile') {
     const isValidUuid = await checkUpdateProfileUuid(event);
     if (!isValidUuid) {
       return response(400, 'Invalid UUID', event.requestId);
@@ -122,7 +122,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         event.otpaddr = userAttributes.phone_number;
         break;
       case 'v':
-        event.otpaddr = userAttributes['custom:voice-number'];
+        event.otpaddr = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'] : userAttributes.phone_number;
         break;
       default:
         break;
@@ -130,13 +130,39 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     event.otpaddr = event.otpaddr?.toLowerCase();
 
-    if (step === 'updateProfileSendOTP' && event.otpaddr !== event.profile ) {
+    // event.profile '' means legacy profile is not set
+    if (step === 'updateProfileSendOTP' && event.profile !== '' && event.otpaddr !== event.profile) {
       // legacy profile not correct
       return response(400, 'Value does not mtach our record.', event.requestId);
     }
 
     if (step === 'updateProfileSendOTP' || step === 'updateProfile') {
       event.otpaddr = event.newProfile?.toLowerCase();
+    }
+
+    if (step === 'removeProfile') {
+      let equalCurrentProfile = false;
+      switch (event.otptype) {
+        case 'ae':
+          equalCurrentProfile = userAttributes['custom:alter-email'] === event.profile;
+          break;
+        case 's':
+          equalCurrentProfile = event.otpaddr === userAttributes.phone_number;
+          break;
+        case 'v':
+          equalCurrentProfile = event.otpaddr === userAttributes['custom:voice-number'];
+          break;
+        default:
+          break;
+      }
+
+      if (!equalCurrentProfile) {
+        return response(400, 'Value does not mtach our record.', event.requestId);
+      }
+
+      await updateProfile (event.email, event.otptype, '', event.uuid, cognito);
+      return response(200, 'OK', event.requestId);
+
     }
 
     if (step === 'getOtpOptions') {
@@ -283,7 +309,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
         //e for email, s for sms, v for voice, ae for alt-email.
         p = event.otpaddr;
-        postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti+ '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
+        postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
         break;
       case 'verifyotp':
       case 'pwdresetverify2':

@@ -35,6 +35,8 @@ const validateInputParams = (payload) => {
         payload.apti && payload.authParam && payload.uuid);
     case 'getOtpOptions':
       return (payload && payload.email && payload.apti && payload.authParam);
+    case 'removeProfile':
+      return (payload && payload.email && payload.apti && payload.authParam && payload.profile);
     default:
       break;
   }
@@ -100,7 +102,7 @@ export const handler = async (event) => {
       oneEvent.state = payload.state;
       oneEvent.requestTimeEpoch = event.requestContext.requestTimeEpoch;
       oneEvent.uuid = payload.uuid;
-      oneEvent.newProfile = payload.newProfile?.toLowerCase();
+      oneEvent.newProfile = payload.newProfile ? payload.newProfile.toLowerCase() : '';
       oneEvent.profile = payload.profile?.toLowerCase();
       oneEvent.requestId = requestId;
 

@@ -23,6 +23,7 @@ const LOGIN = () => {
 		const getAmfaConfigs = async () => {
 			// get the data from the api
 
+			setLoading(true);
 			try {
 				const response = await fetch(`${apiUrl}/oauth2/feconfig`);
 				const json = await response.json();
@@ -36,13 +37,14 @@ const LOGIN = () => {
 					json.message ?
 						setErrorMsg(json.message) :
 						setErrorMsg('Error fetching config from the server');
-					return;
 				}
 			}
 			catch (error) {
 				console.error(error);
 				setErrorMsg('Error fetching config from the server');
-				return;
+			}
+			finally {
+				setLoading(false);
 			}
 		}
 
