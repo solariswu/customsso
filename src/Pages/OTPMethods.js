@@ -70,7 +70,7 @@ const LOGIN = () => {
 					</Button>
 				</div>
 				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
-					<Button
+					{data?.aemail && <Button
 						name='RemoveEmail'
 						type='submit'
 						className='btn btn-sm btn-danger'
@@ -86,7 +86,7 @@ const LOGIN = () => {
 						})}
 					>
 						Remove
-					</Button>
+					</Button>}
 				</div>
 			</div>
 			<hr className='hr-customizable' />
@@ -122,7 +122,7 @@ const LOGIN = () => {
 					</Button>
 				</div>
 				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
-					<Button
+					{data?.phoneNumber && <Button
 						name='RemovePhone'
 						type='submit'
 						className='btn btn-danger btn-sm'
@@ -138,7 +138,7 @@ const LOGIN = () => {
 						})}
 					>
 						Remove
-					</Button>
+					</Button>}
 				</div>
 			</div>
 			<hr className='hr-customizable' />
@@ -174,7 +174,7 @@ const LOGIN = () => {
 					</Button>
 				</div>
 				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
-					<Button
+					{ data?.vPhoneNumber && <Button
 						name='RemoveVoice'
 						type='submit'
 						className='btn btn-danger btn-sm'
@@ -190,7 +190,7 @@ const LOGIN = () => {
 						})}
 					>
 						Remove
-					</Button>
+					</Button>}
 				</div>
 			</div>
 			<hr className='hr-customizable' />
