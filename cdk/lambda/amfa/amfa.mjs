@@ -103,7 +103,7 @@ export const handler = async (event) => {
       oneEvent.requestTimeEpoch = event.requestContext.requestTimeEpoch;
       oneEvent.uuid = payload.uuid;
       oneEvent.newProfile = payload.newProfile ? payload.newProfile.toLowerCase() : '';
-      oneEvent.profile = payload.profile?.toLowerCase();
+      oneEvent.profile = payload.profile ? payload.profile.toLowerCase() : '';
       oneEvent.requestId = requestId;
 
       oneEvent.cookies = event.headers['Cookie'];

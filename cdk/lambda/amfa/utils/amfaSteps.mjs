@@ -133,7 +133,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     // event.profile '' means legacy profile is not set
     if (step === 'updateProfileSendOTP' && event.profile !== '' && event.otpaddr !== event.profile) {
       // legacy profile not correct
-      return response(400, 'Value does not mtach our record.', event.requestId);
+      return response(400, 'Your entry was not valid, please try again.', event.requestId);
     }
 
     if (step === 'updateProfileSendOTP' || step === 'updateProfile') {
@@ -144,20 +144,20 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       let equalCurrentProfile = false;
       switch (event.otptype) {
         case 'ae':
-          equalCurrentProfile = userAttributes['custom:alter-email'] === event.profile;
+          equalCurrentProfile = (userAttributes['custom:alter-email'] === event.profile);
           break;
         case 's':
-          equalCurrentProfile = event.otpaddr === userAttributes.phone_number;
+          equalCurrentProfile = (event.profile === userAttributes.phone_number);
           break;
         case 'v':
-          equalCurrentProfile = event.otpaddr === userAttributes['custom:voice-number'];
+          equalCurrentProfile = (event.profile === userAttributes['custom:voice-number']);
           break;
         default:
           break;
       }
 
       if (!equalCurrentProfile) {
-        return response(400, 'Value does not mtach our record.', event.requestId);
+        return response(400, 'Your entry was not valid, please try again.', event.requestId);
       }
 
       await updateProfile (event.email, event.otptype, '', event.uuid, cognito);

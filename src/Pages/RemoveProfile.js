@@ -36,32 +36,11 @@ const CONTENT = () => {
 	const setErrorMsg = (msg) => {
 		setMsg({ msg, type: 'error' });
 	}
-	const setInfoMsg = (msg) => {
-		setMsg({ msg, type: 'info' });
-	}
 
 	const confirmSubmit = (e) => {
 		if (e.key === "Enter") {
 			handleRemove(e);
 		}
-	}
-
-	const validProfile = () => {
-		let validateResult = 'unKnown Error';
-
-		if (profile.trim().length < 1) {
-			setErrorMsg(`Please input your current ${updateType} value`);
-			return false;
-		}
-
-		updateType?.toLowerCase() === 'alt email' ? validateResult = validateEmail(profile.trim()) : validateResult = validatePhoneNumber(profile.trim());
-
-		if (validateResult) {
-			setErrorMsg(validateResult);
-			return false;
-		}
-
-		return true;
 	}
 
 	const otpList = { 'alt email': 'ae', 'phone number': 's', 'voice number': 'v' };
@@ -95,6 +74,7 @@ const CONTENT = () => {
 				case 200:
 					setUpdateDone(true);
 					break;
+				case 400:
 				case 403:
 					const resMsg = await res.json();
 					if (resMsg) {
@@ -142,6 +122,8 @@ const CONTENT = () => {
 			</div >
 		)
 	}
+
+	console.log ('info msg:', msg);
 
 	return (
 		<div>
