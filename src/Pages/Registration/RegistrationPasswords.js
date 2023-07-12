@@ -132,9 +132,9 @@ const LOGIN = () => {
       <span><h4>Password Reset</h4></span>
       <hr className="hr-customizable" />
       {isSignUpDone ? navigate('/emailverification', {
-		email,
-		apti
-	  }) :
+        email,
+        apti
+      }) :
         <div>
           <span className='idpDescription-customizable'> Enter your new password </span>
           <div className="input-group">
@@ -214,20 +214,25 @@ const LOGIN = () => {
           </Button>
         </div>}
       {location.state && location.state.backable &&
-        <span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
-          navigate('/registration_email', {
+        <Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
+          disabled={isLoading}
+          onClick={!isLoading ? () => navigate('/registration_email', {
             state: {
               email,
               apti,
             }
-          })
-        }>Back
-        </div></span>}
-      {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
-        errorMsg && <div>
-          <br />
-          <span className='errorMessage-customizable'>{errorMsg}</span>
-        </div>)}
+          }) : null}
+        >
+          {isLoading ? 'Sending...' : 'Back'}
+        </Button>
+      }
+      {
+        isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
+          errorMsg && <div>
+            <br />
+            <span className='errorMessage-customizable'>{errorMsg}</span>
+          </div>)
+      }
     </div >
   );
 }

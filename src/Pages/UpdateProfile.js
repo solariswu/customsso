@@ -28,8 +28,6 @@ const CONTENT = () => {
 	const updateType = location.state?.updateType;
 	const legacyProfile = location.state?.profile ? location.state.profile : '';
 
-	console.log ('legacyProfile: ', legacyProfile);
-
 	const [msg, setMsg] = useState({ msg: `Click "Registration", a verification code would be sent to new ${updateType}`, type: 'info' });
 	const [profile, setProfile] = useState('');
 	const [newProfile, setNewProfile] = useState('');
@@ -324,8 +322,9 @@ const CONTENT = () => {
 								{isLoading ? 'Sending...' : 'Verify'}
 							</Button>
 						</div>}
-					<span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
-						navigate('/updateotp', {
+					<Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
+						disabled={isLoading}
+						onClick={!isLoading ? () => navigate('/updateotp', {
 							state: {
 								email,
 								apti,
@@ -333,9 +332,10 @@ const CONTENT = () => {
 								validated: true,
 								otpData: location.state ? location.state.otpData : '',
 							}
-						})
-					}>Back
-					</div></span>
+						}) : null}
+					>
+						{isLoading ? 'Sending...' : 'Back'}
+					</Button>
 				</div>}
 		</div >
 	);

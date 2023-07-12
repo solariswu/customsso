@@ -231,8 +231,9 @@ const LOGIN = () => {
           </Button>
         </div>}
       {location.state && location.state.backable &&
-        <span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
-          navigate('/updateotp', {
+        <Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
+          disabled={isLoading}
+          onClick={!isLoading ? () => navigate('/updateotp', {
             state: {
               email,
               apti,
@@ -240,9 +241,11 @@ const LOGIN = () => {
               validated: true,
               otpData: location.state ? location.state.otpData : '',
             }
-          })
-        }>Back
-        </div></span>}
+          }) : null}
+        >
+          {isLoading ? 'Sending...' : 'Back'}
+        </Button>
+      }
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errorMsg && <div>
           <br />

@@ -12,7 +12,7 @@ const OTP = () => {
   const [errMsg, setErrorMsg] = useState('');
   const [infoMsg, setInfoMsg] = useState('');
   const [isLoading, setLoading] = useState(false);
-  const [otp, setOtp] = useState({ type: 'e', code: '', addr: '' });
+  const [otp, setOtp] = useState({ type: '', code: '', addr: '' });
 
 
   useEffect(() => {
@@ -58,7 +58,7 @@ const OTP = () => {
   }
 
   const stepthree = async ({ otptype }) => {
-    setOtp({ ...otp, type: otptype});
+    setOtp({ ...otp, type: otptype });
 
     const sendOtpParams = {
       email,
@@ -89,7 +89,7 @@ const OTP = () => {
           if (resultMsg.message) {
             setInfoMsg(resultMsg.message);
             setTimeout(() => {
-              setInfoMsg ('');
+              setInfoMsg('');
             }, 8000);
           }
           else {
@@ -228,7 +228,7 @@ const OTP = () => {
             <div className='row align-items-end'>
               <div className='col-4'>Alt-Email:</div>
               <div className='col'>
-                <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae'})}>
+                <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae' })}>
                   {`${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))} >`} </span>
               </div>
             </div> : option === 's' && phoneNumber ?
@@ -270,6 +270,11 @@ const OTP = () => {
           {isLoading ? 'Sending...' : 'Verify'}
         </Button>
       </div>
+      <br />
+      {!isLoading &&
+        <span className='textDescription-customizable'>
+          <div className="link-customizable" onClick={stepfour}>Resend Code
+          </div></span>}
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errMsg && (
           <div><br /><span className='errorMessage-customizable'>{errMsg}</span></div>

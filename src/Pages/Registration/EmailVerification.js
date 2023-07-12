@@ -219,20 +219,20 @@ const CONTENT = () => {
 							{isLoading ? 'Loading...' : 'Complete Registration'}
 						</Button>
 					</div>
-					<span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
-						navigate('/registration_password', {
-							state: {
-								email,
-								apti,
-								uuid: location.state ? location.state.uuid : '',
-								validated: true,
-								otpData: location.state ? location.state.otpData : '',
-							}
-						})
-					}>Back
-					</div></span>
+					<Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
+						disabled={isLoading}
+						onClick={!isLoading ? () =>
+							navigate('/registration_password', {
+								state: {
+									email,
+									apti,
+									uuid: location.state ? location.state.uuid : '',
+									validated: true,
+									otpData: location.state ? location.state.otpData : '',
+								}
+							}) : null}
+					>{!isLoading ? 'Back' : 'Loading...'}</Button>
 					<InfoMsg msg={msg} isLoading={isLoading} />
-
 				</div>}
 		</div >
 	);

@@ -123,8 +123,6 @@ const CONTENT = () => {
 		)
 	}
 
-	console.log ('info msg:', msg);
-
 	return (
 		<div>
 			<span><h4>Remove {updateType} </h4></span>
@@ -159,9 +157,9 @@ const CONTENT = () => {
 					>
 						{isLoading ? 'Process...' : 'Remove'}
 					</Button>
-					<InfoMsg msg={msg} isLoading={isLoading} />
-					<span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
-						navigate('/updateotp', {
+					<Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
+						disabled={isLoading}
+						onClick={!isLoading ? () => navigate('/updateotp', {
 							state: {
 								email,
 								apti,
@@ -169,9 +167,9 @@ const CONTENT = () => {
 								validated: true,
 								otpData: location.state ? location.state.otpData : '',
 							}
-						})
-					}>Back
-					</div></span>
+						}) : null}
+					>{isLoading ? 'Process...' : 'Back'}</Button>
+					<InfoMsg msg={msg} isLoading={isLoading} />
 				</div>}
 		</div >
 	);
