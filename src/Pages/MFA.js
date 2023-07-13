@@ -300,10 +300,6 @@ const OTP = () => {
         </Button>
       </div>
       <br />
-      {!isLoading &&
-        <span className='textDescription-customizable'>
-          <div className="link-customizable" onClick={stepfour}>Resend Code
-          </div></span>}
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errMsg && (
           <div><br /><span className='errorMessage-customizable'>{errMsg}</span></div>
