@@ -365,6 +365,32 @@ export const OTP = () => {
 		}
 	}
 
+	let OTPMethodsCount = 0;
+
+	if (showOTP && data?.otpOptions) {
+		data.otpOptions.forEach((option) => {
+			switch (option) {
+				case 'e':
+					if (email)
+						OTPMethodsCount++;
+					break;
+				case 'ae':
+					if (data.aemail)
+						OTPMethodsCount++;
+					break;
+				case 's':
+					if (data.phoneNumber)
+						OTPMethodsCount++;
+					break;
+				case 'v':
+					if (data.vPhoneNumber && data.vPhoneNumber !== data.phoneNumber)
+						OTPMethodsCount++;
+					break;
+				default:
+					break;
+			}
+		})
+	}
 	return (
 		<div>
 			<span> <h4>{location.state?.type === 'passwordreset' ? pwdResetPageTitle : selfServicePageTitle}</h4> </span>
@@ -373,9 +399,12 @@ export const OTP = () => {
 				<span
 					style={{ lineHeight: '1rem', color: 'grey' }}
 				>
-					Access requires 2 verifications.<br />
-					Verification Step {otp.stage}. <br />
-					Choose contact method:
+					{showOTP ? OTPMethodsCount === 1 ?
+						<>Access requires a verification.<br />
+							Click your ID below to receive a one time verification code</> :
+						<>Access requires 2 verifications.<br />
+							Verification Step {otp.stage}. <br />
+							Choose contact method:</> : ''}
 				</span>
 				<br />
 			</div>

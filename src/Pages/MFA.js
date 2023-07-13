@@ -201,6 +201,33 @@ const OTP = () => {
     }
   }
 
+  let OTPMethodsCount = 0;
+
+  if (!isLoading && otpOptions) {
+    otpOptions.forEach((option) => {
+      switch (option) {
+        case 'e':
+          if (email)
+            OTPMethodsCount++;
+          break;
+        case 'ae':
+          if (aemail)
+            OTPMethodsCount++;
+          break;
+        case 's':
+          if (phoneNumber)
+            OTPMethodsCount++;
+          break;
+        case 'v':
+          if (vPhoneNumber && vPhoneNumber !== phoneNumber)
+            OTPMethodsCount++;
+          break;
+        default:
+          break;
+      }
+    })
+  }
+
   return (
     <div>
       <span> <h4>{mfaPageTitle}</h4> </span>
@@ -209,8 +236,11 @@ const OTP = () => {
         <span
           style={{ lineHeight: '1rem', color: 'grey' }}
         >
-          Please click on one of the available verification methods below
-          to receive a one time identity code, then enter it below.
+          {
+            OTPMethodsCount > 1 ?
+              'Please click on one of the available verification methods below to receive a one time identity code, then enter it below.' :
+              'Access requires a verification. Click your ID below to receive a one time verification code.'
+          }
         </span>
         <br />
       </div>
@@ -258,7 +288,6 @@ const OTP = () => {
           onKeyUp={e => confirmLogin(e)}
           disabled={isLoading}
         />
-
         <Button
           name='verifyotp'
           type='submit'
