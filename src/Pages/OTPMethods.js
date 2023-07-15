@@ -39,7 +39,7 @@ const LOGIN = () => {
 			<span><h4>Update Profile: verify methods</h4></span>
 			<hr className="hr-customizable" />
 			<div class="row">
-				<div class="col" style={{ margin: 'auto 10px', display: 'inline', height: '40px' }}>
+				<div class="col" style={{ margin: 'auto 3px', display: 'inline', height: '40px' }}>
 					<div class="row"
 						style={{ fontWeight: 'bold' }}
 					>
@@ -49,7 +49,7 @@ const LOGIN = () => {
 						{data?.aemail ? data.aemail : '---'}
 					</div>
 				</div>
-				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
+				<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
 					<Button
 						name='updateEmail'
 						type='submit'
@@ -69,7 +69,7 @@ const LOGIN = () => {
 						Update
 					</Button>
 				</div>
-				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
+				<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
 					{data?.aemail && <Button
 						name='RemoveEmail'
 						type='submit'
@@ -91,7 +91,7 @@ const LOGIN = () => {
 			</div>
 			<hr className='hr-customizable' />
 			<div class="row">
-				<div class="col" style={{ margin: 'auto 10px', display: 'inline', height: '40px' }}>
+				<div class="col" style={{ margin: 'auto 3px', display: 'inline', height: '40px' }}>
 					<div class="row"
 						style={{ fontWeight: 'bold' }}
 					>
@@ -101,7 +101,7 @@ const LOGIN = () => {
 						{data?.phoneNumber ? data.phoneNumber : '---'}
 					</div>
 				</div>
-				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
+				<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
 					<Button
 						name='updatePhone'
 						type='submit'
@@ -121,7 +121,7 @@ const LOGIN = () => {
 						Update
 					</Button>
 				</div>
-				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
+				<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
 					{data?.phoneNumber && <Button
 						name='RemovePhone'
 						type='submit'
@@ -143,7 +143,7 @@ const LOGIN = () => {
 			</div>
 			<hr className='hr-customizable' />
 			<div class="row">
-				<div class="col" style={{ margin: 'auto 10px', display: 'inline', height: '40px' }}>
+				<div class="col" style={{ margin: 'auto 3px', display: 'inline', height: '40px' }}>
 					<div class="row"
 						style={{ fontWeight: 'bold' }}
 					>
@@ -153,7 +153,7 @@ const LOGIN = () => {
 						{data?.vPhoneNumber ? data.vPhoneNumber : data.phoneNumber ? data.phoneNumber : '---'}
 					</div>
 				</div>
-				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
+				<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
 					<Button
 						name='updateVoice'
 						type='submit'
@@ -173,7 +173,7 @@ const LOGIN = () => {
 						Update
 					</Button>
 				</div>
-				<div class="col-3" style={{ margin: '15px 5px auto', display: 'inline' }}>
+				<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
 					{ data?.vPhoneNumber && <Button
 						name='RemoveVoice'
 						type='submit'
@@ -195,7 +195,7 @@ const LOGIN = () => {
 			</div>
 			<hr className='hr-customizable' />
 			<div class="row">
-				<div class="col" style={{ margin: 'auto 10px', display: 'inline', height: '40px' }}>
+				<div class="col" style={{ margin: 'auto 3px', display: 'inline', height: '40px' }}>
 					<div class="row"
 						style={{ fontWeight: 'bold' }}
 					>
@@ -203,11 +203,12 @@ const LOGIN = () => {
 					</div>
 					<div class="row" style={{ color: '#C0C0C0' }}></div>
 				</div>
-				<div class="col-4">
+				<div class="col-4" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
 					<Button
 						name='updatePassword'
 						type='submit'
-						className='btn btn-primary submitButton-customizable'
+						// className='btn btn-primary submitButton-customizable'
+						className='btn btn-sm btn-success'
 						onClick={() => navigate('/passwordreset', {
 							state: {
 								email,
