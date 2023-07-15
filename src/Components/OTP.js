@@ -79,7 +79,7 @@ export const OTP = () => {
 
 			window.addEventListener('popstate', () => console.log('back pressed in MFA'));
 
-			if (location.state.type === 'passwordreset' || location.state.type === 'updateotp') {
+			if (location.state?.type === 'passwordreset' || location.state?.type === 'updateotp') {
 				// call the function
 				getOtpOptions();
 			}
@@ -105,7 +105,7 @@ export const OTP = () => {
 	const email = location.state?.email;
 	const apti = location.state?.apti;
 
-	const amfaStepPrefix = location.state.type === 'passwordreset' ? 'pwdreset' : 'selfservice';
+	const amfaStepPrefix = location.state?.type === 'passwordreset' ? 'pwdreset' : 'selfservice';
 
 	const setOTPCode = (e) => {
 		setOtp({ ...otp, code: e.target.value });
