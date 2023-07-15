@@ -146,7 +146,8 @@ const CONTENT = () => {
 	}
 
 	const sendOTP = async (e) => {
-		e.preventDefault();
+		if (e)
+			e.preventDefault();
 
 		console.log('send register new OTP');
 
@@ -288,10 +289,10 @@ const CONTENT = () => {
 					}
 					<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
 						variant="success"
-						disabled={isLoading || profileInFly === newProfile}
+						disabled={isLoading }
 						onClick={!isLoading ? sendOTP : null}
 					>
-						{isLoading ? 'Sending...' : `Register New ${updateType}`}
+						{isLoading ? 'Sending...' : profileInFly === newProfile ? 'Resend Code' : `Register New ${updateType}`}
 					</Button>
 					{isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner></span> : (
 						msg && msg.msg ?
