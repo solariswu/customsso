@@ -10,7 +10,7 @@ const createAmfaConfigs = async () => {
 	const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 
 	try {
-		let value = JSON.stringify(amfaPolicies);
+		let value = JSON.stringify(amfaPolicies, null, "  ");
 
 		let params = {
 			Item: {
@@ -29,9 +29,9 @@ const createAmfaConfigs = async () => {
 		let results = await dynamodb.send(putItemCommand);
 		console.log('amfaPolicies write result:', results);
 
-		value = JSON.stringify(amfaConfigs);
+		value = JSON.stringify(amfaConfigs, null, "  ");
 
-		 params = {
+		params = {
 			Item: {
 				configtype: {
 					S: 'amfaConfigs',

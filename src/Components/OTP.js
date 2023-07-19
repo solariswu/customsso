@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import { Button, Spinner } from 'reactstrap';
+import { Button } from 'reactstrap';
 
 import { apiUrl, applicationUrl, pwdResetPageTitle, selfServicePageTitle } from '../const';
+import InfoMsg from './InfoMsg';
 
 export const OTP = () => {
 	const navigate = useNavigate();
@@ -53,9 +54,12 @@ export const OTP = () => {
 					return;
 				}
 				// set state with the result
+				if (!json.vPhoneNumber && json.phoneNumber) {
+					json.vPhoneNumber = json.phoneNumber;
+				}
 				setData(json);
 				setShowOTP(true);
-				console.log(json);
+				console.log('get otpoptions response: ', json);
 			} catch (error) {
 				console.error(error);
 				setLoading(false);
@@ -406,9 +410,7 @@ export const OTP = () => {
 							Verification Step {otp.stage}. <br />
 							Choose contact method:</> : ''}
 				</span>
-				<br />
 			</div>
-			<br />
 			{showOTP && data.otpOptions.map((option) => (
 				option === 'e' && email ?
 					(<div className='row align-items-end'>
@@ -464,10 +466,7 @@ export const OTP = () => {
 					{isLoading ? showOTP ? 'Sending...' : 'Checking...' : 'Verify'}
 				</Button>
 			</div>
-			{isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" style={{ "marginTop": "8px" }}>{''}</Spinner></span> : (
-				msg?.msg && (
-					<div><br /><span className={msg.type === 'error' ? 'errorMessage-customizable' : 'infoMessage-customizable'}>{msg.msg}</span></div>
-				))}
+			<InfoMsg isLoading={isLoading} msg={msg} />
 		</div>
 	);
 }

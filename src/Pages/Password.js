@@ -100,7 +100,7 @@ const LOGIN = () => {
                 redirectUri,
                 aemail: response2['custom:alter-email'],
                 phoneNumber: response2.phone_number,
-                vPhoneNumber: response2['custom:voice-number'] ? response2['custom:voice-number'] : response2.phoneNumber,
+                vPhoneNumber: response2['custom:voice-number'] ? response2['custom:voice-number'] : response2.phone_number,
                 otpOptions: response2.otpOptions,
               }
             });
@@ -145,7 +145,7 @@ const LOGIN = () => {
       <span><h4>Sign in to your account</h4></span>
       <hr className="hr-customizable" />
       <div>
-        <span className='idpDescription-customizable'> Please enter your password </span><br />
+        <span className='idpDescription-customizable'> Please enter your password </span>
         <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
           placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
           autoFocus

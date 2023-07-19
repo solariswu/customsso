@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { Button, Spinner } from 'reactstrap';
+import { Button } from 'reactstrap';
 
 import { apiUrl, clientName, applicationUrl } from '../const';
 import { getApti, validateEmail } from './utils';
+import InfoMsg from '../Components/InfoMsg';
 
 const LOGIN = () => {
 
-  const [errorMsg, setErrorMsg] = useState(null);
+	const [msg, setMsg] = useState({ msg: '', type: '' });
   const [searchParams, setSearchParams] = useSearchParams();
   const [state, setState] = useState(null);
   const [redirectUri, setRedirectUri] = useState(null);
@@ -16,6 +17,10 @@ const LOGIN = () => {
   const [config, setConfig] = useState(null);
   const [rememberDevice, setRememberDevice] = useState(localStorage.getItem('amfa-remember-device') || 'false');
   const [email, setEmail] = useState(localStorage.getItem('amfa-username') || '');
+
+	const setErrorMsg = (msg) => {
+		setMsg({ msg, type: 'error' });
+	}
 
   useEffect(() => {
     document.title = 'Login';
@@ -26,7 +31,7 @@ const LOGIN = () => {
       try {
         const response = await fetch(`${apiUrl}/oauth2/feconfig`);
         const json = await response.json();
-        console.log(json);
+        console.log('feconfig:', json);
 
         if (response.status === 200) {
           setConfig(json);
@@ -170,7 +175,6 @@ const LOGIN = () => {
     }
   }
 
-
   return (
     <div>
       <span>
@@ -187,7 +191,6 @@ const LOGIN = () => {
         <span style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey' }}>
           This is my device, remember it.
         </span>
-        <br />
         <br />
       </div>
 
@@ -208,19 +211,14 @@ const LOGIN = () => {
       </div>
       {config?.allowSelfSignUp && !isLoading && <div>
         <span className='textDescription-customizable'> New User?
-          <a href="/password" className="textLink-customizable"> Register</a></span>
+          <a href="/register" className="textLink-customizable"> Register</a></span>
       </div>}
       {config?.allowSelfService && !isLoading && <div>
         <span className='textDescription-customizable'>
           <a href='/selfservice' className='textLink-customizable'> Update your profile</a></span>
       </div>}
-      {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> :
-        (errorMsg && <div>
-          <br />
-          <span className='errorMessage-customizable'>{errorMsg}</span>
-        </div>)}
+     <InfoMsg isLoading={isLoading} msg={msg} />
     </div>
-
   );
 }
 

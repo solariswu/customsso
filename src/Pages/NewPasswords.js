@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
-import { validatePassword } from './utils';
+import { validatePassword, check_pwn_password } from './utils';
+import PwnedPWDModal from '../Components/PwnedPWDModal';
 
 
 const LOGIN = () => {
@@ -41,6 +42,7 @@ const LOGIN = () => {
   const [passwordType, setPasswordType] = useState('password');
   const [isLoading, setLoading] = useState(false);
   const [isResetDone, setResetDone] = useState(false);
+  const [pwnedpasswords, setPwnedpasswords] = useState(false);
 
   const confirmLogin = (e) => {
     if (e.key === "Enter") {
@@ -48,7 +50,7 @@ const LOGIN = () => {
     }
   }
 
-  const validTwoPasswords = () => {
+  const validTwoPasswords = async () => {
     if (!password) {
       setErrorMsg('Please enter password');
       return false;
@@ -71,19 +73,25 @@ const LOGIN = () => {
       return false;
     }
 
+    const isPwned = await check_pwn_password (password);
+
+    if (isPwned) {
+      setErrorMsg('The new password you entered has been reported as stolen. Try a different one!');
+      setPwnedpasswords(true);
+      return false;
+    }
+
     return true;
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log('handleSubmit');
+    setPwnedpasswords(false);
 
-    console.log('validatePassword', validatePassword(password));
+    const pwdCheck = await validTwoPasswords();
 
-    console.log('validTwoPasswords', validTwoPasswords());
-
-    if (validTwoPasswords()) {
+    if (pwdCheck) {
 
       const options = {
         method: 'POST',
@@ -242,6 +250,7 @@ const LOGIN = () => {
               otpData: location.state ? location.state.otpData : '',
             }
           }) : null}
+          style={{ marginTop: '10px' }}
         >
           {isLoading ? 'Sending...' : 'Back'}
         </Button>
@@ -251,6 +260,7 @@ const LOGIN = () => {
           <br />
           <span className='errorMessage-customizable'>{errorMsg}</span>
         </div>)}
+      {pwnedpasswords && <PwnedPWDModal />}
     </div >
   );
 }

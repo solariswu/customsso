@@ -242,9 +242,7 @@ const OTP = () => {
               'Access requires a verification. Click your ID below to receive a one time verification code.'
           }
         </span>
-        <br />
       </div>
-      <br />
       {otpOptions.map((option) => (
         option === 'e' && email ?
           (<div className='row align-items-end'>

@@ -49,9 +49,9 @@ export const handler = async (event) => {
 
 				const res = { username: user.Username, apti: payload.apti };
 				return {
-					statusCode: 200,
+					statusCode: 400,
 					headers,
-					body: JSON.stringify(res),
+					body: JSON.stringify({ message: 'username already exists' }),
 				};
 			}
 		} catch (err) {

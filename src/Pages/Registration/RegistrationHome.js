@@ -5,14 +5,19 @@ import { Button, Spinner } from 'reactstrap';
 
 import { apiUrl, clientName } from '../../const';
 import { getApti, validateEmail } from '../utils';
+import InfoMsg from '../../Components/InfoMsg';
 
 const LOGIN = () => {
   const location = useLocation();
   const [config, setConfig] = useState(null);
   const [isLoading, setLoading] = useState(false);
 
-  const [errorMsg, setErrorMsg] = useState(location.state ? location.state.msg:null);
+  const [msg, setMsg] = useState({ msg: '', type: '' });
   const [email, setEmail] = useState(location.state ? location.state.email : '');
+
+  const setErrorMsg = (msg) => {
+    setMsg({ msg, type: 'error' });
+  }
 
   useEffect(() => {
     document.title = 'Registration';
@@ -58,6 +63,7 @@ const LOGIN = () => {
   }
 
   const signUp = async (e) => {
+    console.log('now in sign up ');
 
     if (!email || validateEmail(email)) {
       setErrorMsg('Please enter a valid email address');
@@ -67,68 +73,46 @@ const LOGIN = () => {
     const apti = getApti();
     // const authParam = window.getAuthParam();
 
-    navigate('/registration_password', {
-      state: {
-        email,
-        apti,
+    const params = {
+      email,
+      // authParam: window.getAuthParam(),
+      apti,
+    };
+
+    const options = {
+      method: 'POST',
+      body: JSON.stringify(params),
+    };
+
+    try {
+      const res = await fetch(`${apiUrl}/checkuser`, options);
+      switch (res.status) {
+        case 200:
+          // const result = await res.json();
+          navigate('/registration_password', {
+            state: {
+              email,
+              apti,
+            }
+          });
+          break;
+        default:
+          const data = await res.json();
+          if (data) {
+            setErrorMsg(data.message ? data.message : JSON.stringify(data));
+          }
+          else {
+            setErrorMsg('Unknown error, please contact help desk.');
+          }
+          break;
       }
-    });
-
-    // const params = {
-    //   email,
-    //   authParam,
-    //   apti,
-    //   phase: 'registration_email'
-    // };
-
-    // const options = {
-    //   method: 'POST',
-    //   body: JSON.stringify(params),
-    //   credentials: 'include',
-    // };
-
-    // setLoading(true);
-    // setErrorMsg('');
-    // try {
-    //   const res = await fetch(`${apiUrl}/amfa`, options);
-
-    //   switch (res.status) {
-    //     case 200:
-    //       const response = await res.json();
-    //       if (response.location) {
-    //         window.location.assign(response.location);
-    //         return;
-    //       }
-    //       else {
-    //         setErrorMsg('Passwordless login error, please contact help desk.');
-    //       }
-    //       break;
-    //     case 202:
-    //       // const result = await res.json();
-    //       navigate('/newpasswords', {
-    //         state: {
-    //           email,
-    //           apti,
-    //         }
-    //       });
-    //       break;
-    //     default:
-    //       const data = await res.json();
-    //       if (data) {
-    //         setErrorMsg(data.message ? data.message : JSON.stringify(data));
-    //       }
-    //       else {
-    //         setErrorMsg('Unknown error, please contact help desk.');
-    //       }
-    //       break;
-    //   }
-    //   setLoading(false);
-    // }
-    // catch (err) {
-    //   console.error('error in home', err);
-    //   setErrorMsg('Email login error, please contact help desk.');
-    //   setLoading(false);
-    // }
+      setLoading(false);
+    }
+    catch (err) {
+      console.error('error in sign up', err);
+      setErrorMsg('new account sign up error, please contact help desk.');
+      setLoading(false);
+    }
   }
 
 
@@ -152,17 +136,13 @@ const LOGIN = () => {
             disabled={isLoading || !config?.allowSelfSignUp}
             onClick={!isLoading ? signUp : null}
           >
-            {isLoading ? 'Loading...' : 'Sign In'}
+            {isLoading ? 'Loading...' : 'Next'}
           </Button>
         </div></div>}
       {!isLoading && !config?.allowSelfSignUp &&
         <span className='idpDescription-customizable'> Self Sign Up is not allowed </span>
       }
-      {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> :
-        (errorMsg && <div>
-          <br />
-          <span className='errorMessage-customizable'>{errorMsg}</span>
-        </div>)}
+      <InfoMsg isLoading={isLoading} msg={msg} />
     </div>
   );
 }

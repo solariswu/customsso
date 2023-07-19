@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
-import { validateEmail, validatePhoneNumber } from './utils';
 
 import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input';

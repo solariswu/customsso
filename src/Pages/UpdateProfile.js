@@ -126,6 +126,21 @@ const CONTENT = () => {
 						setErrorMsg(errMsg);
 					}
 					break;
+				case 401:
+					navigate('/updateotp', {
+						state: {
+							email,
+							apti,
+							uuid: location.state ? location.state.uuid : '',
+							validated: true,
+							otpData: location.state ? location.state.otpData : '',
+							msg: {
+								msg: 'OTP Method not updated. You may try again.',
+								type: 'error'
+							}
+						}
+					})
+					return;
 				default:
 					const data = await res.json();
 					let errMsg = 'Something went wrong, please try again.';
@@ -289,7 +304,7 @@ const CONTENT = () => {
 					}
 					<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
 						variant="success"
-						disabled={isLoading }
+						disabled={isLoading}
 						onClick={!isLoading ? sendOTP : null}
 					>
 						{isLoading ? 'Sending...' : profileInFly === newProfile ? 'Resend Code' : `Register New ${updateType}`}
@@ -332,6 +347,7 @@ const CONTENT = () => {
 								uuid: location.state ? location.state.uuid : '',
 								validated: true,
 								otpData: location.state ? location.state.otpData : '',
+								msg: { msg: '', type: '' },
 							}
 						}) : null}
 					>

@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState,  } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import { Button, Spinner } from 'reactstrap';
-import { apiUrl, applicationUrl } from '../const';
-import { validateEmail, validatePhoneNumber } from './utils';
+import { Button } from 'reactstrap';
+import { apiUrl, applicationUrl } from '../../const';
 
 import 'react-phone-number-input/style.css'
-import PhoneInput from 'react-phone-number-input';
 import InfoMsg from '../../Components/InfoMsg';
 
 const CONTENT = () => {

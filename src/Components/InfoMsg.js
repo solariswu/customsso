@@ -2,8 +2,6 @@ import { Spinner } from 'reactstrap';
 
 const InfoMsg = (props) => {
 	const { msg, isLoading } = props;
-	console.log('props', props);
-	console.log('msg', msg);
 	return (
 		isLoading ?
 			<span className='errorMessage-customizable'><Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner></span> :

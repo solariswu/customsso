@@ -1,7 +1,7 @@
 // App.js
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import Home from './Pages/Home';
 import Password from './Pages/Password';
@@ -19,18 +19,34 @@ import logo from './logo.png';
 import UpdateProfile from './Pages/UpdateProfile';
 import RemoveProfile from './Pages/RemoveProfile';
 
+import { EmailVerification, RegistrationHome, RegistrationPasswords } from './Pages/Registration';
+
 const App = () => {
    const [time, setTime] = useState('');
+   const [timerType, setTimerType] = useState('login');
+   const navigate = useNavigate ();
    const cd = useRef(299);
    const timer = useRef(null);
 
    const timerHandler = () => {
       if (cd.current <= 0) {
+         const errorMsg = "You took too long or entered your otp wrong too many times. Try your login again.";
          setTime('');
          timer.current && clearTimeout(timer.current);
-         localStorage.setItem('OTPErrorMsg', "You took too long or entered your otp wrong too many times. Try your login again.");
-         window.location.assign(`${applicationUrl}?amfa=relogin`);
-         return;
+         localStorage.setItem('OTPErrorMsg', errorMsg);
+         switch (timerType) {
+            case 'selfservice':
+               navigate ('/selfservice', {
+                  state: {
+                     selfservicemsg: errorMsg,
+                  }
+               });
+               return;
+            case 'login':
+            default:
+               window.location.assign(`${applicationUrl}?amfa=relogin`)
+               return;
+         }
       }
       const m = parseInt(cd.current / 60) > 9 ? parseInt(cd.current / 60) : '0' + parseInt(cd.current / 60);
       const s = parseInt(cd.current % 60) > 9 ? parseInt(cd.current % 60) : '0' + parseInt(cd.current % 60);
@@ -43,6 +59,10 @@ const App = () => {
 
    const timerCleaner = () => {
       timer.current && clearTimeout(timer.current);
+   }
+
+   const selfserviceTimeOut = () => {
+      setTimerType ('selfservice');
    }
 
    useEffect(() => {
@@ -80,7 +100,7 @@ const App = () => {
                      <Route path="/authorize" element={<Home />} />
                      <Route path="/oauth2/authorize" element={<Home />} />
                      <Route path="/password" element={<Password />} />
-                     <Route path="/dualotp" element={<DualOTP stoptimer={timerCleaner} />} />
+                     <Route path="/dualotp" element={<DualOTP stoptimer={selfserviceTimeOut} />} />
                      <Route path="/captcha" element={<Captcha />} />
                      <Route path="/mfa" element={<MFA />} />
                      <Route path="/passwordreset" element={<NewPasswords />} />
@@ -88,9 +108,11 @@ const App = () => {
                      <Route path="/selfservice" element={<SelfService />} />
                      <Route path="/updateprofile" element={<UpdateProfile />} />
                      <Route path='/removeprofile' element={<RemoveProfile />} />
+                     <Route path="/register" element={<RegistrationHome />} />
+                     <Route path="/registration_password" element={<RegistrationPasswords />} />
+                     <Route path="/registration_email" element={<EmailVerification />} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
-                  <hr className='hr-customizable' />
                   <Footer />
                </div>
             </div>

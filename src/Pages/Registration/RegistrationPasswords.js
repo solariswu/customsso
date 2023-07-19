@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
-import { apiUrl } from '../const';
-import { validatePassword } from './utils';
+import { apiUrl } from '../../const';
+import { validatePassword, check_pwn_password } from '../utils';
+import PwnedPWDModal from '../../Components/PwnedPWDModal';
 
 
 const LOGIN = () => {
@@ -15,7 +16,7 @@ const LOGIN = () => {
   }
 
   useEffect(() => {
-    if (!location.state || !location.state.validated) {
+    if (!location.state) {
       navigate('/');
     }
 
@@ -32,7 +33,6 @@ const LOGIN = () => {
   }, [location.state, navigate]);
 
   const email = location.state?.email;
-  const uuid = location.state?.uuid;
   const apti = location.state?.apti;
 
   const [errorMsg, setErrorMsg] = useState(null);
@@ -41,14 +41,15 @@ const LOGIN = () => {
   const [passwordType, setPasswordType] = useState('password');
   const [isLoading, setLoading] = useState(false);
   const [isSignUpDone, setSignUpDone] = useState(false);
+  const [pwnedpasswords, setPwnedpasswords] = useState(false);
 
-  const confirmLogin = (e) => {
+  const confirmSignUp = (e) => {
     if (e.key === "Enter") {
       handleSubmit(e);
     }
   }
 
-  const validTwoPasswords = () => {
+  const validTwoPasswords = async () => {
     if (!password) {
       setErrorMsg('Please enter password');
       return false;
@@ -71,26 +72,30 @@ const LOGIN = () => {
       return false;
     }
 
+    const ispwned = await check_pwn_password(password);
+
+    if (ispwned) {
+      setErrorMsg('The new password you entered has been reported as stolen. Try a different one!');
+      setPwnedpasswords(true);
+      return false;
+    }
+
     return true;
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log('handleSubmit');
+    setPwnedpasswords(false);
+    const pwdCheck = await validTwoPasswords();
 
-    console.log('validatePassword', validatePassword(password));
-
-    console.log('validTwoPasswords', validTwoPasswords());
-
-    if (validTwoPasswords()) {
+    if (pwdCheck) {
 
       const options = {
         method: 'POST',
         body: JSON.stringify({
           email,
           password,
-          uuid,
           apti
         }),
       };
@@ -129,20 +134,21 @@ const LOGIN = () => {
 
   return (
     <div>
-      <span><h4>Password Reset</h4></span>
+      <span><h4>Registration</h4></span>
       <hr className="hr-customizable" />
       {isSignUpDone ? navigate('/emailverification', {
         email,
+        password,
         apti
       }) :
         <div>
-          <span className='idpDescription-customizable'> Enter your new password </span>
+          <span className='idpDescription-customizable'> Enter your password </span>
           <div className="input-group">
             <input id="signInFormPassword" name="password" type={passwordType} className="form-control inputField-customizable"
               style={{ height: '40px' }}
               placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
               autoFocus
-              onKeyUp={e => confirmLogin(e)}
+              onKeyUp={e => confirmSignUp(e)}
               disabled={isLoading}
             />
             <button className="btn btn-primary" onClick={toggle} >
@@ -176,7 +182,7 @@ const LOGIN = () => {
             <input id="signInFormNewPassword" name="newPassword" type={passwordType} className="form-control inputField-customizable"
               style={{ height: '40px' }}
               placeholder="Repeat Password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-              onKeyUp={e => confirmLogin(e)}
+              onKeyUp={e => confirmSignUp(e)}
               disabled={isLoading}
             />
             <button className="btn btn-primary" onClick={toggle}>
@@ -210,18 +216,19 @@ const LOGIN = () => {
             disabled={isLoading}
             onClick={!isLoading ? handleSubmit : null}
           >
-            {isLoading ? 'Sending...' : 'Complete'}
+            {isLoading ? 'Sending...' : 'Next'}
           </Button>
         </div>}
       {location.state && location.state.backable &&
         <Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
           disabled={isLoading}
-          onClick={!isLoading ? () => navigate('/registration_email', {
+          onClick={!isLoading ? () => navigate('/register', {
             state: {
               email,
               apti,
             }
           }) : null}
+          style={{ marginTop: '10px' }}
         >
           {isLoading ? 'Sending...' : 'Back'}
         </Button>
@@ -233,6 +240,7 @@ const LOGIN = () => {
             <span className='errorMessage-customizable'>{errorMsg}</span>
           </div>)
       }
+      {pwnedpasswords && <PwnedPWDModal />}
     </div >
   );
 }

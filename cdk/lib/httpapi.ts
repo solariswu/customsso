@@ -1,6 +1,6 @@
 import { RestApi, IResource, LambdaIntegration, Cors, EndpointType, DomainName } from 'aws-cdk-lib/aws-apigateway';
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { ManagedPolicy, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { ManagedPolicy, Policy, PolicyStatement, User } from 'aws-cdk-lib/aws-iam';
 import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
@@ -168,6 +168,38 @@ export class TenantApiGateway {
               'dynamodb:Scan',
               'dynamodb:GetItem',
             ],
+          }),
+        ],
+      })
+    );
+
+    return myLambda;
+  }
+
+  private createCheckUsergLambda(userpool : UserPool) {
+    const lambdaName = 'checkuser';
+    const myLambda = new Function(
+      this.scope,
+      `${lambdaName}-${config.tenantId}`,
+      {
+        runtime: Runtime.NODEJS_18_X,
+        handler: `${lambdaName}.handler`,
+        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
+        environment: {
+          USERPOOL_ID: userpool.userPoolId,
+        },
+        timeout: Duration.minutes(5),
+      }
+    );
+
+    myLambda.role?.attachInlinePolicy(
+      new Policy(this.scope, `${lambdaName}-policy`, {
+        statements: [
+          new PolicyStatement({
+            actions: [
+              'cognito-idp:AdminGetUser',
+            ],
+            resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
           }),
         ],
       })
@@ -377,6 +409,7 @@ export class TenantApiGateway {
     this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, 'passwordreset');
 
     this.attachLambdaToApiGWService(rootPathAPI, this.createFeConfigLambda(this.configTable), 'feconfig', false);
+    this.attachLambdaToApiGWService(rootPathAPI, this.createCheckUsergLambda(userpool), 'checkuser');
   }
   ;
 }

@@ -41,5 +41,7 @@ export const amfaConfigs = {
 	"enable_password_reset": true,
 	"enable_self_service": true,
 	"enable_user_registration": true,
+	"enable_have_i_been_pwned": true,
+	"master_additional_otp_methods": ["ae", "s", "v"],
 	"salt": "a-random-string-here",
 }
