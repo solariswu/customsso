@@ -6,10 +6,11 @@ import { Button } from 'reactstrap';
 import { apiUrl, clientName } from '../../const';
 import { getApti, validateEmail } from '../utils';
 import InfoMsg from '../../Components/InfoMsg';
+import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
 
 const LOGIN = () => {
   const location = useLocation();
-  const [config, setConfig] = useState(null);
+  const config = useFeConfigs();
   const [isLoading, setLoading] = useState(false);
   const [isIniting, setIniting] = useState(true);
 
@@ -22,36 +23,6 @@ const LOGIN = () => {
 
   useEffect(() => {
     document.title = 'Registration';
-
-    const getAmfaConfigs = async () => {
-      // get the data from the api
-
-      setIniting(true);
-      try {
-        const response = await fetch(`${apiUrl}/oauth2/feconfig`);
-        const json = await response.json();
-        console.log(json);
-
-        if (response.status === 200) {
-          setConfig(json);
-        }
-        else {
-          // convert the data to json
-          json.message ?
-            setErrorMsg(json.message) :
-            setErrorMsg('Error fetching config from the server');
-        }
-      }
-      catch (error) {
-        console.error(error);
-        setErrorMsg('Error fetching config from the server');
-      }
-      finally {
-        setIniting(false);
-      }
-    }
-
-    getAmfaConfigs();
 
   }, []);
 
@@ -123,27 +94,27 @@ const LOGIN = () => {
         <h4>Registration</h4>
       </span>
       <hr className="hr-customizable" />
-      {!isIniting && config?.allowSelfSignUp && <div>
+      {config && config.enable_user_registration && <div>
         <span className='idpDescription-customizable'> Enter your {clientName} account ID </span>
         <div>
           <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
             autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
             onKeyUp={e => confirmSignUp(e)}
-            disabled={isLoading || !config?.allowSelfSignUp}
+            disabled={isLoading}
           />
           <Button
             name="confirm" type="submit"
             className="btn btn-primary submitButton-customizable"
-            disabled={isLoading || !config?.allowSelfSignUp}
+            disabled={isLoading}
             onClick={!isLoading ? signUp : null}
           >
             {isLoading ? 'Loading...' : 'Next'}
           </Button>
         </div></div>}
-      {!isLoading && !config?.allowSelfSignUp && !isIniting &&
+      {!isLoading && config && !config.enable_user_registration &&
         <span className='idpDescription-customizable'> Self Sign Up is not allowed </span>
       }
-      <InfoMsg isLoading={isLoading} msg={msg} />
+      <InfoMsg isLoading={isLoading || !config} msg={msg} />
     </div>
   );
 }

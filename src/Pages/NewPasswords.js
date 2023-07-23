@@ -5,11 +5,13 @@ import { Button, Spinner } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
 import { validatePassword, check_pwn_password } from './utils';
 import PwnedPWDModal from '../Components/PwnedPWDModal';
+import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
 
 const LOGIN = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const config = useFeConfigs();
 
   const closeQuickView = () => {
     console.log('back pressed');
@@ -73,12 +75,15 @@ const LOGIN = () => {
       return false;
     }
 
-    const isPwned = await check_pwn_password (password);
+    console.log ('pwned config:', config);
+    if (config?.enable_have_i_been_pwned) {
+      const isPwned = await check_pwn_password(password);
 
-    if (isPwned) {
-      setErrorMsg('The new password you entered has been reported as stolen. Try a different one!');
-      setPwnedpasswords(true);
-      return false;
+      if (isPwned) {
+        setErrorMsg('The new password you entered has been reported as stolen. Try a different one!');
+        setPwnedpasswords(true);
+        return false;
+      }
     }
 
     return true;
@@ -154,6 +159,14 @@ const LOGIN = () => {
   }
 
   const toggle = () => (passwordType === "password") ? setPasswordType("text") : setPasswordType("password");
+
+  if (!config) {
+    <div>
+      <span><h4>Password Reset</h4></span>
+      <hr className="hr-customizable" />
+      return <Spinner />
+    </div>
+  }
 
   return (
     <div>
@@ -255,7 +268,7 @@ const LOGIN = () => {
           {isLoading ? 'Sending...' : 'Back'}
         </Button>
       }
-      {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
+      {isLoading || !config ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errorMsg && <div>
           <br />
           <span className='errorMessage-customizable'>{errorMsg}</span>

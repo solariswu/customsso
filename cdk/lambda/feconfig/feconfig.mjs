@@ -36,8 +36,10 @@ export const handler = async (event) => {
 		statusCode: 200,
 		headers,
 		body: JSON.stringify({
-			allowSelfService: result.enable_self_service,
-			allowSelfSignUp: result.enable_user_registration
+			enable_self_service: result.enable_self_service,
+			enable_user_registration: result.enable_user_registration,
+			enable_password_reset: result.enable_password_reset,
+			enable_have_i_been_pwned: result.enable_have_i_been_pwned
 		}),
 	};
 

@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 import { apiUrl, clientName, applicationUrl } from '../const';
 import { getApti, validateEmail } from './utils';
+import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
 const LOGIN = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
-	const [config, setConfig] = useState(null);
+	const config = useFeConfigs();
 
 	document.title = 'Update Profile';
 
@@ -18,38 +19,6 @@ const LOGIN = () => {
 	const [email, setEmail] = useState(localStorage.getItem('amfa-username') || '');
 	const [password, setPassword] = useState('');
 	const [isLoading, setLoading] = useState(false);
-
-	useEffect(() => {
-		const getAmfaConfigs = async () => {
-			// get the data from the api
-
-			setLoading(true);
-			try {
-				const response = await fetch(`${apiUrl}/oauth2/feconfig`);
-				const json = await response.json();
-				console.log('feconfig:', json);
-
-				if (response.status === 200) {
-					setConfig(json);
-				}
-				else {
-					// convert the data to json
-					json.message ?
-						setErrorMsg(json.message) :
-						setErrorMsg('Error fetching config from the server');
-				}
-			}
-			catch (error) {
-				console.error(error);
-				setErrorMsg('Error fetching config from the server');
-			}
-			finally {
-				setLoading(false);
-			}
-		}
-
-		getAmfaConfigs();
-	}, []);
 
 	const confirmLogin = (e) => {
 		if (e.key === "Enter") {
@@ -109,7 +78,7 @@ const LOGIN = () => {
 		}
 	}
 
-	if (config && config.allowSelfService === false) {
+	if (config && !config.enable_self_service) {
 		navigate('/');
 		return;
 	}
@@ -121,7 +90,7 @@ const LOGIN = () => {
 			<span><h4>Update Profile</h4></span>
 			<hr className="hr-customizable" />
 			<span className='idpDescription-customizable'> Login with your {clientName} account </span>
-			{config?.allowSelfService &&
+			{config?.enable_self_service &&
 				<div>
 					<input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
 						autoCapitalize="none" required aria-label="email"
@@ -153,19 +122,30 @@ const LOGIN = () => {
 					</Button>
 				</div>}
 
-			{!isLoading && <span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
-				navigate('/dualotp', {
-					state: {
-						email,
-						apti,
-						type: 'passwordreset'
+			{
+				!isLoading && config && config.enable_password_reset &&
+				< span className='textDescription-customizable'><div className="link-customizable" onClick={() => {
+					if (email) {
+						navigate('/dualotp', {
+							state: {
+								email,
+								apti,
+								type: 'passwordreset'
+							}
+						})
 					}
-				})}>Forgot Password?
-			</div></span>}
-			{isLoading || !config ? <span className='errorMessage-customizable'><Spinner color="primary" style={{ marginTop: '10px' }} >{''}</Spinner></span> : (
-				errorMsg && <div>
-					<span className='errorMessage-customizable'>{errorMsg}</span>
-				</div>)}
+					else {
+						setErrorMsg('Please enter your email address');
+					}
+				}}>Forgot Password?
+				</div></span>
+			}
+			{
+				isLoading || !config ? <span className='errorMessage-customizable'><Spinner color="primary" style={{ marginTop: '10px' }} >{''}</Spinner></span> : (
+					errorMsg && <div>
+						<span className='errorMessage-customizable'>{errorMsg}</span>
+					</div>)
+			}
 		</div >
 	);
 }

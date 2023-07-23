@@ -6,6 +6,7 @@ import { Button } from 'reactstrap';
 import { apiUrl, clientName, applicationUrl } from '../const';
 import { getApti, validateEmail } from './utils';
 import InfoMsg from '../Components/InfoMsg';
+import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
 const LOGIN = () => {
 
@@ -14,9 +15,11 @@ const LOGIN = () => {
   const [state, setState] = useState(null);
   const [redirectUri, setRedirectUri] = useState(null);
   const [isLoading, setLoading] = useState(false);
-  const [config, setConfig] = useState(null);
   const [rememberDevice, setRememberDevice] = useState(localStorage.getItem('amfa-remember-device') || 'false');
   const [email, setEmail] = useState(localStorage.getItem('amfa-username') || '');
+  const [isIniting, setIniting] = useState(true);
+
+  const config = useFeConfigs();
 
 	const setErrorMsg = (msg) => {
 		setMsg({ msg, type: 'error' });
@@ -24,35 +27,6 @@ const LOGIN = () => {
 
   useEffect(() => {
     document.title = 'Login';
-
-    const getAmfaConfigs = async () => {
-      // get the data from the api
-      setLoading(true);
-      try {
-        const response = await fetch(`${apiUrl}/oauth2/feconfig`);
-        const json = await response.json();
-        console.log('feconfig:', json);
-
-        if (response.status === 200) {
-          setConfig(json);
-        }
-        else {
-          // convert the data to json
-          json.message ?
-            setErrorMsg(json.message) :
-            setErrorMsg('Error fetching config from the server');
-        }
-      }
-      catch (error) {
-        console.error(error);
-        setErrorMsg('Error fetching config from the server');
-      }
-      finally {
-        setLoading(false);
-      }
-    }
-
-    getAmfaConfigs();
 
     const state = searchParams.get("state")
     const redirect_uri = searchParams.get("redirect_uri")
@@ -74,6 +48,8 @@ const LOGIN = () => {
       setErrorMsg(otpErrorMsg);
       localStorage.removeItem('OTPErrorMsg');
     }
+
+    setIniting (false);
 
     return () => {
       setState(null);
@@ -175,6 +151,10 @@ const LOGIN = () => {
     }
   }
 
+  if (isIniting) {
+    return null;
+  }
+
   return (
     <div>
       <span>
@@ -209,15 +189,15 @@ const LOGIN = () => {
           {isLoading ? 'Sending...' : 'Sign In'}
         </Button>
       </div>
-      {config?.allowSelfSignUp && !isLoading && <div>
+      {config?.enable_user_registration && !isLoading && <div>
         <span className='textDescription-customizable'> New User?
           <a href="/register" className="textLink-customizable"> Register</a></span>
       </div>}
-      {config?.allowSelfService && !isLoading && <div>
+      {config?.enable_self_service && !isLoading && <div>
         <span className='textDescription-customizable'>
           <a href='/selfservice' className='textLink-customizable'> Update your profile</a></span>
       </div>}
-     <InfoMsg isLoading={isLoading} msg={msg} />
+     <InfoMsg isLoading={isLoading || !config} msg={msg} />
     </div>
   );
 }

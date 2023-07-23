@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
-import { apiUrl } from '../../const';
 import { validatePassword, check_pwn_password } from '../utils';
 import PwnedPWDModal from '../../Components/PwnedPWDModal';
+import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
 
 
 const LOGIN = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const config = useFeConfigs();
 
   const closeQuickView = () => {
     console.log('back pressed');
@@ -72,12 +73,16 @@ const LOGIN = () => {
       return false;
     }
 
-    const ispwned = await check_pwn_password(password);
+    console.log ('config in regist pwd:', config);
 
-    if (ispwned) {
-      setErrorMsg('The new password you entered has been reported as stolen. Try a different one!');
-      setPwnedpasswords(true);
-      return false;
+    if (config?.enable_have_i_been_pwned) {
+      const ispwned = await check_pwn_password(password);
+
+      if (ispwned) {
+        setErrorMsg('The new password you entered has been reported as stolen. Try a different one!');
+        setPwnedpasswords(true);
+        return false;
+      }
     }
 
     return true;
@@ -102,6 +107,16 @@ const LOGIN = () => {
   }
 
   const toggle = () => (passwordType === "password") ? setPasswordType("text") : setPasswordType("password");
+
+  if (!config) {
+    return (
+      <div>
+        <span><h4>Registration</h4></span>
+        <hr className="hr-customizable" />
+        <Spinner />
+      </div>
+    )
+  }
 
   return (
     <div>

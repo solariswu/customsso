@@ -3,10 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
+import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
 const LOGIN = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const config = useFeConfigs();
 
   const closeQuickView = () => {
     console.log('back pressed');
@@ -160,7 +162,7 @@ const LOGIN = () => {
           {isLoading ? 'Sending...' : 'Sign In'}
         </Button>
       </div>
-      {!isLoading && <span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
+      {!isLoading && config && config.enable_password_reset && <span className='textDescription-customizable'><div className="link-customizable" onClick={() =>
         navigate('/dualotp', {
           state: {
             email,
