@@ -1,4 +1,3 @@
-import * as crypto from 'crypto';
 import {
 	AdminGetUserCommand,
 	CognitoIdentityProviderClient,
@@ -22,10 +21,15 @@ const getUser = async (payload, cognito) => {
 		Username: payload.email,
 		UserPoolId: process.env.USERPOOL_ID,
 	});
-	const user = await cognito.send(command);
-	console.log('get user:', user);
-
-	return user;
+	try {
+		const user = await cognito.send(command);
+		console.log('get user:', user);
+		return user;
+	} catch (error) {
+		console.log('error in get user:', error);
+		console.log('error code:', error.code);
+		throw error;
+	}
 }
 
 // lambda for rest api /checkuser
@@ -44,19 +48,30 @@ export const handler = async (event) => {
 		try {
 
 			const user = await getUser(payload, cognito);
+			console.log ('find user:', user);
 
 			if (user) {
 
-				const res = { username: user.Username, apti: payload.apti };
 				return {
 					statusCode: 400,
 					headers,
-					body: JSON.stringify({ message: 'username already exists' }),
+					body: JSON.stringify({ message: 'Username already exists' }),
 				};
 			}
 		} catch (err) {
 			console.error(err);
-			const error = err.message ? err : { message: "error while checking email signup" }
+			console.log('error:', err);
+			console.log('error code:', err.code);
+			console.log('error message:', err.message);
+
+			if (err.code === 'UserNotFoundException' || err.message === 'User does not exist.') {
+				return {
+					statusCode: 200,
+					headers,
+					body: JSON.stringify({ message: 'username is available' }),
+				};
+			}
+			const error = err.message ? err.message : { message: "error while checking email signup" }
 			return {
 				statusCode: 400,
 				headers,

@@ -69,7 +69,7 @@ export const OTP = () => {
 		}
 
 		if (!location.state) {
-			navigate('/');
+			navigate('/selfservice');
 			return;
 		}
 		else {

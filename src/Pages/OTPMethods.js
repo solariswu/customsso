@@ -67,7 +67,7 @@ const LOGIN = () => {
 
 		console.log('otp methods, location state:', location.state);
 		if (!location.state || !location.state.validated) {
-			navigate('/');
+			navigate('/selfservice');
 		}
 
 		window.history.pushState('fake-route', document.title, window.location.href);

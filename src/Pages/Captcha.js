@@ -106,7 +106,7 @@ const LOGIN = () => {
 		};
 
 		try {
-			const res = await fetch(`${apiUrl}/checkuser`, options);
+			const res = await fetch(`${apiUrl}/oauth2/checkuser`, options);
 
 			switch (res.status) {
 				case 200:

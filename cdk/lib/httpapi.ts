@@ -176,7 +176,7 @@ export class TenantApiGateway {
     return myLambda;
   }
 
-  private createCheckUsergLambda(userpool : UserPool) {
+  private createCheckUserLambda(userpool : UserPool) {
     const lambdaName = 'checkuser';
     const myLambda = new Function(
       this.scope,
@@ -409,7 +409,7 @@ export class TenantApiGateway {
     this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, 'passwordreset');
 
     this.attachLambdaToApiGWService(rootPathAPI, this.createFeConfigLambda(this.configTable), 'feconfig', false);
-    this.attachLambdaToApiGWService(rootPathAPI, this.createCheckUsergLambda(userpool), 'checkuser');
+    this.attachLambdaToApiGWService(rootPathAPI, this.createCheckUserLambda(userpool), 'checkuser');
   }
   ;
 }

@@ -90,43 +90,14 @@ const LOGIN = () => {
     const pwdCheck = await validTwoPasswords();
 
     if (pwdCheck) {
-
-      const options = {
-        method: 'POST',
-        body: JSON.stringify({
-          email,
-          password,
-          apti
-        }),
-      };
-
-      setLoading(true);
-      setErrorMsg('');
-      try {
-        const res = await fetch(`${apiUrl}/oauth2/passwordreset`, options);
-        console.log('res', res);
-
-        switch (res.status) {
-          case 200:
-            setSignUpDone(true);
-            break;
-          default:
-            const data = await res.json();
-            let errMsg = 'Something went wrong, please try your login again.';
-            if (data.message === "NotAuthorizedException") {
-              errMsg = 'Invalid credentials.';
-            }
-            setErrorMsg(errMsg);
-            break;
-        }
-      }
-      catch (err) {
-        console.log(err);
-        setErrorMsg('Password Reset Failed. Please try again. If the problem persists, please contact help desk.');
-      }
-      finally {
-        setLoading(false);
-      }
+      navigate('/registration_attributes',
+        {
+          state: {
+            email,
+            apti,
+            password
+          }
+        })
     }
   }
 
@@ -136,89 +107,84 @@ const LOGIN = () => {
     <div>
       <span><h4>Registration</h4></span>
       <hr className="hr-customizable" />
-      {isSignUpDone ? navigate('/emailverification', {
-        email,
-        password,
-        apti
-      }) :
-        <div>
-          <span className='idpDescription-customizable'> Enter your password </span>
-          <div className="input-group">
-            <input id="signInFormPassword" name="password" type={passwordType} className="form-control inputField-customizable"
-              style={{ height: '40px' }}
-              placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
-              autoFocus
-              onKeyUp={e => confirmSignUp(e)}
-              disabled={isLoading}
-            />
-            <button className="btn btn-primary" onClick={toggle} >
-              {passwordType === "password" ? (
-                <svg
-                  width="20"
-                  height="17"
-                  fill="#C0C0C0"
-                  className="bi bi-eye-slash-fill"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z" />
-                  <path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z" />
-                </svg>
-              ) : (
-                <svg
-                  width="20"
-                  height="17"
-                  fill="#C0C0C0"
-                  className="bi bi-eye-fill"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
-                  <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
-                </svg>
-              )}
-            </button>
-          </div>
-          <span className='idpDescription-customizable'> Verify your new password </span>
-          <div className="input-group">
-            <input id="signInFormNewPassword" name="newPassword" type={passwordType} className="form-control inputField-customizable"
-              style={{ height: '40px' }}
-              placeholder="Repeat Password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-              onKeyUp={e => confirmSignUp(e)}
-              disabled={isLoading}
-            />
-            <button className="btn btn-primary" onClick={toggle}>
-              {passwordType === "password" ? (
-                <svg
-                  width="20"
-                  height="17"
-                  fill="#C0C0C0"
-                  className="bi bi-eye-slash-fill"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z" />
-                  <path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z" />
-                </svg>
-              ) : (
-                <svg
-                  width="20"
-                  height="17"
-                  fill="#C0C0C0"
-                  className="bi bi-eye-fill"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
-                  <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
-                </svg>
-              )}
-            </button>
-          </div>
-          <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
-            variant="success"
+      <div>
+        <span className='idpDescription-customizable'> Enter your password </span>
+        <div className="input-group">
+          <input id="signInFormPassword" name="password" type={passwordType} className="form-control inputField-customizable"
+            style={{ height: '40px' }}
+            placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
+            autoFocus
+            onKeyUp={e => confirmSignUp(e)}
             disabled={isLoading}
-            onClick={!isLoading ? handleSubmit : null}
-          >
-            {isLoading ? 'Sending...' : 'Next'}
-          </Button>
-        </div>}
+          />
+          <button className="btn btn-primary" onClick={toggle} >
+            {passwordType === "password" ? (
+              <svg
+                width="20"
+                height="17"
+                fill="#C0C0C0"
+                className="bi bi-eye-slash-fill"
+                viewBox="0 0 16 16"
+              >
+                <path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z" />
+                <path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z" />
+              </svg>
+            ) : (
+              <svg
+                width="20"
+                height="17"
+                fill="#C0C0C0"
+                className="bi bi-eye-fill"
+                viewBox="0 0 16 16"
+              >
+                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
+                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+              </svg>
+            )}
+          </button>
+        </div>
+        <span className='idpDescription-customizable'> Verify your new password </span>
+        <div className="input-group">
+          <input id="signInFormNewPassword" name="newPassword" type={passwordType} className="form-control inputField-customizable"
+            style={{ height: '40px' }}
+            placeholder="Repeat Password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+            onKeyUp={e => confirmSignUp(e)}
+            disabled={isLoading}
+          />
+          <button className="btn btn-primary" onClick={toggle}>
+            {passwordType === "password" ? (
+              <svg
+                width="20"
+                height="17"
+                fill="#C0C0C0"
+                className="bi bi-eye-slash-fill"
+                viewBox="0 0 16 16"
+              >
+                <path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z" />
+                <path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z" />
+              </svg>
+            ) : (
+              <svg
+                width="20"
+                height="17"
+                fill="#C0C0C0"
+                className="bi bi-eye-fill"
+                viewBox="0 0 16 16"
+              >
+                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
+                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+              </svg>
+            )}
+          </button>
+        </div>
+        <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
+          variant="success"
+          disabled={isLoading}
+          onClick={!isLoading ? handleSubmit : null}
+        >
+          {isLoading ? 'Sending...' : 'Next'}
+        </Button>
+      </div>
       {location.state && location.state.backable &&
         <Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
           disabled={isLoading}

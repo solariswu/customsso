@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { Button, Spinner } from 'reactstrap';
+import { Button } from 'reactstrap';
 
 import { apiUrl, clientName } from '../../const';
 import { getApti, validateEmail } from '../utils';
@@ -11,6 +11,7 @@ const LOGIN = () => {
   const location = useLocation();
   const [config, setConfig] = useState(null);
   const [isLoading, setLoading] = useState(false);
+  const [isIniting, setIniting] = useState(true);
 
   const [msg, setMsg] = useState({ msg: '', type: '' });
   const [email, setEmail] = useState(location.state ? location.state.email : '');
@@ -25,7 +26,7 @@ const LOGIN = () => {
     const getAmfaConfigs = async () => {
       // get the data from the api
 
-      setLoading(true);
+      setIniting(true);
       try {
         const response = await fetch(`${apiUrl}/oauth2/feconfig`);
         const json = await response.json();
@@ -46,7 +47,7 @@ const LOGIN = () => {
         setErrorMsg('Error fetching config from the server');
       }
       finally {
-        setLoading(false);
+        setIniting(false);
       }
     }
 
@@ -84,8 +85,9 @@ const LOGIN = () => {
       body: JSON.stringify(params),
     };
 
+    setLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/checkuser`, options);
+      const res = await fetch(`${apiUrl}/oauth2/checkuser`, options);
       switch (res.status) {
         case 200:
           // const result = await res.json();
@@ -115,14 +117,13 @@ const LOGIN = () => {
     }
   }
 
-
   return (
     <div>
       <span>
         <h4>Registration</h4>
       </span>
       <hr className="hr-customizable" />
-      {!isLoading && config?.allowSelfSignUp && <div>
+      {!isIniting && config?.allowSelfSignUp && <div>
         <span className='idpDescription-customizable'> Enter your {clientName} account ID </span>
         <div>
           <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
@@ -139,7 +140,7 @@ const LOGIN = () => {
             {isLoading ? 'Loading...' : 'Next'}
           </Button>
         </div></div>}
-      {!isLoading && !config?.allowSelfSignUp &&
+      {!isLoading && !config?.allowSelfSignUp && !isIniting &&
         <span className='idpDescription-customizable'> Self Sign Up is not allowed </span>
       }
       <InfoMsg isLoading={isLoading} msg={msg} />

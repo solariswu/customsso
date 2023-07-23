@@ -19,7 +19,7 @@ import logo from './logo.png';
 import UpdateProfile from './Pages/UpdateProfile';
 import RemoveProfile from './Pages/RemoveProfile';
 
-import { EmailVerification, RegistrationHome, RegistrationPasswords } from './Pages/Registration';
+import { RegistrationEmail, RegistrationHome, RegistrationPasswords, RegistrationAttributes } from './Pages/Registration';
 
 const App = () => {
    const [time, setTime] = useState('');
@@ -110,7 +110,8 @@ const App = () => {
                      <Route path='/removeprofile' element={<RemoveProfile />} />
                      <Route path="/register" element={<RegistrationHome />} />
                      <Route path="/registration_password" element={<RegistrationPasswords />} />
-                     <Route path="/registration_email" element={<EmailVerification />} />
+                     <Route path="/registration_attributes" element={<RegistrationAttributes />} />
+                     <Route path="/registration_email" element={<RegistrationEmail />} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <Footer />
