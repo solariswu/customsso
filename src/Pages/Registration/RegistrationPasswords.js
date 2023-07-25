@@ -41,7 +41,6 @@ const LOGIN = () => {
   const [newPassword, setNewPassword] = useState('');
   const [passwordType, setPasswordType] = useState('password');
   const [isLoading, setLoading] = useState(false);
-  const [isSignUpDone, setSignUpDone] = useState(false);
   const [pwnedpasswords, setPwnedpasswords] = useState(false);
 
   const confirmSignUp = (e) => {

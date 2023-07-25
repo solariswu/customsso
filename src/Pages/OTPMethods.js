@@ -5,10 +5,12 @@ import { Button, Spinner } from 'reactstrap';
 import InfoMsg from '../Components/InfoMsg';
 
 import { apiUrl } from '../const';
+import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
 const LOGIN = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
+	const config = useFeConfigs();
 
 	const [data, setData] = useState(null);
 	const [showOTP, setShowOTP] = useState(false);
@@ -87,7 +89,7 @@ const LOGIN = () => {
 
 	return (
 		<div>
-			<span><h4>Update Profile: verify methods</h4></span>
+			<span><h4>{config?.branding.update_provile_app_portal_header}</h4></span>
 			<hr className="hr-customizable" />
 			{showOTP ? <>
 				<div class="row">

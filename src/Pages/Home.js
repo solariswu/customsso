@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button } from 'reactstrap';
 
-import { apiUrl, clientName, applicationUrl } from '../const';
+import { apiUrl, applicationUrl } from '../const';
 import { getApti, validateEmail } from './utils';
 import InfoMsg from '../Components/InfoMsg';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
@@ -158,10 +158,10 @@ const LOGIN = () => {
   return (
     <div>
       <span>
-        <h4>Sign in to your account</h4>
+        <h4>{config?.branding.login_app_main_page_header}</h4>
       </span>
       <hr className="hr-customizable" />
-      <span className='idpDescription-customizable'> Login with your {clientName} account </span>
+      <span className='idpDescription-customizable'> {config?.branding.login_app_main_page_message} </span>
       <div>
         <input
           type="checkbox" id="remember-me" name="remember-me"

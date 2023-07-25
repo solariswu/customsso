@@ -3,12 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button } from 'reactstrap';
 
-import { apiUrl, applicationUrl, pwdResetPageTitle, selfServicePageTitle } from '../const';
+import { apiUrl, applicationUrl, pwdResetPageTitle } from '../const';
 import InfoMsg from './InfoMsg';
+import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
 export const OTP = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
+	const config = useFeConfigs();
 
 	const [msg, setMsg] = useState({ msg: '', type: '' });
 
@@ -397,7 +399,7 @@ export const OTP = () => {
 	}
 	return (
 		<div>
-			<span> <h4>{location.state?.type === 'passwordreset' ? pwdResetPageTitle : selfServicePageTitle}</h4> </span>
+			<span> <h4>{location.state?.type === 'passwordreset' ? pwdResetPageTitle : config?.branding.update_profile_app_main_page_header}</h4> </span>
 			<hr className='hr-customizable' />
 			<div>
 				<span
@@ -406,9 +408,9 @@ export const OTP = () => {
 					{showOTP ? OTPMethodsCount === 1 ?
 						<>Access requires a verification.<br />
 							Click your ID below to receive a one time verification code</> :
-						<>Access requires 2 verifications.<br />
-							Verification Step {otp.stage}. <br />
-							Choose contact method:</> : ''}
+						otp.stage === 2 ?
+							config?.branding.update_profile_app_verify2_message :
+							config?.branding.update_profile_app_verify1_message: ''}
 				</span>
 			</div>
 			{showOTP && data.otpOptions.map((option) => (

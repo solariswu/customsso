@@ -11,11 +11,7 @@ const headers = {
 	'Access-Control-Allow-Credentials': 'true',
 };
 
-export const handler = async (event) => {
-	const configType = 'amfaConfigs';
-
-	const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
-
+const fetchConfig = async (configType, dynamodb) => {
 	const params = {
 		TableName: process.env.AMFACONFIG_TABLE,
 		Key: {
@@ -30,16 +26,24 @@ export const handler = async (event) => {
 		throw new Error(`No ${configType} found`);
 	}
 
-	const result = JSON.parse(results.Item.value.S);
+	return JSON.parse(results.Item.value.S);
+}
+
+export const handler = async (event) => {
+
+	const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
+
+	const FeConfig = await fetchConfig('amfaConfigs', dynamodb);
+	const BrandingConfig = await fetchConfig('amfaBrandings', dynamodb);
 
 	return {
 		statusCode: 200,
 		headers,
 		body: JSON.stringify({
-			enable_self_service: result.enable_self_service,
-			enable_user_registration: result.enable_user_registration,
-			enable_password_reset: result.enable_password_reset,
-			enable_have_i_been_pwned: result.enable_have_i_been_pwned
+			...FeConfig,
+			branding: {
+				...BrandingConfig,
+			}
 		}),
 	};
 

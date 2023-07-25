@@ -144,10 +144,10 @@ const LOGIN = () => {
 
   return (
     <div>
-      <span><h4>Sign in to your account</h4></span>
+      <span><h4>{config?.branding.login_app_main_page_header}</h4></span>
       <hr className="hr-customizable" />
       <div>
-        <span className='idpDescription-customizable'> Please enter your password </span>
+        <span className='idpDescription-customizable'> {config?.branding.login_app_password_message}</span>
         <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
           placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
           autoFocus

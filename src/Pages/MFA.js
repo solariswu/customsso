@@ -3,11 +3,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 
-import { apiUrl, applicationUrl, mfaPageTitle } from '../const';
+import { apiUrl, applicationUrl } from '../const';
+import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
 const OTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const config = useFeConfigs();
 
   const [errMsg, setErrorMsg] = useState('');
   const [infoMsg, setInfoMsg] = useState('');
@@ -230,7 +232,7 @@ const OTP = () => {
 
   return (
     <div>
-      <span> <h4>{mfaPageTitle}</h4> </span>
+      <span> <h4>{config?.branding.login_app_verification_page_header}</h4> </span>
       <hr className='hr-customizable' />
       <div>
         <span
@@ -238,7 +240,7 @@ const OTP = () => {
         >
           {
             OTPMethodsCount > 1 ?
-              'Please click on one of the available verification methods below to receive a one time identity code, then enter it below.' :
+              config?.branding.login_app_verify_page_message :
               'Access requires a verification. Click your ID below to receive a one time verification code.'
           }
         </span>
@@ -297,13 +299,12 @@ const OTP = () => {
           {isLoading ? 'Sending...' : 'Verify'}
         </Button>
       </div>
-      <br />
       {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errMsg && (
-          <div><br /><span className='errorMessage-customizable'>{errMsg}</span></div>
+          <div><span className='errorMessage-customizable'>{errMsg}</span></div>
         ))}
       {!isLoading && infoMsg &&
-        <div><br /><span className='infoMessage-customizable'>{infoMsg}</span></div>
+        <div><span className='infoMessage-customizable'>{infoMsg}</span></div>
       }
     </div>
   );

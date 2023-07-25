@@ -15,16 +15,18 @@ import OTPMethods from './Pages/OTPMethods';
 
 import { applicationUrl } from './const';
 
-import logo from './logo.png';
 import UpdateProfile from './Pages/UpdateProfile';
 import RemoveProfile from './Pages/RemoveProfile';
 
 import { RegistrationEmail, RegistrationHome, RegistrationPasswords, RegistrationAttributes } from './Pages/Registration';
+import { useFeConfigs } from './DataProviders/FeConfigProvider';
+import { Spinner } from 'reactstrap';
 
 const App = () => {
    const [time, setTime] = useState('');
    const [timerType, setTimerType] = useState('login');
-   const navigate = useNavigate ();
+   const navigate = useNavigate();
+   const config = useFeConfigs();
    const cd = useRef(299);
    const timer = useRef(null);
 
@@ -36,7 +38,7 @@ const App = () => {
          localStorage.setItem('OTPErrorMsg', errorMsg);
          switch (timerType) {
             case 'selfservice':
-               navigate ('/selfservice', {
+               navigate('/selfservice', {
                   state: {
                      selfservicemsg: errorMsg,
                   }
@@ -62,7 +64,7 @@ const App = () => {
    }
 
    const selfserviceTimeOut = () => {
-      setTimerType ('selfservice');
+      setTimerType('selfservice');
    }
 
    useEffect(() => {
@@ -84,13 +86,23 @@ const App = () => {
       </span>
    </div>)
 
+   if (!config)
+      return (
+         <div className="container">
+            <div className="modal-dialog">
+               <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm"></div>
+               <span className='errorMessage-customizable'><Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner></span>
+            </div>
+         </div>
+      );
+
    return (
       <div className="container">
          <div className="modal-dialog">
             <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm">
                <div class="banner-customizable">
                   <center>
-                     <img alt="logo" className="logo-customizable" src={logo} />
+                     <img alt="logo" className="logo-customizable" src={config?.branding.logo_url} />
                   </center>
                </div>
                <div style={{ height: '5px', background: '#63db92' }} />

@@ -87,9 +87,9 @@ const LOGIN = () => {
 
 	return (
 		<div>
-			<span><h4>Update Profile</h4></span>
+			<span><h4>{config?.branding.update_profile_app_main_page_header}</h4></span>
 			<hr className="hr-customizable" />
-			<span className='idpDescription-customizable'> Login with your {clientName} account </span>
+			<span className='idpDescription-customizable'> {config?.branding.update_profile_app_main_page_message} </span>
 			{config?.enable_self_service &&
 				<div>
 					<input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
@@ -99,7 +99,7 @@ const LOGIN = () => {
 						autoFocus
 						disabled={isLoading}
 					/>
-					<span className='idpDescription-customizable'> Please enter your password </span>
+					<span className='idpDescription-customizable'> {config?.branding.update_profile_app_main_page_password_message} </span>
 					<input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
 						placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
 						onKeyUp={e => confirmLogin(e)}
