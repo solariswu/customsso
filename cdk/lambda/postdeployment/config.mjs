@@ -60,5 +60,6 @@ export const amfaBrandings =
 	update_profile_app_main_page_password_message: "Please enter your password",
 	update_profile_app_verify1_message: "Access requires 2 verifications. Verification Step 1. Choose contact method:",
 	update_profile_app_verify2_message: "Access requires 2 verifications. Verification Step 2. Choose contact method:",
-	update_provile_app_portal_header: "Update Profile: Verify Methods"
+	update_provile_app_portal_header: "Update Profile: Verify Methods",
+	consent_content: "Sample Consent Form Content"
 }

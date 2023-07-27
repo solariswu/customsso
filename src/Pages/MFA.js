@@ -205,7 +205,7 @@ const OTP = () => {
 
   let OTPMethodsCount = 0;
 
-  if (!isLoading && otpOptions) {
+  if (otpOptions) {
     otpOptions.forEach((option) => {
       switch (option) {
         case 'e':
@@ -244,6 +244,7 @@ const OTP = () => {
               'Access requires a verification. Click your ID below to receive a one time verification code.'
           }
         </span>
+        <hr className='hr-customizable' />
       </div>
       {otpOptions.map((option) => (
         option === 'e' && email ?

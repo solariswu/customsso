@@ -12,7 +12,6 @@ const LOGIN = () => {
   const location = useLocation();
   const config = useFeConfigs();
   const [isLoading, setLoading] = useState(false);
-  const [isIniting, setIniting] = useState(true);
 
   const [msg, setMsg] = useState({ msg: '', type: '' });
   const [email, setEmail] = useState(location.state ? location.state.email : '');
@@ -23,7 +22,12 @@ const LOGIN = () => {
 
   useEffect(() => {
     document.title = 'Registration';
+    console.log ('location:', location);
 
+    if (!location.state || !location.state.consent) {
+      navigate('/register_consent');
+      return;
+    }
   }, []);
 
   const navigate = useNavigate();

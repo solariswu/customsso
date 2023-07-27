@@ -202,8 +202,9 @@ const LOGIN = () => {
       {location.state && location.state.backable &&
         <Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
           disabled={isLoading}
-          onClick={!isLoading ? () => navigate('/register', {
+          onClick={!isLoading ? () => navigate('/registration', {
             state: {
+              consent: true,
               email,
               apti,
             }

@@ -20,7 +20,7 @@ const LOGIN = () => {
   useEffect(() => {
     document.title = 'Registration';
     if (!location?.state?.email) {
-      navigate('/register');
+      navigate('/register_consent');
     }
   }, [navigate, location]);
 

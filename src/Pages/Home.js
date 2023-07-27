@@ -191,7 +191,7 @@ const LOGIN = () => {
       </div>
       {config?.enable_user_registration && !isLoading && <div>
         <span className='textDescription-customizable'> New User?
-          <a href="/register" className="textLink-customizable"> Register</a></span>
+          <a href="/register_consent" className="textLink-customizable"> Register</a></span>
       </div>}
       {config?.enable_self_service && !isLoading && <div>
         <span className='textDescription-customizable'>

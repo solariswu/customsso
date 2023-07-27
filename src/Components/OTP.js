@@ -413,6 +413,7 @@ export const OTP = () => {
 							config?.branding.update_profile_app_verify1_message: ''}
 				</span>
 			</div>
+			<hr className='hr-customizable' />
 			{showOTP && data.otpOptions.map((option) => (
 				option === 'e' && email ?
 					(<div className='row align-items-end'>
