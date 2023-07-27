@@ -11,8 +11,9 @@ import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
 const LOGIN = () => {
   const location = useLocation();
   const config = useFeConfigs();
-  const [isLoading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
+  const [isLoading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ msg: '', type: '' });
   const [email, setEmail] = useState(location.state ? location.state.email : '');
 
@@ -28,9 +29,7 @@ const LOGIN = () => {
       navigate('/register_consent');
       return;
     }
-  }, []);
-
-  const navigate = useNavigate();
+  }, [location, navigate]);
 
   const confirmSignUp = (e) => {
     if (e.key === "Enter") {
