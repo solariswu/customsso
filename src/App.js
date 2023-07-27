@@ -91,7 +91,9 @@ const App = () => {
          <div className="container">
             <div className="modal-dialog">
                <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm"></div>
+               <div className="modal-body" style={{ textAlign: 'center' }}>
                <span className='errorMessage-customizable'><Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner></span>
+               </div>
             </div>
          </div>
       );

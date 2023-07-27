@@ -55,7 +55,7 @@ const LOGIN = () => {
       setState(null);
     }
 
-  }, []);
+  }, [searchParams]);
 
   const navigate = useNavigate();
 

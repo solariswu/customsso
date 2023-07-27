@@ -104,7 +104,7 @@ export const OTP = () => {
 			};
 		}
 
-	}, []);
+	}, [location.state, navigate]);
 
 	const authParam = window.getAuthParam();
 
