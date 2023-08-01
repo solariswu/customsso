@@ -14,7 +14,7 @@ export const checkUpdateProfileUuid = async (payload) => {
 	const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 
 	const params = {
-		TableName: process.env.PWDRESET_ID_TABLE,
+		TableName: process.env.SESSION_ID_TABLE,
 		Key: {
 			uuid: { S: payload.uuid },
 		},
@@ -80,7 +80,7 @@ export const updateProfile = async (email, otptype, profile, uuid, cognitoClient
 	const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 
 	const params = {
-		TableName: process.env.PWDRESET_ID_TABLE,
+		TableName: process.env.SESSION_ID_TABLE,
 		Key: {
 			uuid: { S: uuid },
 		},
@@ -90,7 +90,7 @@ export const updateProfile = async (email, otptype, profile, uuid, cognitoClient
 		await dynamodb.send(new DeleteItemCommand(params));
 	}
 	catch (err) {
-		console.log(`delete uuid in ddb table ${process.env.PWDRESET_ID_TABLE} error, uuid:`, uuid);
+		console.log(`delete uuid in ddb table ${process.env.SESSION_ID_TABLE} error, uuid:`, uuid);
 		console.log('dynamobdb delete item error: ', err);
 	}
 }

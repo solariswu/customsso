@@ -25,7 +25,7 @@ export const handler = async (event) => {
 	const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 
 	const params = {
-		TableName: process.env.PWDRESET_ID_TABLE,
+		TableName: process.env.SESSION_ID_TABLE,
 		Key: {
 			uuid: { S: payload.uuid },
 		},

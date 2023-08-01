@@ -1,6 +1,6 @@
 import { RestApi, IResource, LambdaIntegration, Cors, EndpointType, DomainName } from 'aws-cdk-lib/aws-apigateway';
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { ManagedPolicy, Policy, PolicyStatement, User } from 'aws-cdk-lib/aws-iam';
+import { ManagedPolicy, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
@@ -27,7 +27,7 @@ export class TenantApiGateway {
   scope: Construct;
   api: RestApi;
   authCodeTable: Table;
-  pwdResetIdTable: Table;
+  sessionIdTable: Table;
   configTable: Table;
   userpool: UserPool;
   certificate: Certificate;
@@ -44,7 +44,7 @@ export class TenantApiGateway {
 
     this.configTable = this.createAmfaConfigTable();
 
-    this.pwdResetIdTable = this.createPwdResetIdTable();
+    this.sessionIdTable = this.createSessionIdTable();
 
     this.createApiGateway();
     this.createVpc();
@@ -95,7 +95,7 @@ export class TenantApiGateway {
     });
   }
 
-  private createPwdResetLambda(userpool: UserPool, resetIdTable: Table) {
+  private createPwdResetLambda(userpool: UserPool, sessionIdTable: Table) {
     const lambdaName = 'passwordreset';
     const myLambda = new Function(
       this.scope,
@@ -106,7 +106,7 @@ export class TenantApiGateway {
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
         environment: {
           USERPOOL_ID: userpool.userPoolId,
-          PWDRESET_ID_TABLE: resetIdTable.tableName,
+          SESSION_ID_TABLE: sessionIdTable.tableName,
         },
         timeout: Duration.minutes(5),
       }
@@ -126,7 +126,7 @@ export class TenantApiGateway {
           }),
           new PolicyStatement({
             resources: [
-              resetIdTable.tableArn,
+              sessionIdTable.tableArn,
             ],
             actions: [
               'dynamodb:Scan',
@@ -214,7 +214,7 @@ export class TenantApiGateway {
     userPoolClient: UserPoolClient,
     authCodeTable: Table,
     hostedClientId: string,
-    pwdResetIdTable: Table,
+    sessionIdTable: Table,
     configTable: Table) {
 
     const myLambda = new Function(
@@ -233,7 +233,7 @@ export class TenantApiGateway {
           APP_SECRET: userPoolClient.userPoolClientSecret.unsafeUnwrap(),
           MAGIC_STRING: config.magicstring,
           HOSTED_CLIENT_ID: hostedClientId,
-          PWDRESET_ID_TABLE: pwdResetIdTable.tableName,
+          SESSION_ID_TABLE: sessionIdTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
         },
         timeout: Duration.minutes(5),
@@ -276,7 +276,7 @@ export class TenantApiGateway {
         ],
         resources: [
           authCodeTable.tableArn,
-          pwdResetIdTable.tableArn,
+          sessionIdTable.tableArn,
           configTable.tableArn,
         ],
       });
@@ -315,7 +315,7 @@ export class TenantApiGateway {
     amfaLambdaFunctions.map(fnName => {
       const lambdaFn = this.createAmfaLambda(fnName, userpool,
         userPoolClient, this.authCodeTable, hostedClientId,
-        this.pwdResetIdTable, this.configTable);
+        this.sessionIdTable, this.configTable);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
       return fnName;
     });
@@ -378,8 +378,8 @@ export class TenantApiGateway {
     return table;
   }
 
-  private createPwdResetIdTable() {
-    const table = new Table(this.scope, `amfa-pwdresetid-${config.tenantId}`, {
+  private createSessionIdTable() {
+    const table = new Table(this.scope, `amfa-sessionid-${config.tenantId}`, {
       partitionKey: { name: 'uuid', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY,
@@ -408,7 +408,7 @@ export class TenantApiGateway {
     });
 
     // create password reset endpoint
-    const mylambdaFunction = this.createPwdResetLambda(userpool, this.pwdResetIdTable);
+    const mylambdaFunction = this.createPwdResetLambda(userpool, this.sessionIdTable);
     this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, 'passwordreset');
 
     this.attachLambdaToApiGWService(rootPathAPI, this.createFeConfigLambda(this.configTable), 'feconfig', false);
