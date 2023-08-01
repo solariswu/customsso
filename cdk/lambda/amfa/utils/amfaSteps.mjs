@@ -14,7 +14,7 @@ import { signUp } from './signUp.mjs';
 
 import { cookie2NamePrefix } from '../const.mjs';
 
-import { genPwdResetID } from './genPwdResetID.mjs';
+import { genSessionID } from './genSessionID.mjs';
 import { fetchConfig } from './fetchConfig.mjs';
 
 import { checkUpdateProfileUuid, updateProfile } from './updateProfile.mjs';
@@ -392,7 +392,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'selfserviceverify2':
             case 'selfserviceverify3':
               if (amfaResponseJSON.message === 'OK') {
-                const uuid = await genPwdResetID(event.email, event.apti);
+                const uuid = await genSessionID(event.email, event.apti);
                 return {
                   isBase64Encoded: false,
                   statusCode: 200,
@@ -408,7 +408,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               if (amfaResponseJSON.message === 'OK') {
                 const user = await signUp(event.email, event.password, event.attributes, cognito);
                 if (user?.User) {
-                  const uuid = await genPwdResetID(event.email, event.apti);
+                  const uuid = await genSessionID(event.email, event.apti);
                   return {
                     isBase64Encoded: false,
                     statusCode: 200,
@@ -445,7 +445,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
               return response(202, amfaResponseJSON.message, event.requestId)
             case 'updateProfileSendOTP':
-              const uuid = await genPwdResetID(event.email, event.apti, event.otpaddr);
+              const uuid = await genSessionID(event.email, event.apti, event.otpaddr);
               return {
                 isBase64Encoded: false,
                 statusCode: 202,

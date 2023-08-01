@@ -6,8 +6,8 @@ import * as crypto from 'crypto';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 
-export const genPwdResetID = async (username, apti, otpaddr) => {
-	console.log('generate session id for user:', username, ' apti:', apti, ' otpaddr:', otpaddr);
+export const genSessionID = async (username, apti, otpaddr) => {
+	console.log('generating session id for user:', username, ' apti:', apti, ' otpaddr:', otpaddr);
 
 	const uuid = crypto.randomUUID();
 	const timestamp = Date.now();
@@ -38,7 +38,7 @@ export const genPwdResetID = async (username, apti, otpaddr) => {
 
 	const putItemCommand = new PutItemCommand(params);
 	const results = await dynamodb.send(putItemCommand);
-	console.log('pwd reset id write result:', results);
+	console.log('session id creation result:', results);
 
 	return uuid;
 
