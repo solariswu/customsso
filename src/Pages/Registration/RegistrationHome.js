@@ -23,7 +23,6 @@ const LOGIN = () => {
 
   useEffect(() => {
     document.title = 'Registration';
-    console.log ('location:', location);
 
     if (!location.state || !location.state.consent) {
       navigate('/register_consent');

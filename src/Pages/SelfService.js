@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
-import { apiUrl, clientName, applicationUrl } from '../const';
+import { apiUrl, applicationUrl } from '../const';
 import { getApti, validateEmail } from './utils';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 

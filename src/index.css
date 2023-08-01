@@ -83,7 +83,8 @@ body {
 }
 
 .hr-customizable {
-  margin-bottom: 0px !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
 }
 
 .panel-left-border {

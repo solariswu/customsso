@@ -40,7 +40,6 @@ const LOGIN = () => {
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordType, setPasswordType] = useState('password');
-  const [isLoading, setLoading] = useState(false);
   const [pwnedpasswords, setPwnedpasswords] = useState(false);
 
   const confirmSignUp = (e) => {
@@ -71,8 +70,6 @@ const LOGIN = () => {
       setErrorMsg('Passwords do not match');
       return false;
     }
-
-    console.log ('config in regist pwd:', config);
 
     if (config?.enable_have_i_been_pwned) {
       const ispwned = await check_pwn_password(password);
@@ -129,7 +126,6 @@ const LOGIN = () => {
             placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
             autoFocus
             onKeyUp={e => confirmSignUp(e)}
-            disabled={isLoading}
           />
           <button className="btn btn-primary" onClick={toggle} >
             {passwordType === "password" ? (
@@ -163,7 +159,6 @@ const LOGIN = () => {
             style={{ height: '40px' }}
             placeholder="Repeat Password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
             onKeyUp={e => confirmSignUp(e)}
-            disabled={isLoading}
           />
           <button className="btn btn-primary" onClick={toggle}>
             {passwordType === "password" ? (
@@ -193,33 +188,30 @@ const LOGIN = () => {
         </div>
         <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
           variant="success"
-          disabled={isLoading}
-          onClick={!isLoading ? handleSubmit : null}
+          onClick={handleSubmit}
         >
-          {isLoading ? 'Sending...' : 'Next'}
+          {'Next'}
         </Button>
       </div>
       {location.state && location.state.backable &&
         <Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
-          disabled={isLoading}
-          onClick={!isLoading ? () => navigate('/registration', {
+          onClick={() => navigate('/registration', {
             state: {
               consent: true,
               email,
               apti,
             }
-          }) : null}
+          })}
           style={{ marginTop: '10px' }}
         >
-          {isLoading ? 'Sending...' : 'Back'}
+          {'Back'}
         </Button>
       }
       {
-        isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
           errorMsg && <div>
             <br />
             <span className='errorMessage-customizable'>{errorMsg}</span>
-          </div>)
+          </div>
       }
       {pwnedpasswords && <PwnedPWDModal />}
     </div >

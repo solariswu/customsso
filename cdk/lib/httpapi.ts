@@ -259,7 +259,9 @@ export class TenantApiGateway {
           'cognito-idp:ListUsers',
           'cognito-idp:AdminInitiateAuth',
           'cognito-idp:AdminUpdateUserAttributes',
-          'dynamodb:DeleteItem',
+          'cognito-idp:AdminCreateUser',
+          // 'cognito-idp:AdminConfirmSignUp',
+          'cognito-idp:AdminSetUserPassword',
         ],
         resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
       });
@@ -270,6 +272,7 @@ export class TenantApiGateway {
         actions: [
           'dynamodb:GetItem',
           'dynamodb:PutItem',
+          'dynamodb:DeleteItem',
         ],
         resources: [
           authCodeTable.tableArn,

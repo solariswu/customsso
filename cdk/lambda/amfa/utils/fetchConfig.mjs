@@ -15,7 +15,6 @@ export const fetchConfig = async (configType) => {
     };
 	const getItemCommand = new GetItemCommand(params);
 	const results = await dynamodb.send(getItemCommand);
-	console.log(`get ${configType} result:`, results);
 
 	if (results.Item === undefined) {
 		throw new Error(`No ${configType} found`);
@@ -23,7 +22,7 @@ export const fetchConfig = async (configType) => {
 
 	const result = JSON.parse(results.Item.value.S);
 
-	console.log ('result:', result);
+	console.log (`get ${configType}:`, result);
 	return result;
 
 }

@@ -18,7 +18,7 @@ import { applicationUrl } from './const';
 import UpdateProfile from './Pages/UpdateProfile';
 import RemoveProfile from './Pages/RemoveProfile';
 
-import { RegistrationEmail, RegistrationHome, RegistrationPasswords, RegistrationAttributes, RegistrationConsent } from './Pages/Registration';
+import { RegistrationVerify, RegistrationHome, RegistrationPasswords, RegistrationAttributes, RegistrationConsent } from './Pages/Registration';
 import { useFeConfigs } from './DataProviders/FeConfigProvider';
 import { Spinner } from 'reactstrap';
 
@@ -126,7 +126,7 @@ const App = () => {
                      <Route path="/register_consent" element={<RegistrationConsent />} />
                      <Route path="/registration_password" element={<RegistrationPasswords />} />
                      <Route path="/registration_attributes" element={<RegistrationAttributes />} />
-                     <Route path="/registration_email" element={<RegistrationEmail />} />
+                     <Route path="/registration_verify" element={<RegistrationVerify />} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <Footer />

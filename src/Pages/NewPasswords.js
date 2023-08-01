@@ -75,7 +75,6 @@ const LOGIN = () => {
       return false;
     }
 
-    console.log ('pwned config:', config);
     if (config?.enable_have_i_been_pwned) {
       const isPwned = await check_pwn_password(password);
 

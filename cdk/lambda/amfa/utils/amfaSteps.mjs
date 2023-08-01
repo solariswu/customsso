@@ -10,12 +10,15 @@ import { createHash } from 'node:crypto';
 import { fetchCode } from './fetchCode.mjs';
 import { passwordlessLogin } from './passwordlessLogin.mjs';
 
+import { signUp } from './signUp.mjs';
+
 import { cookie2NamePrefix } from '../const.mjs';
 
 import { genPwdResetID } from './genPwdResetID.mjs';
 import { fetchConfig } from './fetchConfig.mjs';
 
 import { checkUpdateProfileUuid, updateProfile } from './updateProfile.mjs';
+import { getTType } from './amfaUtils.mjs';
 
 export const amfaSteps = async (event, headers, cognito, step) => {
 
@@ -51,64 +54,65 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
   try {
     const amfaConfigs = await fetchConfig('amfaConfigs');
+    const amfaPolicies = await fetchConfig('amfaPolicies');
     // API vars saved in node.js property file in the back-end node.js
     const salt = amfaConfigs.salt; // Pull this from a property file. All MFA services will use this same salt to read and write the one_time_token-Cookie.
-
     const asmurl = amfaConfigs.asmurl;  // Url of the Adaptive MFA Server.
-
-    const listUsersParam = {
-      UserPoolId: process.env.USERPOOL_ID,
-      Filter: "email = \"" + event.email + "\"",
-    };
-
-    const listUsersRes = await cognito.send(new ListUsersCommand(listUsersParam));
-
-    if (!listUsersRes || !listUsersRes.Users || listUsersRes.Users.length === 0) {
-      console.log('Did not find valid user for email:', event.email);
-      return response(500, 'Did not find valid user for this email', event.requestId);
-    };
-
-    const users = listUsersRes.Users.filter((user) => {
-      return user.UserStatus === 'CONFIRMED';
-    });
-
-    if (users.length === 0) {
-      console.log('Did not find valid user for email:', event.email);
-      return response(500, 'Did not find valid user for this email, user status is not CONFIRMED', event.requestId);
-    };
-
-    console.log('UserAttributes:', users[0].Attributes);
-    const user = users[0];
-
-    const userAttributes = user.Attributes.reduce((acc, curr) => {
-      acc[curr.Name] = curr.Value;
-      return acc;
-    });
-
-    const param = {
-      UserPoolId: process.env.USERPOOL_ID,
-      Username: users[0].Username,
-    };
-
-    const userGroup = await cognito.send(new AdminListGroupsForUserCommand(param));
-    console.log('userGroup:', userGroup);
-
+    let user = null;
+    let userAttributes = null;
     let ug = 'default';
-    let ugRank = 10000;
 
-    const amfaPolicies = await fetchConfig('amfaPolicies');
+    if (step !== 'emailverificationSendOTP' && step !== 'emailverificationverifyotp') {
+      const listUsersParam = {
+        UserPoolId: process.env.USERPOOL_ID,
+        Filter: "email = \"" + event.email + "\"",
+      };
 
-    for (let i = 0; i < userGroup.Groups.length; i++) {
-      userGroup.Groups[i].GroupName = userGroup.Groups[i].GroupName.toLowerCase();
-      if (amfaPolicies[userGroup.Groups[i].GroupName] && amfaPolicies[userGroup.Groups[i].GroupName].rank < ugRank) {
-        ug = userGroup.Groups[i].GroupName;
-        ugRank = amfaPolicies[userGroup.Groups[i].GroupName].rank;
+      const listUsersRes = await cognito.send(new ListUsersCommand(listUsersParam));
+
+      if (!listUsersRes || !listUsersRes.Users || listUsersRes.Users.length === 0) {
+        console.log('Did not find valid user for email:', event.email);
+        return response(500, 'Did not find valid user for this email', event.requestId);
+      };
+
+      const users = listUsersRes.Users.filter((user) => {
+        return user.UserStatus === 'CONFIRMED';
+      });
+
+      if (users.length === 0) {
+        console.log('Did not find valid user for email:', event.email);
+        return response(500, 'Did not find valid user for this email, user status is not CONFIRMED', event.requestId);
+      };
+
+      console.log('UserAttributes:', users[0].Attributes);
+      user = users[0];
+
+      userAttributes = user.Attributes.reduce((acc, curr) => {
+        acc[curr.Name] = curr.Value;
+        return acc;
+      });
+
+      const param = {
+        UserPoolId: process.env.USERPOOL_ID,
+        Username: users[0].Username,
+      };
+
+      const userGroup = await cognito.send(new AdminListGroupsForUserCommand(param));
+      console.log('userGroup:', userGroup);
+
+      let ugRank = 10000;
+
+      for (let i = 0; i < userGroup.Groups.length; i++) {
+        userGroup.Groups[i].GroupName = userGroup.Groups[i].GroupName.toLowerCase();
+        if (amfaPolicies[userGroup.Groups[i].GroupName] && amfaPolicies[userGroup.Groups[i].GroupName].rank < ugRank) {
+          ug = userGroup.Groups[i].GroupName;
+          ugRank = amfaPolicies[userGroup.Groups[i].GroupName].rank;
+        }
       }
+
+      if (!amfaPolicies[ug])
+        ug = 'default';
     }
-
-    if (!amfaPolicies[ug])
-      ug = 'default';
-
     console.log('ug:', ug);
 
     switch (event.otptype) {
@@ -119,7 +123,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         event.otpaddr = userAttributes['custom:alter-email'];
         break;
       case 's':
-        event.otpaddr = userAttributes.phone_number;
+        event.otpaddr = userAttributes?.phone_number;
         break;
       case 'v':
         event.otpaddr = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'] : userAttributes.phone_number;
@@ -131,7 +135,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     event.otpaddr = event.otpaddr?.toLowerCase();
 
     // event.profile '' means legacy profile is not set
-    if (step === 'updateProfileSendOTP' && event.profile !== '' && event.otpaddr !== event.profile) {
+    if (step === 'updateProfileSendOTP' && event.profile !== '' && event.otpaddr !== event.profile?.toLowerCase()) {
       // legacy profile not correct
       return response(400, 'Your entry was not valid, please try again.', event.requestId);
     }
@@ -160,7 +164,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         return response(400, 'Your entry was not valid, please try again.', event.requestId);
       }
 
-      await updateProfile (event.email, event.otptype, '', event.uuid, cognito);
+      await updateProfile(event.email, event.otptype, '', event.uuid, cognito);
       return response(200, 'OK', event.requestId);
 
     }
@@ -218,7 +222,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     let sfl = 6; // This should be picked up via property file. It should be set to 5 or 6. Can also be set based on user security group. If admin, sfl=6 else sfl=5. Should never be set less than 5.
 
     // API vars that come from the end-user javascript front-end client via post or cookie read
-    let u = event.email; // email address of the user. Entered from front end web service to login via post.
+    let u = encodeURIComponent(event.email); // email address of the user. Entered from front end web service to login via post.
     let igd = event.rememberDevice === 'true' ? 0 : 1; // On the main login page, add a checkbox:  [ ] Remember this device, I own it. If checked, set igd = 0 and send it with all related transactions until the login process completes
     // If it's not checked (default) set igd = 1. This will ensure no forensics are collected on a public terminal or shared devices.
     // If the user checks the box, then node.js needs to save this preference in the browser under local storage.  see: https://codepen.io/kylastoneberg/pen/qweppq
@@ -278,24 +282,9 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       '&a=' +
       a;
 
-    const tTypeList = {
-      'username': 'Initial passwordless login verification',
-      'password': 'Password login verification',
-      'sendotp': 'Request OTP',
-      'verifyotp': 'OTP verify',
-      'pwdreset2': 'Password reset 1st verify',
-      'pwdresetverify2': 'OTP verify',
-      'pwdreset3': 'Password reset 2nd verify',
-      'pwdresetverify3': 'OTP verify',
-      'selfservice2': 'Self service 1st verify',
-      'selfserviceverify2': 'OTP verify',
-      'selfservice3': 'Self service 2nd verify',
-      'selfserviceverify3': 'OTP verify',
-      'updateProfileSendOTP': 'Update profile verify',
-      'updateProfile': 'OTP verify',
-    }
+    const tType = getTType(step);
 
-    const tType = encodeURI(tTypeList[step] ? tTypeList[step] : 'Unknown');
+    console.log('step:', step);
 
     switch (step) {
       case 'username':
@@ -308,7 +297,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         otpm = event.otptype;
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
         //e for email, s for sms, v for voice, ae for alt-email.
-        p = event.otpaddr;
+        p = encodeURIComponent(event.otpaddr);
         postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
         break;
       case 'verifyotp':
@@ -317,6 +306,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       case 'selfserviceverify2':
       case 'selfserviceverify3':
       case 'updateProfile':
+      case 'emailverificationverifyotp':
         let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
         postURL = asmurl + '/extVerifyOtp.kv?l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
         break;
@@ -325,10 +315,12 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       case 'selfservice2':
       case 'selfservice3':
       case 'updateProfileSendOTP':
+      case 'emailverificationSendOTP':
         otpm = event.otptype;
-        p = event.otpaddr;
+        p = encodeURIComponent(event.otpaddr);
         sfl = 7;
         otpp = 0;
+        console.log('u:', u, 'p:', p);
         postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp;
         break;
       default:
@@ -412,6 +404,21 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                 // statusCode 200, but not 'OK' message
                 return response(501, 'The login service is not currently available. Contact the help desk.', event.requestId);
               }
+            case 'emailverificationverifyotp':
+              if (amfaResponseJSON.message === 'OK') {
+                const user = await signUp(event.email, event.password, event.attributes, cognito);
+                if (user?.User) {
+                  const uuid = await genPwdResetID(event.email, event.apti);
+                  return {
+                    isBase64Encoded: false,
+                    statusCode: 200,
+                    headers: { ...headers, requestId: event.requestId },
+                    body: JSON.stringify({ message: 'OK', uuid }),
+                  };
+                }
+              }
+              // statusCode 200, but not 'OK' message
+              return response(501, 'The login service is not currently available. Contact the help desk.', event.requestId);
             default:
               // step 'sendotp', 'pwdreset2', 'pwdreset3', 'selfservice2', 'selfservice3' would not get 200, but 202 when the otp was sent.
               return response(505, 'The login service is not currently available. Contact the help desk.', event.requestId);
@@ -434,6 +441,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'pwdreset3':
             case 'selfservice2':
             case 'selfservice3':
+            case 'emailverificationSendOTP':
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
               return response(202, amfaResponseJSON.message, event.requestId)
             case 'updateProfileSendOTP':
@@ -450,6 +458,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'selfserviceverify2':
             case 'selfserviceverify3':
             case 'updateProfile':
+            case 'emailverificationverifyotp':
               // The OTP entered was not correct. Push the user back to the OTP Challenge Page:
               // transform the statusCode to 403, as all 202 in frontend means redirect to another page.
               return response(403, 'The identity code you entered was not correct. Please try again.', event.requestId)

@@ -21,6 +21,7 @@ const validateInputParams = (payload) => {
     case 'selfservice2':
     case 'selfservice3':
     case 'updateProfileSendOTP':
+    case 'emailverificationSendOTP':
       return (payload && payload.email && payload.otptype &&
         payload.apti && payload.authParam);
     case 'verifyotp':
@@ -30,6 +31,9 @@ const validateInputParams = (payload) => {
     case 'selfserviceverify3':
       return (payload && payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam);
+    case 'emailverificationverifyotp':
+      return (payload && payload.email && payload.otpcode && payload.otptype &&
+        payload.apti && payload.authParam && payload.attributes && payload.password);
     case 'updateProfile':
       return (payload && payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam && payload.uuid);
@@ -57,7 +61,7 @@ const headers = {
 const response = (statusCode = 200, body, requestId) => {
   return {
     statusCode,
-    headers: {...headers, requestId},
+    headers: { ...headers, requestId },
     body,
   };
 };
@@ -74,7 +78,7 @@ export const handler = async (event) => {
   console.log('Received event:', JSON.stringify(event, null, 2));
 
   const requestId = Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16);
-  console.log ('amfa requestid: ', requestId);
+  console.log('amfa requestid: ', requestId);
 
   let error = '';
 
@@ -105,6 +109,8 @@ export const handler = async (event) => {
       oneEvent.newProfile = payload.newProfile ? payload.newProfile.toLowerCase() : '';
       oneEvent.profile = payload.profile ? payload.profile.toLowerCase() : '';
       oneEvent.requestId = requestId;
+      oneEvent.attributes = payload.attributes;
+      oneEvent.password = payload.password;
 
       oneEvent.cookies = event.headers['Cookie'];
       console.log('oneEvent', oneEvent);
