@@ -23,10 +23,7 @@ const CONTENT = () => {
 	const [isIniting, setIniting] = useState(true);
 	const [otpcode, setOtpcode] = useState('');
 
-	const sendOTP = async (e) => {
-		if (e)
-			e.preventDefault();
-
+	const sendOTP = async (isResend) => {
 		console.log('send SignUp new OTP');
 
 		const options = {
@@ -36,7 +33,8 @@ const CONTENT = () => {
 				otptype: 'email',
 				apti,
 				authParam: window.getAuthParam(),
-				phase: 'emailverificationSendOTP'
+				phase: 'emailverificationSendOTP',
+				isResend,
 			}),
 			credentials: 'include',
 		};
@@ -94,7 +92,7 @@ const CONTENT = () => {
 
 	useEffect(() => {
 		setIniting(true);
-		sendOTP();
+		sendOTP(false);
 	}, []);
 
 	const setErrorMsg = (msg) => {
@@ -189,7 +187,6 @@ const CONTENT = () => {
 							apti,
 							uuid,
 							validated: true,
-							otpData: '',
 						}
 					})}
 				>
@@ -239,11 +236,11 @@ const CONTENT = () => {
 					>
 						{isLoading ? 'Sending...' : 'Verify OTP'}
 					</Button>
-					<Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
+					<Button name='resend' type="submit" className="btn btn-primary submitButton-customizable"
 						disabled={isLoading}
-						onClick={sendOTP}
+						onClick={() => sendOTP(true)}
 					>{!isLoading ? 'Resend OTP' : 'Sending...'}</Button>
-					<Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
+					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
 						disabled={isLoading}
 						onClick={!isLoading ? () =>
 							navigate('/registration_attributes', {

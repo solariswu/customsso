@@ -45,10 +45,14 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     return createHash('md5').update(content).digest('hex');
   }
 
-  if (step === 'updateProfile' || step === 'removeProfile') {
+  if (step === 'updateProfile' || step === 'removeProfile' || step === 'checkSessionId') {
     const isValidUuid = await checkUpdateProfileUuid(event);
     if (!isValidUuid) {
       return response(400, 'Invalid UUID', event.requestId);
+    }
+
+    if (step === 'checkSessionId') {
+      return response(200, 'valid Session ID', event.requestId);
     }
   }
 
@@ -318,10 +322,14 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       case 'emailverificationSendOTP':
         otpm = event.otptype;
         p = encodeURIComponent(event.otpaddr);
-        sfl = 7;
-        otpp = 0;
-        console.log('u:', u, 'p:', p);
-        postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp;
+        if (event.isResend) {
+          postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType;
+        }
+        else {
+          sfl = 7;
+          otpp = 0;
+          postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp;
+        }
         break;
       default:
         break;

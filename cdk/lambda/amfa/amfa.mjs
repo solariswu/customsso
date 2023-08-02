@@ -111,6 +111,7 @@ export const handler = async (event) => {
       oneEvent.requestId = requestId;
       oneEvent.attributes = payload.attributes;
       oneEvent.password = payload.password;
+      oneEvent.isResend = payload.isResend;
 
       oneEvent.cookies = event.headers['Cookie'];
       console.log('oneEvent', oneEvent);

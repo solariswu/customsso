@@ -58,7 +58,7 @@ export const handler = async (event) => {
 			const results = await client.send(param);
 			console.log('set user password result:', results);
 
-
+			// delete the pwd reset session id once reset is done successfully.
 			const deleteItemCommand = new DeleteItemCommand(params);
 			await dynamodb.send(deleteItemCommand);
 

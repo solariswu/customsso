@@ -12,6 +12,12 @@ const CONTENT = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
 
+	const email = location.state?.email;
+	const apti = location.state?.apti;
+	const updateType = location.state?.updateType;
+	const legacyProfile = location.state?.profile ? location.state.profile : '';
+	const [bundleId, setBundleId] = useState('');
+
 	useEffect(() => {
 		if (!location.state || !location.state.validated) {
 			navigate('/selfservice', {
@@ -23,10 +29,6 @@ const CONTENT = () => {
 
 	}, [location.state, navigate]);
 
-	const email = location.state?.email;
-	const apti = location.state?.apti;
-	const updateType = location.state?.updateType;
-	const legacyProfile = location.state?.profile ? location.state.profile : '';
 
 	const [msg, setMsg] = useState({ msg: `Click "Registration", a verification code would be sent to new ${updateType}`, type: 'info' });
 	const [profile, setProfile] = useState('');
@@ -34,7 +36,6 @@ const CONTENT = () => {
 	const [isLoading, setLoading] = useState(false);
 	const [isResetDone, setResetDone] = useState(false);
 	const [otpcode, setOtpcode] = useState('');
-	const [uuid, setUuid] = useState('');
 	const [profileInFly, setProfileInFly] = useState('');
 
 	const setErrorMsg = (msg) => {
@@ -94,7 +95,7 @@ const CONTENT = () => {
 			body: JSON.stringify({
 				email,
 				newProfile,
-				uuid,
+				uuid: bundleId,
 				apti,
 				rememberDevice: false,
 				authParam: window.getAuthParam(),
@@ -178,7 +179,8 @@ const CONTENT = () => {
 					apti,
 					rememberDevice: false,
 					authParam: window.getAuthParam(),
-					phase: 'updateProfileSendOTP'
+					phase: 'updateProfileSendOTP',
+					isResend: profileInFly === newProfile,
 				}),
 				credentials: 'include',
 			};
@@ -199,7 +201,7 @@ const CONTENT = () => {
 							setTimeout(() => {
 								setInfoMsg('');
 							}, 8000);
-							setUuid(resultMsg.uuid);
+							setBundleId(resultMsg.uuid);
 							setProfileInFly(newProfile);
 						}
 						else {
@@ -239,6 +241,7 @@ const CONTENT = () => {
 	}
 
 	const ResetDone = () => {
+		//todo: call logout 
 		return (
 			<div>
 				<span className='idpDescription-customizable'> Your {updateType} has been changed. </span><br />
@@ -249,6 +252,20 @@ const CONTENT = () => {
 						() => window.close()}
 				>
 					{applicationUrl ? 'Return to the Login Page' : 'Close this window'}
+				</Button>
+				<Button name="back" type="submit" className="btn btn-secondary submitButton-customizable"
+					variant="success"
+					onClick={() => navigate('/updateotp', {
+						state: {
+							email,
+							apti,
+							uuid : location.state ? location.state.uuid : '',
+							validated: true,
+							msg: {msg : '', type: ''},
+						}
+					})}
+				>
+					{'Back'}
 				</Button>
 			</div >
 		)
@@ -305,7 +322,7 @@ const CONTENT = () => {
 					<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
 						variant="success"
 						disabled={isLoading}
-						onClick={!isLoading ? sendOTP : null}
+						onClick={sendOTP}
 					>
 						{isLoading ? 'Sending...' : profileInFly === newProfile ? 'Resend Code' : `Register New ${updateType}`}
 					</Button>
@@ -317,7 +334,7 @@ const CONTENT = () => {
 							</div> :
 							<div style={{ height: '20px' }} />
 					)}
-					{profileInFly !== '' &&
+					{profileInFly !== '' && profileInFly === newProfile &&
 						<div>
 							<input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
 								style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
@@ -338,20 +355,19 @@ const CONTENT = () => {
 								{isLoading ? 'Sending...' : 'Verify'}
 							</Button>
 						</div>}
-					<Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
+					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
 						disabled={isLoading}
-						onClick={!isLoading ? () => navigate('/updateotp', {
+						onClick={() => navigate('/updateotp', {
 							state: {
 								email,
 								apti,
-								uuid: location.state ? location.state.uuid : '',
+								uuid : location.state ? location.state.uuid : '',
 								validated: true,
-								otpData: location.state ? location.state.otpData : '',
 								msg: { msg: '', type: '' },
 							}
-						}) : null}
+						})}
 					>
-						{isLoading ? 'Sending...' : 'Back'}
+						{'Back'}
 					</Button>
 				</div>}
 		</div >

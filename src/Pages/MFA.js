@@ -73,8 +73,6 @@ const OTP = () => {
       phase: 'sendotp'
     };
 
-    console.log('send otp params:', sendOtpParams);
-
     setLoading(true);
     setErrorMsg('');
     setInfoMsg('');

@@ -118,6 +118,20 @@ const CONTENT = () => {
 				>
 					{applicationUrl ? 'Return to the Login Page' : 'Close this window'}
 				</Button>
+				<Button name="back" type="submit" className="btn btn-secondary submitButton-customizable"
+					variant="success"
+					onClick={() => navigate('/updateotp', {
+						state: {
+							email,
+							apti,
+							uuid: location.state ? location.state.uuid : '',
+							validated: true,
+							msg: { msg: '', type: '' },
+						}
+					})}
+				>
+					{'Back'}
+				</Button>
 			</div >
 		)
 	}
@@ -156,18 +170,18 @@ const CONTENT = () => {
 					>
 						{isLoading ? 'Process...' : 'Remove'}
 					</Button>
-					<Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
+					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
 						disabled={isLoading}
-						onClick={!isLoading ? () => navigate('/updateotp', {
+						onClick={() => navigate('/updateotp', {
 							state: {
 								email,
 								apti,
 								uuid: location.state ? location.state.uuid : '',
 								validated: true,
-								otpData: location.state ? location.state.otpData : '',
+								msg: { msg: '', type: '' }
 							}
-						}) : null}
-					>{isLoading ? 'Process...' : 'Back'}</Button>
+						})}
+					>{'Back'}</Button>
 					<InfoMsg msg={msg} isLoading={isLoading} />
 				</div>}
 		</div >

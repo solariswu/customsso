@@ -152,6 +152,20 @@ const LOGIN = () => {
         >
           {applicationUrl ? 'Return to the Login Page' : 'Close this window'}
         </Button>
+        <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable"
+          variant="success"
+          onClick={() => navigate('/updateotp', {
+            state: {
+              email,
+              apti,
+              uuid: location.state ? location.state.uuid : '',
+              validated: true,
+              msg: { msg: '', type: '' },
+            }
+          })}
+        >
+          {'Back'}
+        </Button>
       </div >
     )
 
@@ -251,20 +265,19 @@ const LOGIN = () => {
           </Button>
         </div>}
       {location.state && location.state.backable &&
-        <Button name='back' type="submit" className="btn btn-primary submitButton-customizable"
+        <Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
           disabled={isLoading}
-          onClick={!isLoading ? () => navigate('/updateotp', {
+          onClick={() => navigate('/updateotp', {
             state: {
               email,
               apti,
               uuid: location.state ? location.state.uuid : '',
               validated: true,
-              otpData: location.state ? location.state.otpData : '',
             }
-          }) : null}
+          })}
           style={{ marginTop: '10px' }}
         >
-          {isLoading ? 'Sending...' : 'Back'}
+          {'Back'}
         </Button>
       }
       {isLoading || !config ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (

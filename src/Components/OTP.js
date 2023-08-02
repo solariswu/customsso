@@ -135,8 +135,6 @@ export const OTP = () => {
 			phase: `${amfaStepPrefix}${otp.stage + 1}`,
 		};
 
-		console.log('send otp params:', sendOtpParams);
-
 		setLoading(true);
 		setErrorMsg('');
 		try {
