@@ -41,9 +41,7 @@ export class TenantApiGateway {
 
     // DB for storing custom auth session data
     this.authCodeTable = this.createAuthCodeTable();
-
     this.configTable = this.createAmfaConfigTable();
-
     this.sessionIdTable = this.createSessionIdTable();
 
     this.createApiGateway();
@@ -176,7 +174,7 @@ export class TenantApiGateway {
     return myLambda;
   }
 
-  private createCheckUserLambda(userpool : UserPool) {
+  private createCheckUserLambda(userpool: UserPool) {
     const lambdaName = 'checkuser';
     const myLambda = new Function(
       this.scope,
@@ -295,7 +293,7 @@ export class TenantApiGateway {
     api: IResource,
     lambdaFunction: Function,
     path: string,
-    isPost : boolean = true,
+    isPost: boolean = true,
   ) {
     // 👇 add /lambda path to API Service resource
     const lambdaApi = api.addResource(path, {
@@ -304,7 +302,7 @@ export class TenantApiGateway {
     });
 
     lambdaApi.addMethod(
-      isPost? 'POST' : 'GET',
+      isPost ? 'POST' : 'GET',
       new LambdaIntegration(lambdaFunction, { proxy: true }),
     );
   };
@@ -325,12 +323,30 @@ export class TenantApiGateway {
     name: string,
     userpool: UserPool,
     userpoolclient: UserPoolClient,
-    authCodeTableName: string
+    authCodeTable: Table,
+    sessionIdTable: Table,
   ) {
-    const policyStatement =
+
+    const policyStatementCognito =
       new PolicyStatement({
-        actions: ['dynamodb:GetItem', 'dynamodb:Scan', 'dynamodb:PutItem', 'dynamodb:DeleteItem', 'cognito-idp:AdminInitiateAuth'],
-        resources: ['*'],
+        actions: [
+          'cognito-idp:AdminInitiateAuth',
+        ],
+        resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
+      });
+
+      const policyStatementDB =
+      new PolicyStatement({
+        actions: [
+          'dynamodb:GetItem',
+          'dynamodb:PutItem',
+          'dynamodb:DeleteItem',
+          'dynamodb:Scan',
+        ],
+        resources: [
+          authCodeTable.tableArn,
+          sessionIdTable.tableArn,
+        ],
       });
 
     const myLambda = new Function(this.scope, `amfa-customauth-${name}`, {
@@ -340,7 +356,8 @@ export class TenantApiGateway {
       environment: {
         APPCLIENT_ID: userpoolclient.userPoolClientId,
         APP_SECRET: userpoolclient.userPoolClientSecret.unsafeUnwrap(),
-        AUTHCODE_TABLE: authCodeTableName,
+        AUTHCODE_TABLE: authCodeTable.tableName,
+        SESSION_ID_TABLE: sessionIdTable.tableName,
         USERPOOL_ID: userpool.userPoolId,
       },
       timeout: Duration.minutes(5),
@@ -348,7 +365,7 @@ export class TenantApiGateway {
 
     myLambda.role?.attachInlinePolicy(
       new Policy(this.scope, `amfa-customauth-${name}-lambda-policy`, {
-        statements: [policyStatement],
+        statements: [policyStatementCognito, policyStatementDB],
       })
     );
 
@@ -400,7 +417,8 @@ export class TenantApiGateway {
         name,
         userpool,
         customAuthClient,
-        this.authCodeTable.tableName
+        this.authCodeTable,
+        this.sessionIdTable,
       );
 
       this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, name);

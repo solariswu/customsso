@@ -28,8 +28,11 @@ export const checkUpdateProfileUuid = async (payload) => {
 		const email = results.Item.username.S;
 		const apti = results.Item.apti.S;
 		const otpaddr = results.Item.otpaddr.S;
+		const timestamp = results.Item.timestamp.N;
 
-		return (email === payload.email && apti === payload.apti && otpaddr === payload.newProfile)
+		const expired = ((Date.now () - timestamp) > 1000 * 60 * 5);
+
+		return (email === payload.email && apti === payload.apti && otpaddr === payload.newProfile && !expired)
 
 	}
 	catch (error) {

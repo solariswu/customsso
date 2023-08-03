@@ -119,7 +119,7 @@ const CONTENT = () => {
 					{applicationUrl ? 'Return to the Login Page' : 'Close this window'}
 				</Button>
 				<Button name="back" type="submit" className="btn btn-secondary submitButton-customizable"
-					variant="success"
+					variant="outline-success"
 					onClick={() => navigate('/updateotp', {
 						state: {
 							email,
@@ -171,6 +171,7 @@ const CONTENT = () => {
 						{isLoading ? 'Process...' : 'Remove'}
 					</Button>
 					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
+						variant="outline-success"
 						disabled={isLoading}
 						onClick={() => navigate('/updateotp', {
 							state: {

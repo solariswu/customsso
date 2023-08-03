@@ -6,7 +6,7 @@ import { Button, Spinner } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
-const OTP = () => {
+const MFAContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const config = useFeConfigs();
@@ -279,8 +279,7 @@ const OTP = () => {
                   <div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>
                 </div>
       ))}
-      <br />
-      <div>
+      <div style={{padding: '5px 0 0 0'}}>
         <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
           style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
           autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
@@ -311,7 +310,7 @@ const OTP = () => {
 
 const MFA = () => {
   return (
-    <OTP />
+    <MFAContent />
   )
 }
 export default MFA;

@@ -241,6 +241,7 @@ const CONTENT = () => {
 						onClick={() => sendOTP(true)}
 					>{!isLoading ? 'Resend OTP' : 'Sending...'}</Button>
 					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
+						variant="outline-success"
 						disabled={isLoading}
 						onClick={!isLoading ? () =>
 							navigate('/registration_attributes', {

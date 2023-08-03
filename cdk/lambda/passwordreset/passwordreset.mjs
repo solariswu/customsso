@@ -5,7 +5,7 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import {
-	DeleteItemCommand,
+	// DeleteItemCommand,
 	DynamoDBClient,
 	GetItemCommand,
 } from '@aws-sdk/client-dynamodb';
@@ -38,12 +38,17 @@ export const handler = async (event) => {
 
 		const email = results.Item.username.S;
 		const apti = results.Item.apti.S;
+		const timestamp = results.Item.timestamp.N;
+
+		// 5mins
+		const expired = (new Date().getTime() - timestamp) > (1000 * 60 * 5);
 
 		console.log(email);
 		console.log('payload', payload);
+		console.log('uuid expired:', expired);
 
 		if (email.trim().toLowerCase() === payload.email.trim().toLowerCase()
-			 && apti === payload.apti) {
+			 && apti === payload.apti && !expired) {
 			const input = { // AdminSetUserPasswordRequest
 				UserPoolId: process.env.USERPOOL_ID, // required
 				Username: email.trim().toLowerCase(), // required
@@ -58,9 +63,9 @@ export const handler = async (event) => {
 			const results = await client.send(param);
 			console.log('set user password result:', results);
 
-			// delete the pwd reset session id once reset is done successfully.
-			const deleteItemCommand = new DeleteItemCommand(params);
-			await dynamodb.send(deleteItemCommand);
+			// //delete the pwd reset session id once reset is done successfully.
+			// const deleteItemCommand = new DeleteItemCommand(params);
+			// await dynamodb.send(deleteItemCommand);
 
 			return {
 				statusCode: 200,

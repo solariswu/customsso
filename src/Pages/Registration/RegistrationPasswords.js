@@ -195,6 +195,7 @@ const LOGIN = () => {
       </div>
       {location.state && location.state.backable &&
         <Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
+          variant="outline-success"
           onClick={() => navigate('/registration', {
             state: {
               consent: true,

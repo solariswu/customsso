@@ -92,7 +92,7 @@ const LOGIN = () => {
             break;
           case 202:
             const response2 = await result.json();
-            console.log(response2);
+            console.log('response back with 202 in password check', response2);
             navigate('/mfa', {
               state: {
                 email,
@@ -106,7 +106,7 @@ const LOGIN = () => {
                 otpOptions: response2.otpOptions,
               }
             });
-            break;
+            return;
           case 505:
             localStorage.setItem('OTPErrorMsg', "The login service is not currently available. Please contact the help desk.");
             window.location.assign(`${applicationUrl}?amfa=relogin`);
@@ -123,15 +123,31 @@ const LOGIN = () => {
         }
       }
       else {
-        const data = await res.json();
-
-        let errMsg = 'Something went wrong, please try your login again.';
-
-        if (data.name === "NotAuthorizedException") {
-          errMsg = 'Invalid credentials.';
+        if (res.status === 202) {
+          const data = await res.json();
+          console.log(data);
+          navigate('/passwordreset', {
+            state: {
+              email,
+              apti,
+              uuid: data.uuid,
+              validated: true,
+              backable: false,
+              from: 'force_change',
+            }
+          });
         }
-        localStorage.setItem('OTPErrorMsg', errMsg);
-        window.location.assign(`${applicationUrl}?amfa=relogin`);
+        else {
+          const data = await res.json();
+
+          let errMsg = 'Something went wrong, please try your login again.';
+
+          if (data.name === "NotAuthorizedException") {
+            errMsg = 'Invalid credentials.';
+          }
+          localStorage.setItem('OTPErrorMsg', errMsg);
+          window.location.assign(`${applicationUrl}?amfa=relogin`);
+        }
       }
     }
     catch (err) {

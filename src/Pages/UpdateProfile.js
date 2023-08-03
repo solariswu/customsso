@@ -177,6 +177,7 @@ const CONTENT = () => {
 					newProfile,
 					profile,
 					apti,
+					uuid: location.state ? location.state.uuid : '',
 					rememberDevice: false,
 					authParam: window.getAuthParam(),
 					phase: 'updateProfileSendOTP',
@@ -254,7 +255,7 @@ const CONTENT = () => {
 					{applicationUrl ? 'Return to the Login Page' : 'Close this window'}
 				</Button>
 				<Button name="back" type="submit" className="btn btn-secondary submitButton-customizable"
-					variant="success"
+					variant="outline-success"
 					onClick={() => navigate('/updateotp', {
 						state: {
 							email,
@@ -357,6 +358,7 @@ const CONTENT = () => {
 						</div>}
 					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
 						disabled={isLoading}
+						variant="outline-success"
 						onClick={() => navigate('/updateotp', {
 							state: {
 								email,

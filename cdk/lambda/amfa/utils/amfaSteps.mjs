@@ -45,7 +45,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     return createHash('md5').update(content).digest('hex');
   }
 
-  if (step === 'updateProfile' || step === 'removeProfile' || step === 'checkSessionId') {
+  if (step === 'updateProfile' || step === 'removeProfile' || step === 'checkSessionId' || step === 'updateProfileSendOTP') {
     const isValidUuid = await checkUpdateProfileUuid(event);
     if (!isValidUuid) {
       return response(400, 'Invalid UUID', event.requestId);
@@ -80,13 +80,18 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       };
 
       const users = listUsersRes.Users.filter((user) => {
-        return user.UserStatus === 'CONFIRMED';
+        return user.UserStatus === 'CONFIRMED' || 'FORCE_CHANGE_PASSWORD';
       });
 
       if (users.length === 0) {
         console.log('Did not find valid user for email:', event.email);
-        return response(500, 'Did not find valid user for this email, user status is not CONFIRMED', event.requestId);
+        return response(500, 'Did not find valid user for this email, or user account has not been activated', event.requestId);
       };
+
+      if (users[0].UserStatus === 'FORCE_CHANGE_PASSWORD' && step === 'username') {
+        console.log('Admin Created User account needs to be actived:', event.email);
+        return response(202, 'User account has not been activated', event.requestId);
+      }
 
       console.log('UserAttributes:', users[0].Attributes);
       user = users[0];

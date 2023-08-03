@@ -52,7 +52,7 @@ const getUserWithPassword = async (payload, cognito, secretHash) => {
 	return user;
 }
 
-const getUser = async (payload, cognito) => {
+const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             getUser = async (payload, cognito) => {
 
 	const appclientId = process.env.APPCLIENT_ID;
 	const appclientSecret = process.env.APP_SECRET;
@@ -113,6 +113,42 @@ const storeTokens = async (user, payload, authCode, dynamodb, requestTimeEpoch) 
 
 }
 
+const genSessionID = async (username, apti, dynamodb) => {
+	console.log('generating session id for user:', username, ' apti:', apti);
+
+	const uuid = crypto.randomUUID();
+	const timestamp = Date.now();
+
+	const params = {
+		Item: {
+			uuid: {
+				S: uuid,
+			},
+			username: {
+				S: username,
+			},
+			apti: {
+				S: apti,
+			},
+			otpaddr: {
+				S: 'FORCE_CHANGE_PASSWORD',
+			},
+			timestamp: {
+				N: `${timestamp}`,
+			},
+		},
+		ReturnConsumedCapacity: 'TOTAL',
+		TableName: process.env.SESSION_ID_TABLE,
+	};
+
+	const putItemCommand = new PutItemCommand(params);
+	const results = await dynamodb.send(putItemCommand);
+	console.log('session id creation result:', results);
+
+	return uuid;
+
+}
+
 // lambda for rest api /oauth2/admininitauth
 export const handler = async (event) => {
 	console.log(event);
@@ -130,6 +166,16 @@ export const handler = async (event) => {
 		try {
 
 			const user = await getUser(payload, cognito);
+
+			if (user.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
+				const uuid = await genSessionID(payload.email, payload.apti, dynamodb);
+				const res = { email: payload.email, apti: payload.apti, uuid };
+				return {
+					statusCode: 202,
+					headers,
+					body: JSON.stringify(res),
+				};
+			}
 
 			if (user.AuthenticationResult) {
 				if (payload.state) {

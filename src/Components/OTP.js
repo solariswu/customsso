@@ -287,6 +287,7 @@ export const OTP = () => {
 										validated: true,
 										otpData: data,
 										backable: false,
+										from: 'otp',
 									}
 								});
 								// console.log ('count === 1, location.state:', location.state);
@@ -311,6 +312,7 @@ export const OTP = () => {
 								validated: true,
 								otpData: data,
 								backable: false,
+								from: 'otp',
 							}
 						})
 					}

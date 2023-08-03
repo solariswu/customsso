@@ -125,14 +125,12 @@ const LOGIN = () => {
               errMsg = 'Invalid credentials.';
             }
             setErrorMsg(errMsg);
-            // localStorage.setItem('OTPErrorMsg', errMsg);
-            // window.location.assign(`${applicationUrl}?amfa=relogin`);
             break;
         }
       }
       catch (err) {
         console.log(err);
-        setErrorMsg('Password Reset Failed. Please try again. If the problem persists, please contact help desk.');
+        setErrorMsg('Password Set Failed. Please try again. If the problem persists, please contact help desk.');
       }
       finally {
         setLoading(false);
@@ -153,7 +151,7 @@ const LOGIN = () => {
           {applicationUrl ? 'Return to the Login Page' : 'Close this window'}
         </Button>
         <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable"
-          variant="success"
+          variant="outline-success"
           onClick={() => navigate('/updateotp', {
             state: {
               email,
@@ -175,7 +173,7 @@ const LOGIN = () => {
 
   if (!config) {
     <div>
-      <span><h4>Password Reset</h4></span>
+      <span><h4>Set Password</h4></span>
       <hr className="hr-customizable" />
       return <Spinner />
     </div>
@@ -183,7 +181,7 @@ const LOGIN = () => {
 
   return (
     <div>
-      <span><h4>Password Reset</h4></span>
+      <span><h4>Set Password</h4></span>
       <hr className="hr-customizable" />
       {isResetDone ? <ResetDone /> :
         <div>
@@ -266,6 +264,7 @@ const LOGIN = () => {
         </div>}
       {location.state && location.state.backable &&
         <Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
+          variant="outline-success"
           disabled={isLoading}
           onClick={() => navigate('/updateotp', {
             state: {
