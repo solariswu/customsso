@@ -17,7 +17,7 @@ import { cookie2NamePrefix } from '../const.mjs';
 import { genSessionID } from './genSessionID.mjs';
 import { fetchConfig } from './fetchConfig.mjs';
 
-import { checkUpdateProfileUuid, updateProfile } from './updateProfile.mjs';
+import { checkSessionId, updateProfile } from './updateProfile.mjs';
 import { getTType } from './amfaUtils.mjs';
 
 export const amfaSteps = async (event, headers, cognito, step) => {
@@ -46,7 +46,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
   }
 
   if (step === 'updateProfile' || step === 'removeProfile' || step === 'checkSessionId' || step === 'updateProfileSendOTP') {
-    const isValidUuid = await checkUpdateProfileUuid(event);
+    const isValidUuid = await checkSessionId(event, step);
     if (!isValidUuid) {
       return response(400, 'Invalid UUID', event.requestId);
     }

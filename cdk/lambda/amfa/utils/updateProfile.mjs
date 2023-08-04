@@ -3,13 +3,12 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import {
-	DeleteItemCommand,
 	DynamoDBClient,
 	GetItemCommand,
 } from '@aws-sdk/client-dynamodb';
 
 
-export const checkUpdateProfileUuid = async (payload) => {
+export const checkSessionId = async (payload, step) => {
 
 	const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 
@@ -30,9 +29,14 @@ export const checkUpdateProfileUuid = async (payload) => {
 		const otpaddr = results.Item.otpaddr.S;
 		const timestamp = results.Item.timestamp.N;
 
-		const expired = ((Date.now () - timestamp) > 1000 * 60 * 5);
+		const expired = ((Date.now() - timestamp) > 1000 * 60 * 5);
 
-		return (email === payload.email && apti === payload.apti && otpaddr === payload.newProfile && !expired)
+		const result = (email === payload.email && apti === payload.apti && !expired)
+
+		if (result && (step === 'updateProfile' || step === 'removeProfile')) {
+			return (result && otpaddr === payload.newProfile)
+		}
+		return result;
 
 	}
 	catch (error) {
