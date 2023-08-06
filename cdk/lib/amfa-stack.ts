@@ -39,7 +39,7 @@ export class AmfaStack extends Stack {
     apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool);
     apigateway.createAmfaApiEndpoints(tenantUserPool.userpool, tenantUserPool.customAuthClient, tenantUserPool.hostedUIClient.userPoolClientId);
 
-    createPostDeploymentLambda (this, apigateway.configTable);
+    createPostDeploymentLambda (this, apigateway.configTable, tenantUserPool.userpool.userPoolId);
 
     // output
 

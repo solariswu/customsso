@@ -8,9 +8,12 @@ import { Duration } from 'aws-cdk-lib';
 import * as path from 'path';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 
+import { config } from './config';
+
 export const createPostDeploymentLambda = (
 	scope: Construct,
 	configTable: Table,
+	userPoolId: string,
 ) => {
 
 	const lambdaName = 'postdeployment';
@@ -20,6 +23,7 @@ export const createPostDeploymentLambda = (
 		code: Code.fromAsset(path.join(__dirname + `/../lambda/${lambdaName}`)),
 		environment: {
 			AMFACONFIG_TABLE: configTable.tableName,
+			USERPOOL_ID: userPoolId,
 		},
 		timeout: Duration.minutes(5),
 	});
@@ -34,6 +38,12 @@ export const createPostDeploymentLambda = (
 						'dynamodb:PutItem',
 					],
 					resources: [configTable.tableArn],
+				}),
+				new PolicyStatement({
+					actions: [
+						'cognito-idp:CreateGroup',
+					],
+					resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userPoolId}`],
 				}),
 			],
 		})

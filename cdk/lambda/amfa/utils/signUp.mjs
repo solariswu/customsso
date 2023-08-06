@@ -1,7 +1,9 @@
 import {
+	AdminAddUserToGroupCommand,
 	AdminCreateUserCommand,
 	AdminSetUserPasswordCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
+import { fetchConfig } from './fetchConfig.mjs';
 
 
 export const signUp = async (username, password, attributes, cognito) => {
@@ -48,6 +50,14 @@ export const signUp = async (username, password, attributes, cognito) => {
 	// 	Username: username,
 	// }
 	// await cognito.send(new AdminConfirmSignUpCommand(cognitoParam));
+	const amfaConfigs = await fetchConfig('amfaConfigs');
+	const userGroupName = amfaConfigs.user_registration_default_group;
+
+	await cognito.send(new AdminAddUserToGroupCommand({
+		GroupName: userGroupName,
+		UserPoolId: process.env.USERPOOL_ID,
+		Username: username,
+	}));
 
 	console.log('user:', user);
 	return user;

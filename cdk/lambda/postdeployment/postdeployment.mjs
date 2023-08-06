@@ -3,13 +3,15 @@ import {
 	DynamoDBClient,
 	PutItemCommand,
 } from '@aws-sdk/client-dynamodb';
+
+import { CognitoIdentityProviderClient, CreateGroupCommand } from '@aws-sdk/client-cognito-identity-provider';
 import { amfaPolicies, amfaConfigs, amfaBrandings } from './config.mjs';
 
 const createAmfaConfigs = async (configType, dynamodb) => {
-	const values = { 
+	const values = {
 		'amfaPolicies': amfaPolicies,
 		'amfaConfigs': amfaConfigs,
-		'amfaBrandings': amfaBrandings 
+		'amfaBrandings': amfaBrandings
 	};
 	try {
 		let value = JSON.stringify(values[configType], null, "  ");
@@ -37,9 +39,24 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 	}
 }
 
+const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
+const cognito = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
+
 export const handler = async (event) => {
-	const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 	await createAmfaConfigs('amfaPolicies', dynamodb);
 	await createAmfaConfigs('amfaBrandings', dynamodb);
 	await createAmfaConfigs('amfaConfigs', dynamodb);
+
+	const param = {
+		GroupName: amfaConfigs.user_registration_default_group,
+		UserPoolId: process.env.USERPOOL_ID,
+	}
+
+	try {
+		await cognito.send(new CreateGroupCommand(param));
+	}
+	catch (err) {
+		console.error('create group failed with:', err);
+		console.error('RequestId: ' + err.requestId);
+	}
 };
