@@ -42,6 +42,7 @@ export const amfaConfigs = {
 	"enable_self_service": true,
 	"enable_user_registration": true,
 	"enable_have_i_been_pwned": true,
+	"enable_google_recaptcha": true,
 	"master_additional_otp_methods": ["ae", "s", "v"],
 	"user_registration_default_group": "user",
 	"salt": "a-random-string-here",

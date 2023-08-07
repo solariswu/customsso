@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from 'reactstrap';
@@ -8,10 +8,14 @@ import { getApti, validateEmail } from '../utils';
 import InfoMsg from '../../Components/InfoMsg';
 import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
 
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+
 const LOGIN = () => {
   const location = useLocation();
   const config = useFeConfigs();
   const navigate = useNavigate();
+  const { executeRecaptcha } = useGoogleReCaptcha();
+  const [token, setToken] = useState(null);
 
   const [isLoading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ msg: '', type: '' });
@@ -21,6 +25,55 @@ const LOGIN = () => {
     setMsg({ msg, type: 'error' });
   }
 
+  const signUpWithCaptcha = async () => {
+    if (!token) {
+      setErrorMsg('Please complete captcha');
+      return;
+    }
+
+    setLoading(true);
+    const res = await fetch(`${apiUrl}/oauth2/verifyrecaptcha`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ token }),
+    });
+
+    const json = await res.json();
+
+    console.log('verify captcha result', json);
+    if (json.success) {
+      signUp();
+      return;
+    }
+
+    setErrorMsg('captcha verify error, please retry or contact help desk.');
+    setLoading(false);
+    return
+  }
+
+  const handleReCaptchaVerify = useCallback(async () => {
+    if (!executeRecaptcha) {
+      console.log('Execute recaptcha not yet available');
+      return;
+    }
+    try {
+
+      const token = await executeRecaptcha('signup');
+      setToken(token);
+
+      return;
+    }
+    catch (err) {
+      console.error('error in verify captcha', err);
+      setErrorMsg('captcha verify error, please contact help desk.');
+    }
+
+    // Do whatever you want with the token
+  }, [executeRecaptcha]);
+
   useEffect(() => {
     document.title = 'Registration';
 
@@ -28,28 +81,32 @@ const LOGIN = () => {
       navigate('/register_consent');
       return;
     }
-  }, [location, navigate]);
+
+    handleReCaptchaVerify();
+
+  }, [location, navigate, handleReCaptchaVerify]);
 
   const confirmSignUp = (e) => {
     if (e.key === "Enter") {
-      signUp();
+      if (config.enable_google_recaptcha) {
+        signUpWithCaptcha();
+      }
+      else {
+        signUp();
+      }
     }
   }
 
   const signUp = async (e) => {
-    console.log('now in sign up ');
-
     if (!email || validateEmail(email)) {
       setErrorMsg('Please enter a valid email address');
       return;
     };
 
     const apti = getApti();
-    // const authParam = window.getAuthParam();
 
     const params = {
       email,
-      // authParam: window.getAuthParam(),
       apti,
     };
 
@@ -108,10 +165,11 @@ const LOGIN = () => {
             name="confirm" type="submit"
             className="btn btn-primary submitButton-customizable"
             disabled={isLoading}
-            onClick={!isLoading ? signUp : null}
+            onClick={config.enable_google_recaptcha ? signUpWithCaptcha : signUp}
           >
             {isLoading ? 'Loading...' : 'Next'}
           </Button>
+          <div id='recaptcha' name='recaptcha' />
         </div></div>}
       {!isLoading && config && !config.enable_user_registration &&
         <span className='idpDescription-customizable'> Self Sign Up is not allowed </span>

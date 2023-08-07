@@ -5,7 +5,6 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import Home from './Pages/Home';
 import Password from './Pages/Password';
-import Captcha from './Pages/Captcha';
 import MFA from './Pages/MFA';
 import NoMatch from './Pages/NoMatch';
 import DualOTP from './Pages/DualOTP';
@@ -21,6 +20,8 @@ import RemoveProfile from './Pages/RemoveProfile';
 import { RegistrationVerify, RegistrationHome, RegistrationPasswords, RegistrationAttributes, RegistrationConsent } from './Pages/Registration';
 import { useFeConfigs } from './DataProviders/FeConfigProvider';
 import { Spinner } from 'reactstrap';
+
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 
 const App = () => {
    const [time, setTime] = useState('');
@@ -76,13 +77,24 @@ const App = () => {
    }, []);
 
    const Footer = () => (<div className='footer-customizable'>
+
+      <span className='legalText-customizable'>
+         {time}
+      </span>
+      <br />
+      {
+         config.enable_google_recaptcha && <div style={{ color: '#f4f4f4' }}>
+            <span className='legalText-customizable'>
+               This site is protected by reCAPTCHA and the Google<br />
+               <a href="https://policies.google.com/privacy">Privacy Policy</a> and
+               <a href="https://policies.google.com/terms">Terms of Service</a> apply.
+            </span>
+         </div>
+      }
       <span
          className='legalText-customizable'
       >
          Copyright &copy; 2023 aPersona Inc. v1.0
-      </span><br />
-      <span className='legalText-customizable'>
-         {time}
       </span>
    </div>)
 
@@ -92,7 +104,7 @@ const App = () => {
             <div className="modal-dialog">
                <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm"></div>
                <div className="modal-body" style={{ textAlign: 'center' }}>
-               <span className='errorMessage-customizable'><Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner></span>
+                  <span className='errorMessage-customizable'><Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner></span>
                </div>
             </div>
          </div>
@@ -115,7 +127,6 @@ const App = () => {
                      <Route path="/oauth2/authorize" element={<Home />} />
                      <Route path="/password" element={<Password />} />
                      <Route path="/dualotp" element={<DualOTP stoptimer={selfserviceTimeOut} />} />
-                     <Route path="/captcha" element={<Captcha />} />
                      <Route path="/mfa" element={<MFA />} />
                      <Route path="/passwordreset" element={<NewPasswords />} />
                      <Route path="/updateotp" element={<OTPMethods />} />

@@ -206,6 +206,25 @@ export class TenantApiGateway {
     return myLambda;
   }
 
+  private createVerifyCaptchaLambda() {
+    const lambdaName = 'verifyrecaptcha';
+    const myLambda = new Function(
+      this.scope,
+      `${lambdaName}-${config.tenantId}`,
+      {
+        runtime: Runtime.NODEJS_18_X,
+        handler: `${lambdaName}.handler`,
+        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
+        environment: {
+          RECAPTCHA_SECRET: '',
+        },
+        timeout: Duration.minutes(5),
+      }
+    );
+
+    return myLambda;
+  }
+
   private createAmfaLambda(
     lambdaName: string,
     userpool: UserPool,
@@ -432,6 +451,7 @@ export class TenantApiGateway {
 
     this.attachLambdaToApiGWService(rootPathAPI, this.createFeConfigLambda(this.configTable), 'feconfig', false);
     this.attachLambdaToApiGWService(rootPathAPI, this.createCheckUserLambda(userpool), 'checkuser');
+    this.attachLambdaToApiGWService(rootPathAPI, this.createVerifyCaptchaLambda(), 'verifyrecaptcha');
   }
   ;
 }

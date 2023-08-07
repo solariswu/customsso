@@ -3,7 +3,7 @@
 //
 import {
   AdminListGroupsForUserCommand,
-  ListUsersCommand
+  ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { createHash } from 'node:crypto';
