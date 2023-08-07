@@ -87,198 +87,114 @@ const LOGIN = () => {
 		};
 	}, [location.state, navigate]);
 
+	const UpdateProfileElement = ({ updateType, profile }) => {
+		return (
+			<div class="row">
+				<div class="col" style={{ margin: 'auto 3px', display: 'inline', height: '40px' }}>
+					<div class="row"
+						style={{ fontWeight: 'bold' }}
+					>
+						{updateType}:
+					</div>
+					<div class="row" style={{ color: '#C0C0C0' }}>
+						{profile ? profile : '---'}
+					</div>
+				</div>
+				<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
+					<Button
+						name={`${updateType}`}
+						type='submit'
+						className='btn btn-sm btn-success'
+						onClick={() => navigate('/updateprofile', {
+							state: {
+								email,
+								apti,
+								uuid,
+								validated: true,
+								updateType,
+								profile,
+								otpData: data,
+							}
+						})}
+					>
+						Update
+					</Button>
+				</div>
+				<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
+					{profile && <Button
+						name={`Remove${updateType}`}
+						type='submit'
+						className='btn btn-sm btn-danger'
+						onClick={() => navigate('/removeprofile', {
+							state: {
+								email,
+								apti,
+								uuid,
+								validated: true,
+								updateType,
+								otpData: data,
+							}
+						})}
+					>
+						Remove
+					</Button>}
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<div>
 			<span><h4>{config?.branding.update_provile_app_portal_header}</h4></span>
 			<hr className="hr-customizable" />
-			{showOTP ? <>
-				<div class="row">
-					<div class="col" style={{ margin: 'auto 3px', display: 'inline', height: '40px' }}>
-						<div class="row"
-							style={{ fontWeight: 'bold' }}
-						>
-							Alt-Email:
+			{
+				showOTP ? <>
+					{config.master_additional_otp_methods.includes('ae') && <>
+						<UpdateProfileElement updateType={'Alt Email'} profile={data?.aemail} />
+						<hr className='hr-customizable' />
+					</>
+					}
+					{config.master_additional_otp_methods.includes('s') && <>
+						<UpdateProfileElement updateType={'Phone Number'} profile={data?.phoneNumber} />
+						<hr className='hr-customizable' />
+					</>
+					}
+					{config.master_additional_otp_methods.includes('v') && <>
+						<UpdateProfileElement updateType={'Voice Number'} profile={data?.vPhoneNumber ? data.vPhoneNumber : data?.phoneNumber ? data.phoneNumber : null} />
+						<hr className='hr-customizable' />
+					</>
+					}
+					<div class="row">
+						<div class="col" style={{ margin: 'auto 3px', display: 'inline', height: '40px' }}>
+							<div class="row"
+								style={{ fontWeight: 'bold' }}
+							>
+								Update Password:
+							</div>
+							<div class="row" style={{ color: '#C0C0C0' }}></div>
 						</div>
-						<div class="row" style={{ color: '#C0C0C0' }}>
-							{data?.aemail ? data.aemail : '---'}
-						</div>
-					</div>
-					<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
-						<Button
-							name='updateEmail'
-							type='submit'
-							className='btn btn-sm btn-success'
-							onClick={() => navigate('/updateprofile', {
-								state: {
-									email,
-									apti,
-									uuid,
-									validated: true,
-									updateType: 'Alt Email',
-									profile: data.aemail,
-									otpData: data,
-								}
-							})}
-						>
-							Update
-						</Button>
-					</div>
-					<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
-						{data?.aemail && <Button
-							name='RemoveEmail'
-							type='submit'
-							className='btn btn-sm btn-danger'
-							onClick={() => navigate('/removeprofile', {
-								state: {
-									email,
-									apti,
-									uuid,
-									validated: true,
-									updateType: 'Alt Email',
-									otpData: data,
-								}
-							})}
-						>
-							Remove
-						</Button>}
-					</div>
-				</div>
-				<hr className='hr-customizable' />
-				<div class="row">
-					<div class="col" style={{ margin: 'auto 3px', display: 'inline', height: '40px' }}>
-						<div class="row"
-							style={{ fontWeight: 'bold' }}
-						>
-							Mobile Number:
-						</div>
-						<div class="row" style={{ color: '#C0C0C0' }}>
-							{data?.phoneNumber ? data.phoneNumber : '---'}
+						<div class="col-4" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
+							<Button
+								name='updatePassword'
+								type='submit'
+								// className='btn btn-primary submitButton-customizable'
+								className='btn btn-sm btn-success'
+								onClick={() => navigate('/passwordreset', {
+									state: {
+										email,
+										apti,
+										uuid,
+										validated: true,
+										otpData: data,
+										backable: true,
+									}
+								})}
+							>
+								Update
+							</Button>
 						</div>
 					</div>
-					<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
-						<Button
-							name='updatePhone'
-							type='submit'
-							className='btn btn-sm btn-success'
-							onClick={() => navigate('/updateprofile', {
-								state: {
-									email,
-									apti,
-									uuid,
-									validated: true,
-									updateType: 'Phone Number',
-									profile: data.phoneNumber,
-									otpData: data,
-								}
-							})}
-						>
-							Update
-						</Button>
-					</div>
-					<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
-						{data?.phoneNumber && <Button
-							name='RemovePhone'
-							type='submit'
-							className='btn btn-danger btn-sm'
-							onClick={() => navigate('/removeprofile', {
-								state: {
-									email,
-									apti,
-									uuid,
-									validated: true,
-									updateType: 'Phone Number',
-									otpData: data,
-								}
-							})}
-						>
-							Remove
-						</Button>}
-					</div>
-				</div>
-				<hr className='hr-customizable' />
-				<div class="row">
-					<div class="col" style={{ margin: 'auto 3px', display: 'inline', height: '40px' }}>
-						<div class="row"
-							style={{ fontWeight: 'bold' }}
-						>
-							Voice Number:
-						</div>
-						<div class="row" style={{ color: '#C0C0C0' }}>
-							{data?.vPhoneNumber ? data.vPhoneNumber : data?.phoneNumber ? data.phoneNumber : '---'}
-						</div>
-					</div>
-					<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
-						<Button
-							name='updateVoice'
-							type='submit'
-							className='btn btn-sm btn-success'
-							onClick={() => navigate('/updateprofile', {
-								state: {
-									email,
-									apti,
-									uuid,
-									validated: true,
-									updateType: 'Voice Number',
-									profile: data.vPhoneNumber,
-									otpData: data,
-								}
-							})}
-						>
-							Update
-						</Button>
-					</div>
-					<div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
-						{data?.vPhoneNumber && <Button
-							name='RemoveVoice'
-							type='submit'
-							className='btn btn-danger btn-sm'
-							onClick={() => navigate('/removeprofile', {
-								state: {
-									email,
-									apti,
-									uuid,
-									validated: true,
-									updateType: 'Voice Number',
-									otpData: data,
-								}
-							})}
-						>
-							Remove
-						</Button>}
-					</div>
-				</div>
-				<hr className='hr-customizable' />
-				<div class="row">
-					<div class="col" style={{ margin: 'auto 3px', display: 'inline', height: '40px' }}>
-						<div class="row"
-							style={{ fontWeight: 'bold' }}
-						>
-							Update Password:
-						</div>
-						<div class="row" style={{ color: '#C0C0C0' }}></div>
-					</div>
-					<div class="col-4" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
-						<Button
-							name='updatePassword'
-							type='submit'
-							// className='btn btn-primary submitButton-customizable'
-							className='btn btn-sm btn-success'
-							onClick={() => navigate('/passwordreset', {
-								state: {
-									email,
-									apti,
-									uuid,
-									validated: true,
-									otpData: data,
-									backable: true,
-								}
-							})}
-						>
-							Update
-						</Button>
-					</div>
-				</div>
-			</> : <Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner>}
+				</> : <Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner>}
 			<hr className='hr-customizable' />
 			<InfoMsg isLoading={false} msg={msg} />
 		</div >

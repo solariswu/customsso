@@ -187,12 +187,30 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
       const vPhoneNumber = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'].replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
 
+      let otpData = { aemail: null, phoneNumber: null, vPhoneNumber: null };
+
+      if (amfaConfigs.master_additional_otp_methods) {
+        amfaConfigs.master_additional_otp_methods.forEach(method => {
+          switch (method) {
+            case 'ae':
+              otpData.aemail = aemail;
+              break;
+            case 's':
+              otpData.phoneNumber = phoneNumber;
+              break;
+            case 'v':
+              otpData.vPhoneNumber = vPhoneNumber;
+              break;
+            default:
+              break;
+          }
+        })
+      }
+
       const body = JSON.stringify({
         otpOptions: amfaPolicies[ug].permissions,
         email: userAttributes.email,
-        phoneNumber,
-        aemail,
-        vPhoneNumber,
+        ...otpData,
       })
 
       console.log('body:', body);

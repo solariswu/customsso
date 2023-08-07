@@ -166,7 +166,7 @@ const CONTENT = () => {
 					}
 					<Button name="confirm" type="submit" className="btn submitButton-customizable-danger"
 						disabled={isLoading}
-						onClick={!isLoading ? handleRemove : null}
+						onClick={handleRemove}
 					>
 						{isLoading ? 'Process...' : 'Remove'}
 					</Button>
