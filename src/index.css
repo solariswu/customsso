@@ -183,6 +183,23 @@ body {
   border-color: #bd2130;
 }
 
+.submitButton-customizable-back {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 20px 0px 10px 0px;
+  height: 40px;
+  width: 100%;
+  color: #2e6da4;
+  background-color: white;
+  border-color: #2e6da4;
+}
+
+.submitButton-customizable-back:hover {
+  color: #fff;
+  background-color: #286090;
+  border-color: #204d74;
+}
+
 .errorMessage-customizable {
   padding: 5px 10px 0 0;
   font-size: 14px;

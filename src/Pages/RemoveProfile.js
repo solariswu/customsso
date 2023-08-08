@@ -118,12 +118,11 @@ const CONTENT = () => {
 				>
 					{applicationUrl ? 'Return to the Login Page' : 'Close this window'}
 				</Button>
-				<Button name="back" type="submit" className="btn btn-secondary submitButton-customizable"
+				<Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
 					variant="outline-success"
-					onClick={() => navigate('/updateotp', {
+					onClick={() => navigate('/otpmethods', {
 						state: {
 							email,
-							apti,
 							uuid: location.state ? location.state.uuid : '',
 							validated: true,
 							msg: { msg: '', type: '' },
@@ -170,13 +169,12 @@ const CONTENT = () => {
 					>
 						{isLoading ? 'Process...' : 'Remove'}
 					</Button>
-					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
+					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable-back"
 						variant="outline-success"
 						disabled={isLoading}
-						onClick={() => navigate('/updateotp', {
+						onClick={() => navigate('/otpmethods', {
 							state: {
 								email,
-								apti,
 								uuid: location.state ? location.state.uuid : '',
 								validated: true,
 								msg: { msg: '', type: '' }

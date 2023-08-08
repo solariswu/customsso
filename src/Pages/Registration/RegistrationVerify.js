@@ -181,7 +181,7 @@ const CONTENT = () => {
 				<hr className="hr-customizable" />
 				<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
 					variant="success"
-					onClick={() => navigate('/updateotp', {
+					onClick={() => navigate('/otpmethods', {
 						state: {
 							email,
 							apti,
@@ -240,7 +240,7 @@ const CONTENT = () => {
 						disabled={isLoading}
 						onClick={() => sendOTP(true)}
 					>{!isLoading ? 'Resend OTP' : 'Sending...'}</Button>
-					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
+					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable-back"
 						variant="outline-success"
 						disabled={isLoading}
 						onClick={!isLoading ? () =>

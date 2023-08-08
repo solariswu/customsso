@@ -17,7 +17,6 @@ const LOGIN = () => {
 	const [msg, setMsg] = useState(location.state?.msg);
 
 	const email = location.state?.email;
-	const apti = location.state?.apti;
 	const uuid = location.state?.uuid;
 
 	const closeQuickView = () => {
@@ -35,7 +34,6 @@ const LOGIN = () => {
 				email: location.state?.email,
 				rememberDevice: false,
 				authParam: window.getAuthParam(),
-				apti: location.state?.apti,
 				phase: 'getOtpOptions'
 			};
 
@@ -108,7 +106,6 @@ const LOGIN = () => {
 						onClick={() => navigate('/updateprofile', {
 							state: {
 								email,
-								apti,
 								uuid,
 								validated: true,
 								updateType,
@@ -128,7 +125,6 @@ const LOGIN = () => {
 						onClick={() => navigate('/removeprofile', {
 							state: {
 								email,
-								apti,
 								uuid,
 								validated: true,
 								updateType,
@@ -182,7 +178,6 @@ const LOGIN = () => {
 								onClick={() => navigate('/passwordreset', {
 									state: {
 										email,
-										apti,
 										uuid,
 										validated: true,
 										otpData: data,

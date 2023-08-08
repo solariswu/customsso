@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
-import { validatePassword, check_pwn_password } from './utils';
+import { validatePassword, check_pwn_password } from '../Components/utils';
 import PwnedPWDModal from '../Components/PwnedPWDModal';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
@@ -150,9 +150,9 @@ const LOGIN = () => {
         >
           {applicationUrl ? 'Return to the Login Page' : 'Close this window'}
         </Button>
-        <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable"
+        <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
           variant="outline-success"
-          onClick={() => navigate('/updateotp', {
+          onClick={() => navigate('/otpmethods', {
             state: {
               email,
               apti,
@@ -263,13 +263,12 @@ const LOGIN = () => {
           </Button>
         </div>}
       {location.state && location.state.backable &&
-        <Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
+        <Button name='back' type="submit" className="btn btn-secondary submitButton-customizable-back"
           variant="outline-success"
           disabled={isLoading}
-          onClick={() => navigate('/updateotp', {
+          onClick={() => navigate('/otpmethods', {
             state: {
               email,
-              apti,
               uuid: location.state ? location.state.uuid : '',
               validated: true,
             }

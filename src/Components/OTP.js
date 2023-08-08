@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import { Button } from 'reactstrap';
+import { Button, Spinner } from 'reactstrap';
 
 import { apiUrl, applicationUrl, pwdResetPageTitle } from '../const';
 import InfoMsg from './InfoMsg';
+import { getApti } from './utils';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
 export const OTP = () => {
@@ -18,6 +19,9 @@ export const OTP = () => {
 	const [otp, setOtp] = useState({ type: '', code: '', addr: '', stage: 1 });
 	const [data, setData] = useState(null);
 	const [showOTP, setShowOTP] = useState(false);
+	const [otpInFly, setOtpInFly] = useState('');
+
+	const [apti, setApti] = useState(null);
 
 	const setInfoMsg = (msg) => {
 		setMsg({ msg, type: 'info' });
@@ -35,7 +39,6 @@ export const OTP = () => {
 				email: location.state?.email,
 				rememberDevice: false,
 				authParam: window.getAuthParam(),
-				apti: location.state?.apti,
 				phase: 'getOtpOptions'
 			};
 
@@ -85,7 +88,7 @@ export const OTP = () => {
 
 			window.addEventListener('popstate', () => console.log('back pressed in MFA'));
 
-			if (location.state?.type === 'passwordreset' || location.state?.type === 'updateotp') {
+			if (location.state?.type === 'passwordreset' || location.state?.type === 'otpmethods') {
 				// call the function
 				getOtpOptions();
 			}
@@ -109,7 +112,6 @@ export const OTP = () => {
 	const authParam = window.getAuthParam();
 
 	const email = location.state?.email;
-	const apti = location.state?.apti;
 
 	const amfaStepPrefix = location.state?.type === 'passwordreset' ? 'pwdreset' : 'selfservice';
 
@@ -123,14 +125,19 @@ export const OTP = () => {
 		}
 	}
 
-	const sendOtp = async ({ otptype }) => {
+	const sendOtp = async (otptype) => {
 		setOtp({ ...otp, type: otptype });
+
+		let otpApti = apti;
+
+		if (otptype !== otpInFly)
+			otpApti = getApti();
 
 		const sendOtpParams = {
 			email,
 			rememberDevice: false,
 			authParam,
-			apti,
+			apti: otpApti,
 			otptype,
 			phase: `${amfaStepPrefix}${otp.stage + 1}`,
 		};
@@ -144,14 +151,21 @@ export const OTP = () => {
 				credentials: 'include',
 			});
 
+			console.log('result', result);
+
+			const resultMsg = await result.json();
+			console.log('resultMsg:', resultMsg);
+			console.log('otptype:', otptype);
+
 			switch (result.status) {
 				case 202:
-					const resultMsg = await result.json();
 					if (resultMsg.message) {
 						setInfoMsg(resultMsg.message);
 						setTimeout(() => {
 							setInfoMsg('');
 						}, 8000);
+						setOtpInFly(otptype);
+						setApti(otpApti);
 					}
 					else {
 						navigate('/selfservice', {
@@ -163,19 +177,17 @@ export const OTP = () => {
 					}
 					break;
 				case 401:
-					const resultMsg401 = await result.json();
 					navigate('/selfservice', {
 						state: {
-							selfservicemsg: resultMsg401.message ? resultMsg401.message :
+							selfservicemsg: resultMsg.message ? resultMsg.message :
 								'Unknown OTP send error, please contact help desk.'
 						}
 					})
 					return;
 				default:
-					const res = await result.json();
 					let msg = 'Unknown error, please contact help desk.';
-					if (res) {
-						msg = res.message ? res.message : res.name ? res.name : JSON.stringify(res);
+					if (resultMsg) {
+						msg = resultMsg.message ? resultMsg.message : resultMsg.name ? resultMsg.name : JSON.stringify(resultMsg);
 					}
 					navigate('/selfservice', {
 						state: {
@@ -299,6 +311,7 @@ export const OTP = () => {
 							}
 						}
 						setLoading(false);
+						setOtpInFly('');
 						return;
 					}
 					console.log('otp state:', otp);
@@ -397,6 +410,40 @@ export const OTP = () => {
 			}
 		})
 	}
+
+	const OTPElement = ({ otptype }) => {
+		const table = {
+			e: {
+				title: 'Email',
+				content: `${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))} >`,
+			},
+			ae: {
+				title: 'Alt-Email',
+				content: data?.aemail ? `${data.aemail}` : null,
+			},
+			s: {
+				title: 'SMS',
+				content: data?.phoneNumber ? `${data.phoneNumber}` : null,
+			},
+			v: {
+				title: 'Voice',
+				content: data?.vPhoneNumber ? `${data.vPhoneNumber}` : null,
+			}
+		};
+
+		return (table[otptype].content &&
+			<div className='row align-items-end'>
+				<div className='col-4'>{table[otptype].title}:</div>
+				<div className='col'>
+					<span className='link-customizable' onClick={() => sendOtp(otptype)}>
+						{table[otptype].content}
+					</span>
+					{otpInFly === otptype && <div style={{ fontSize: '8px', fontStyle: 'italic' }}>(resend code)</div>}
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<div>
 			<span> <h4>{location.state?.type === 'passwordreset' ? pwdResetPageTitle : config?.branding.update_profile_app_main_page_header}</h4> </span>
@@ -405,50 +452,18 @@ export const OTP = () => {
 				<span
 					style={{ lineHeight: '1rem', color: 'grey' }}
 				>
-					{showOTP ? OTPMethodsCount === 1 ?
-						<>Access requires a verification.<br />
-							Click your ID below to receive a one time verification code</> :
-						otp.stage === 2 ?
-							config?.branding.update_profile_app_verify2_message :
-							config?.branding.update_profile_app_verify1_message: ''}
+					{showOTP &&
+						(otpInFly === '' ?
+							(OTPMethodsCount === 1 ? <>Access requires a verification.<br /> Click your ID below to receive a one time verification code</> :
+								otp.stage === 2 ? config?.branding.update_profile_app_verify2_message : config?.branding.update_profile_app_verify1_message) :
+							config?.branding.update_profile_app_verify_retreive_message)}
+					{!showOTP &&
+						<Spinner color="primary" >{''}</Spinner>}
 				</span>
 			</div>
 			<hr className='hr-customizable' />
-			{showOTP && data.otpOptions.map((option) => (
-				option === 'e' && email ?
-					(<div className='row align-items-end'>
-						<div className='col-4'>Email:</div>
-						<div className='col'>
-							<span className='link-customizable' onClick={() => email ? sendOtp({ otptype: 'e' }) : null}>
-								{`${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))} >`}
-							</span>
-						</div>
-					</div>) : option === 'ae' && data.aemail ?
-						<div className='row align-items-end'>
-							<div className='col-4'>Alt-Email:</div>
-							<div className='col'>
-								<span className='link-customizable' onClick={() => sendOtp({ otptype: 'ae' })}>
-									{`${data.aemail} >`} </span>
-							</div>
-						</div> : option === 's' && data.phoneNumber ?
-							<div className='row align-items-end'>
-								<div className='col-4'>SMS:</div>
-								<div className='col'>
-									<span className='link-customizable' onClick={() => data.phoneNumber ? sendOtp({ otptype: 's' }) : null}>
-										{data.phoneNumber + ' >'} </span>
-								</div>
-							</div> : option === 'v' && data.vPhoneNumber ?
-								<div className='row align-items-end'>
-									<div className='col-4'>Voice:</div>
-									<div className='col'>
-										<span className='link-customizable' onClick={() => data.vPhoneNumber ? sendOtp({ otptype: 'v' }) : null}>
-											{data.vPhoneNumber + ' >'} </span>
-									</div>
-								</div> : option === 'm' &&
-								<div className='row align-items-end'>
-									<div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>
-								</div>
-			))}
+			{showOTP &&
+				data.otpOptions.map((option) => ((otpInFly === '' || otpInFly === option) && <OTPElement otptype={option} />))}
 			<br />
 			<div>
 				<input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
@@ -469,7 +484,7 @@ export const OTP = () => {
 					{isLoading ? showOTP ? 'Sending...' : 'Checking...' : 'Verify'}
 				</Button>
 			</div>
-			<InfoMsg isLoading={isLoading} msg={msg} />
+			{showOTP && <InfoMsg isLoading={isLoading} msg={msg} />}
 		</div>
 	);
 }

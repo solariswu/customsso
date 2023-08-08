@@ -21,8 +21,6 @@ import { RegistrationVerify, RegistrationHome, RegistrationPasswords, Registrati
 import { useFeConfigs } from './DataProviders/FeConfigProvider';
 import { Spinner } from 'reactstrap';
 
-import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
-
 const App = () => {
    const [time, setTime] = useState('');
    const [timerType, setTimerType] = useState('login');
@@ -119,7 +117,7 @@ const App = () => {
                      <img alt="logo" className="logo-customizable" src={config?.branding.logo_url} />
                   </center>
                </div>
-               <div style={{ height: '5px', background: '#63db92' }} />
+               <div style={{ height: '5px', background: config?.branding.brand_base_color }} />
                <div className="modal-body" style={{ textAlign: 'center' }}>
                   <Routes>
                      <Route path="/" element={<Home />} />
@@ -129,7 +127,7 @@ const App = () => {
                      <Route path="/dualotp" element={<DualOTP stoptimer={selfserviceTimeOut} />} />
                      <Route path="/mfa" element={<MFA />} />
                      <Route path="/passwordreset" element={<NewPasswords />} />
-                     <Route path="/updateotp" element={<OTPMethods />} />
+                     <Route path="/otpmethods" element={<OTPMethods />} />
                      <Route path="/selfservice" element={<SelfService />} />
                      <Route path="/updateprofile" element={<UpdateProfile />} />
                      <Route path='/removeprofile' element={<RemoveProfile />} />

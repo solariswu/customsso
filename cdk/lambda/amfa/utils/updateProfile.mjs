@@ -25,13 +25,13 @@ export const checkSessionId = async (payload, step) => {
 		console.log('get update profile uid result:', results);
 
 		const email = results.Item.username.S;
-		const apti = results.Item.apti.S;
+		// const apti = results.Item.apti.S;
 		const otpaddr = results.Item.otpaddr.S;
 		const timestamp = results.Item.timestamp.N;
 
 		const expired = ((Date.now() - timestamp) > 1000 * 60 * 5);
 
-		const result = (email === payload.email && apti === payload.apti && !expired)
+		const result = (email === payload.email && !expired)
 
 		if (result && (step === 'updateProfile' || step === 'removeProfile')) {
 			return (result && otpaddr === payload.newProfile)

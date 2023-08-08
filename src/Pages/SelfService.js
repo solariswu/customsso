@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
-import { getApti, validateEmail } from './utils';
+import { validateEmail } from '../Components/utils';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
 const LOGIN = () => {
@@ -12,8 +12,6 @@ const LOGIN = () => {
 	const config = useFeConfigs();
 
 	document.title = 'Update Profile';
-
-	const apti = getApti();
 
 	const [errorMsg, setErrorMsg] = useState(location.state?.selfservicemsg);
 	const [email, setEmail] = useState(localStorage.getItem('amfa-username') || '');
@@ -41,7 +39,7 @@ const LOGIN = () => {
 
 		const options = {
 			method: 'POST',
-			body: JSON.stringify({ email, password, apti }),
+			body: JSON.stringify({ email, password, apti: 'admininitauth' }),
 		};
 
 		setLoading(true);
@@ -54,8 +52,7 @@ const LOGIN = () => {
 				navigate('/dualotp', {
 					state: {
 						email,
-						apti,
-						type: 'updateotp',
+						type: 'otpmethods',
 					}
 				});
 			}
@@ -112,7 +109,7 @@ const LOGIN = () => {
 					>
 						{isLoading ? 'Sending...' : 'Confirm'}
 					</Button>
-					<Button name="cancel" type="submit" className="btn btn-primary submitButton-customizable"
+					<Button name="back" type="submit" className="btn btn-primary submitButton-customizable-back"
 						variant="success"
 						disabled={isLoading}
 						onClick={() => window.location.assign(`${applicationUrl}?amfa=relogin`)}
@@ -129,7 +126,6 @@ const LOGIN = () => {
 						navigate('/dualotp', {
 							state: {
 								email,
-								apti,
 								type: 'passwordreset'
 							}
 						})

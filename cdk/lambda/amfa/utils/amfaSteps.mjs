@@ -349,8 +349,8 @@ export const amfaSteps = async (event, headers, cognito, step) => {
           postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType;
         }
         else {
-          sfl = 7;
           otpp = 0;
+          sfl = 7;
           postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp;
         }
         break;

@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Spinner } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
+import { getApti } from '../Components/utils';
 
 const LOGIN = () => {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ const LOGIN = () => {
 
   const email = location.state?.email;
   const rememberDevice = location.state?.rememberDevice;
-  const apti = location.state?.apti;
+  const apti = getApti();
   const state = location.state?.state;
   const redirectUri = location.state?.redirectUri;
 

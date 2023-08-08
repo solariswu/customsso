@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
-import { validatePassword, check_pwn_password } from '../utils';
+import { validatePassword, check_pwn_password } from '../../Components/utils';
 import PwnedPWDModal from '../../Components/PwnedPWDModal';
 import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
 
@@ -194,7 +194,7 @@ const LOGIN = () => {
         </Button>
       </div>
       {location.state && location.state.backable &&
-        <Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
+        <Button name='back' type="submit" className="btn btn-secondary submitButton-customizable-back"
           variant="outline-success"
           onClick={() => navigate('/registration', {
             state: {

@@ -38,9 +38,9 @@ const validateInputParams = (payload) => {
       return (payload && payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam && payload.uuid);
     case 'getOtpOptions':
-      return (payload && payload.email && payload.apti && payload.authParam);
+      return (payload && payload.email && payload.authParam);
     case 'removeProfile':
-      return (payload && payload.email && payload.apti && payload.authParam && payload.profile);
+      return (payload && payload.email && payload.authParam && payload.profile);
     default:
       break;
   }

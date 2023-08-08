@@ -279,7 +279,7 @@ const MFAContent = () => {
                   <div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>
                 </div>
       ))}
-      <div style={{padding: '5px 0 0 0'}}>
+      <div style={{ padding: '5px 0 0 0' }}>
         <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
           style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
           autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
@@ -291,8 +291,8 @@ const MFAContent = () => {
           type='submit'
           className='btn btn-primary submitButton-customizable'
           style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-          disabled={isLoading}
-          onClick={!isLoading ? stepfour : null}
+          disabled={isLoading || otp.type === ''}
+          onClick={stepfour}
         >
           {isLoading ? 'Sending...' : 'Verify'}
         </Button>

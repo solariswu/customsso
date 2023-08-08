@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
-import { validateEmail, validatePhoneNumber } from './utils';
+import { getApti, validateEmail, validatePhoneNumber } from '../Components/utils';
 
 import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input';
@@ -13,10 +13,11 @@ const CONTENT = () => {
 	const location = useLocation();
 
 	const email = location.state?.email;
-	const apti = location.state?.apti;
+
 	const updateType = location.state?.updateType;
 	const legacyProfile = location.state?.profile ? location.state.profile : '';
 	const [bundleId, setBundleId] = useState('');
+	const [apti, setApti] = useState(null);
 
 	useEffect(() => {
 		if (!location.state || !location.state.validated) {
@@ -30,7 +31,7 @@ const CONTENT = () => {
 	}, [location.state, navigate]);
 
 
-	const [msg, setMsg] = useState({ msg: `Click "Registration", a verification code would be sent to new ${updateType}`, type: 'info' });
+	const [msg, setMsg] = useState({ msg: '', type: 'info' });
 	const [profile, setProfile] = useState('');
 	const [newProfile, setNewProfile] = useState('');
 	const [isLoading, setLoading] = useState(false);
@@ -128,10 +129,9 @@ const CONTENT = () => {
 					}
 					break;
 				case 401:
-					navigate('/updateotp', {
+					navigate('/otpmethods', {
 						state: {
 							email,
-							apti,
 							uuid: location.state ? location.state.uuid : '',
 							validated: true,
 							otpData: location.state ? location.state.otpData : '',
@@ -166,6 +166,12 @@ const CONTENT = () => {
 			e.preventDefault();
 
 		console.log('send register new OTP');
+		let newApti = apti;
+
+		if (!apti) {
+			newApti = getApti();
+			setApti(newApti);
+		}
 
 		if (validProfile()) {
 
@@ -176,7 +182,7 @@ const CONTENT = () => {
 					otptype: otpList[updateType.toLowerCase()],
 					newProfile,
 					profile,
-					apti,
+					apti: newApti,
 					uuid: location.state ? location.state.uuid : '',
 					rememberDevice: false,
 					authParam: window.getAuthParam(),
@@ -254,15 +260,14 @@ const CONTENT = () => {
 				>
 					{applicationUrl ? 'Return to the Login Page' : 'Close this window'}
 				</Button>
-				<Button name="back" type="submit" className="btn btn-secondary submitButton-customizable"
+				<Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
 					variant="outline-success"
-					onClick={() => navigate('/updateotp', {
+					onClick={() => navigate('/otpmethods', {
 						state: {
 							email,
-							apti,
-							uuid : location.state ? location.state.uuid : '',
+							uuid: location.state ? location.state.uuid : '',
 							validated: true,
-							msg: {msg : '', type: ''},
+							msg: { msg: '', type: '' },
 						}
 					})}
 				>
@@ -320,20 +325,27 @@ const CONTENT = () => {
 							disabled={isLoading}
 						/>
 					}
-					<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
-						variant="success"
-						disabled={isLoading}
-						onClick={sendOTP}
-					>
-						{isLoading ? 'Sending...' : profileInFly === newProfile ? 'Resend Code' : `Register New ${updateType}`}
-					</Button>
+					{newProfile && newProfile.length > 0 &&
+						<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
+							variant="success"
+							disabled={isLoading}
+							onClick={sendOTP}
+						>
+							{isLoading ? 'Sending...' : profileInFly === newProfile ? 'Resend Code' : `Register New ${updateType}`}
+						</Button>}
 					{isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner></span> : (
 						msg && msg.msg ?
 							<div>
 								<span className={msg.type === 'error' ? 'errorMessage-customizable' : 'infoMessage-customizable'}>
 									{msg.msg}</span>
 							</div> :
-							<div style={{ height: '20px' }} />
+							profileInFly === '' && newProfile && newProfile.length > 0 ?
+								<div>
+									<span className='infoMessage-customizable'>
+										{`Click "Register" and a verification code will be sent to your new ${updateType}.`}
+									</span>
+								</div> :
+								< div style={{ height: '20px' }} />
 					)}
 					{profileInFly !== '' && profileInFly === newProfile &&
 						<div>
@@ -356,14 +368,13 @@ const CONTENT = () => {
 								{isLoading ? 'Sending...' : 'Verify'}
 							</Button>
 						</div>}
-					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable"
+					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable-back"
 						disabled={isLoading}
 						variant="outline-success"
-						onClick={() => navigate('/updateotp', {
+						onClick={() => navigate('/otpmethods', {
 							state: {
 								email,
-								apti,
-								uuid : location.state ? location.state.uuid : '',
+								uuid: location.state ? location.state.uuid : '',
 								validated: true,
 								msg: { msg: '', type: '' },
 							}

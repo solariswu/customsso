@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'reactstrap';
 
 import { apiUrl, clientName } from '../../const';
-import { getApti, validateEmail } from '../utils';
+import { getApti, validateEmail } from '../../Components/utils';
 import InfoMsg from '../../Components/InfoMsg';
 import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
 
