@@ -140,6 +140,7 @@ export const OTP = () => {
 			apti: otpApti,
 			otptype,
 			phase: `${amfaStepPrefix}${otp.stage + 1}`,
+			isResend: otptype === otpInFly,
 		};
 
 		setLoading(true);
@@ -244,42 +245,12 @@ export const OTP = () => {
 					console.log('otp response:', response);
 					if (otp.stage === 1) {
 						setOtp({ ...otp, type: '', code: '', addr: '', stage: otp.stage + 1 });
-						let count = 0;
-
-						console.log('data', data);
-						data.otpOptions.map((option) => {
-							switch (option) {
-								case 'e':
-									if (data.email && data.email.length > 0) {
-										count++;
-									}
-									break;
-								case 'ae':
-									if (data.aemail && data.aemail.length > 0) {
-										count++;
-									}
-									break;
-								case 's':
-									if (data.phoneNumber && data.phoneNumber.length > 0) {
-										count++;
-									}
-									break;
-								case 'v':
-									if (data.vPhoneNumber && data.vPhoneNumber.length > 0 && data.vPhoneNumber !== data.phoneNumber) {
-										count++;
-									}
-									break;
-								default:
-									break;
-							}
-							return option;
-						});
 
 						let idx = data.otpOptions.findIndex(option => option === otp.type);
 						console.log('idx:', idx);
-						console.log('count:', count);
+						console.log('count:', OTPMethodsCount);
 
-						if (idx > -1 && count > 1) {
+						if (idx > -1 && OTPMethodsCount > 1) {
 							data.otpOptions.splice(idx, 1);
 
 							if ((otp.type === 's' || otp.type === 'v') &&
@@ -290,7 +261,7 @@ export const OTP = () => {
 							}
 						}
 						else {
-							if (count === 1) {
+							if (OTPMethodsCount === 1) {
 								navigate(`/${location.state.type}`, {
 									state: {
 										email,
@@ -438,7 +409,7 @@ export const OTP = () => {
 					<span className='link-customizable' onClick={() => sendOtp(otptype)}>
 						{table[otptype].content}
 					</span>
-					{otpInFly === otptype && <div style={{ fontSize: '8px', fontStyle: 'italic' }}>(resend code)</div>}
+					{otpInFly === otptype && <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>(resend code)</div>}
 				</div>
 			</div>
 		)
@@ -479,10 +450,18 @@ export const OTP = () => {
 					className='btn btn-primary submitButton-customizable'
 					style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
 					disabled={isLoading || otp.type === ''}
-					onClick={!isLoading ? verifyOtp : null}
+					onClick={verifyOtp}
 				>
 					{isLoading ? showOTP ? 'Sending...' : 'Checking...' : 'Verify'}
 				</Button>
+				{otpInFly && otpInFly !== '' && OTPMethodsCount > 1 &&
+					<Button name='changeotp' type="submit" className="btn btn-secondary submitButton-customizable-back"
+						disabled={isLoading}
+						onClick={() => setOtpInFly('')}
+					>
+						{isLoading ? showOTP ? 'Sending...' : 'Checking...' : 'Try another Channel'}
+					</Button>
+				}
 			</div>
 			{showOTP && <InfoMsg isLoading={isLoading} msg={msg} />}
 		</div>

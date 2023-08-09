@@ -6,6 +6,7 @@ import InfoMsg from '../Components/InfoMsg';
 
 import { apiUrl } from '../const';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
+import { getApti } from '../Components/utils';
 
 const LOGIN = () => {
 	const navigate = useNavigate();
@@ -178,6 +179,7 @@ const LOGIN = () => {
 								onClick={() => navigate('/passwordreset', {
 									state: {
 										email,
+										apti: getApti(),
 										uuid,
 										validated: true,
 										otpData: data,

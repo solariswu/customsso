@@ -162,6 +162,7 @@ const LOGIN = () => {
       </span>
       <hr className="hr-customizable" />
       <span className='idpDescription-customizable'> {config?.branding.login_app_main_page_message} </span>
+      <hr className="hr-customizable" />
       <div>
         <input
           type="checkbox" id="remember-me" name="remember-me"

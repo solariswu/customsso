@@ -155,7 +155,6 @@ const LOGIN = () => {
           onClick={() => navigate('/otpmethods', {
             state: {
               email,
-              apti,
               uuid: location.state ? location.state.uuid : '',
               validated: true,
               msg: { msg: '', type: '' },
@@ -261,23 +260,23 @@ const LOGIN = () => {
           >
             {isLoading ? 'Sending...' : 'Complete'}
           </Button>
+          {location.state && location.state.backable &&
+            <Button name='back' type="submit" className="btn btn-secondary submitButton-customizable-back"
+              variant="outline-success"
+              disabled={isLoading}
+              onClick={() => navigate('/otpmethods', {
+                state: {
+                  email,
+                  uuid: location.state ? location.state.uuid : '',
+                  validated: true,
+                }
+              })}
+              style={{ marginTop: '10px' }}
+            >
+              {'Back'}
+            </Button>
+          }
         </div>}
-      {location.state && location.state.backable &&
-        <Button name='back' type="submit" className="btn btn-secondary submitButton-customizable-back"
-          variant="outline-success"
-          disabled={isLoading}
-          onClick={() => navigate('/otpmethods', {
-            state: {
-              email,
-              uuid: location.state ? location.state.uuid : '',
-              validated: true,
-            }
-          })}
-          style={{ marginTop: '10px' }}
-        >
-          {'Back'}
-        </Button>
-      }
       {isLoading || !config ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
         errorMsg && <div>
           <br />

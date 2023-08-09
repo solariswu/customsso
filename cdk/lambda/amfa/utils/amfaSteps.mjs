@@ -423,7 +423,8 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'selfserviceverify2':
             case 'selfserviceverify3':
               if (amfaResponseJSON.message === 'OK') {
-                const uuid = await genSessionID(event.email, event.apti);
+                const apti = step.startsWith('selfserviceverify') ? 'updateprofile' : event.apti;
+                const uuid = await genSessionID(event.email, apti);
                 return {
                   isBase64Encoded: false,
                   statusCode: 200,

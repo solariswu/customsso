@@ -47,8 +47,8 @@ export const handler = async (event) => {
 		console.log('payload', payload);
 		console.log('uuid expired:', expired);
 
-		if (email.trim().toLowerCase() === payload.email.trim().toLowerCase()
-			 && apti === payload.apti && !expired) {
+		if (email.trim().toLowerCase() === payload.email.trim().toLowerCase() && !expired &&
+			(apti === payload.apti || apti === 'updateprofile')) {
 			const input = { // AdminSetUserPasswordRequest
 				UserPoolId: process.env.USERPOOL_ID, // required
 				Username: email.trim().toLowerCase(), // required
