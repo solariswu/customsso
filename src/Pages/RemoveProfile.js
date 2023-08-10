@@ -129,7 +129,7 @@ const CONTENT = () => {
 						}
 					})}
 				>
-					{'Back'}
+					{'Return to Update Profile'}
 				</Button>
 			</div >
 		)
@@ -180,7 +180,9 @@ const CONTENT = () => {
 								msg: { msg: '', type: '' }
 							}
 						})}
-					>{'Back'}</Button>
+					>
+						{'Return to Update Profile'}
+					</Button>
 					<InfoMsg msg={msg} isLoading={isLoading} />
 				</div>}
 		</div >

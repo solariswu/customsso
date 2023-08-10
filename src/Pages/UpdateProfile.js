@@ -271,7 +271,7 @@ const CONTENT = () => {
 						}
 					})}
 				>
-					{'Back'}
+					{'Return to Update Profile'}
 				</Button>
 			</div >
 		)
@@ -380,7 +380,7 @@ const CONTENT = () => {
 							}
 						})}
 					>
-						{'Back'}
+						{'Return to Update Profile'}
 					</Button>
 				</div>}
 		</div >

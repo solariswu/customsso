@@ -161,7 +161,7 @@ const LOGIN = () => {
             }
           })}
         >
-          {'Back'}
+					{'Return to Update Profile'}
         </Button>
       </div >
     )
@@ -273,7 +273,7 @@ const LOGIN = () => {
               })}
               style={{ marginTop: '10px' }}
             >
-              {'Back'}
+              {'Return to Update Profile'}
             </Button>
           }
         </div>}
