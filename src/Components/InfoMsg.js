@@ -4,7 +4,7 @@ const InfoMsg = (props) => {
 	const { msg, isLoading } = props;
 	return (
 		isLoading ?
-			<span className='errorMessage-customizable'><Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner></span> :
+			<span className='errorMessage-customizable' style={{ backgroundColor: 'none' }}><Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner></span> :
 			(msg && msg.msg ?
 				<div>
 					<span className={msg.type === 'error' ? 'errorMessage-customizable' : 'infoMessage-customizable'}>

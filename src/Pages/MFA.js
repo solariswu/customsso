@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import { Button, Spinner } from 'reactstrap';
+import { Button } from 'reactstrap';
 
 import { apiUrl, applicationUrl } from '../const';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
+import InfoMsg from '../Components/InfoMsg';
 
 const MFAContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const config = useFeConfigs();
 
-  const [errMsg, setErrorMsg] = useState('');
-  const [infoMsg, setInfoMsg] = useState('');
+  const [msg, setMsg] = useState({ msg: '', type: '' });
   const [isLoading, setLoading] = useState(false);
   const [otp, setOtp] = useState({ type: '', code: '', addr: '' });
-
+  const [otpInFly, setOtpInFly] = useState('');
 
   useEffect(() => {
 
@@ -47,7 +47,16 @@ const MFAContent = () => {
   const aemail = location.state?.aemail;
   const phoneNumber = location.state?.phoneNumber;
   const vPhoneNumber = location.state?.vPhoneNumber;
+  const mobileToken = location.state?.mobileToken;
   const otpOptions = location.state?.otpOptions;
+
+  const setInfoMsg = (msg) => {
+    setMsg({ msg, type: 'info' });
+  }
+
+  const setErrorMsg = (msg) => {
+    setMsg({ msg, type: 'error' });
+  }
 
   const setOTPCode = (e) => {
     setOtp({ ...otp, code: e.target.value });
@@ -59,7 +68,7 @@ const MFAContent = () => {
     }
   }
 
-  const stepthree = async ({ otptype }) => {
+  const sendOtp = async (otptype) => {
     setOtp({ ...otp, type: otptype });
 
     const sendOtpParams = {
@@ -75,7 +84,6 @@ const MFAContent = () => {
 
     setLoading(true);
     setErrorMsg('');
-    setInfoMsg('');
     try {
       const result = await fetch(`${apiUrl}/amfa`, {
         method: 'POST',
@@ -91,6 +99,7 @@ const MFAContent = () => {
             setTimeout(() => {
               setInfoMsg('');
             }, 8000);
+            setOtpInFly(otptype);
           }
           else {
             setErrorMsg('Unknown OTP send error, please contact help desk.');
@@ -130,7 +139,6 @@ const MFAContent = () => {
 
     if (!otp.code || otp.code.length < 1) {
       setErrorMsg('Please enter the verification code');
-      setInfoMsg('');
       return;
     }
 
@@ -151,7 +159,6 @@ const MFAContent = () => {
     setLoading(true);
     setOtp({ ...otp, code: '', addr: '' });
     setErrorMsg('');
-    setInfoMsg('');
     try {
       const result = await fetch(`${apiUrl}/amfa`, {
         method: 'POST',
@@ -162,6 +169,7 @@ const MFAContent = () => {
       switch (result.status) {
         case 200:
           const response = await result.json();
+          setOtpInFly('');
           if (response.location) {
             window.location.assign(response.location);
             return;
@@ -222,10 +230,65 @@ const MFAContent = () => {
           if (vPhoneNumber && vPhoneNumber !== phoneNumber)
             OTPMethodsCount++;
           break;
+        case 't':
+          if (mobileToken)
+            OTPMethodsCount++;
+          break
         default:
           break;
       }
     })
+  }
+
+  const OTPElement = ({ otptype }) => {
+    const verifyMobileToken = () => {
+      setOtpInFly('t');
+      setOtp({ ...otp, type: 't' });
+    }
+
+    if (otptype === 't') {
+      return (
+        <div className='row align-items-end'>
+          <div className='col-4'>TOTP:</div>
+          <div className='col'>
+            <span className='link-customizable' onClick={verifyMobileToken}>
+              mobile app token
+            </span>
+          </div>
+        </div>
+      )
+    }
+
+    const table = {
+      e: {
+        title: 'Email',
+        content: `${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))}`,
+      },
+      ae: {
+        title: 'Alt-Email',
+        content: aemail ? aemail : null,
+      },
+      s: {
+        title: 'SMS',
+        content: phoneNumber ? phoneNumber : null,
+      },
+      v: {
+        title: 'Voice',
+        content: vPhoneNumber ? vPhoneNumber : null,
+      }
+    };
+
+    return (table[otptype].content &&
+      <div className='row align-items-end'>
+        <div className='col-4'>{table[otptype].title}:</div>
+        <div className='col'>
+          <span className='link-customizable' onClick={() => sendOtp(otptype)}>
+            {table[otptype].content}
+          </span>
+          {otpInFly === otptype && <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>(resend code)</div>}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -244,41 +307,7 @@ const MFAContent = () => {
         </span>
         <hr className='hr-customizable' />
       </div>
-      {otpOptions.map((option) => (
-        option === 'e' && email ?
-          (<div className='row align-items-end'>
-            <div className='col-4'>Email:</div>
-            <div className='col'>
-              <span className='link-customizable' onClick={() => email ? stepthree({ otptype: 'e' }) : null}>
-                {`${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))} >`}
-              </span>
-            </div>
-          </div>) : option === 'ae' && aemail ?
-            <div className='row align-items-end'>
-              <div className='col-4'>Alt-Email:</div>
-              <div className='col'>
-                <span className='link-customizable' onClick={() => stepthree({ otptype: 'ae' })}>
-                  {`${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))} >`} </span>
-              </div>
-            </div> : option === 's' && phoneNumber ?
-              <div className='row align-items-end'>
-                <div className='col-4'>SMS:</div>
-                <div className='col'>
-                  <span className='link-customizable' onClick={() => phoneNumber ? stepthree({ otptype: 's' }) : null}>
-                    {phoneNumber.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') + ' >'} </span>
-                </div>
-              </div> : option === 'v' && vPhoneNumber ?
-                <div className='row align-items-end'>
-                  <div className='col-4'>Voice:</div>
-                  <div className='col'>
-                    <span className='link-customizable' onClick={() => vPhoneNumber ? stepthree({ otptype: 'v' }) : null}>
-                      {vPhoneNumber.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') + ' >'} </span>
-                  </div>
-                </div> : option === 'm' &&
-                <div className='row align-items-end'>
-                  <div className='col'>Mobile Token:&nbsp;&nbsp;&nbsp;&nbsp;Obtain from your mobile</div>
-                </div>
-      ))}
+      {otpOptions.map((option) => ((otpInFly === '' || otpInFly === option) && <OTPElement otptype={option} />))}
       <div style={{ padding: '5px 0 0 0' }}>
         <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
           style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
@@ -291,19 +320,21 @@ const MFAContent = () => {
           type='submit'
           className='btn btn-primary submitButton-customizable'
           style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-          disabled={isLoading || otp.type === ''}
+          disabled={isLoading || otpInFly === ''}
           onClick={stepfour}
         >
           {isLoading ? 'Sending...' : 'Verify'}
         </Button>
+        {otpInFly && otpInFly !== '' && OTPMethodsCount > 1 &&
+          <Button name='changeotp' type="submit" className="btn btn-secondary submitButton-customizable-back"
+            disabled={isLoading}
+            onClick={() => setOtpInFly('')}
+          >
+            Try another Channel
+          </Button>
+        }
       </div>
-      {isLoading ? <span className='errorMessage-customizable'><Spinner color="primary" >{''}</Spinner></span> : (
-        errMsg && (
-          <div><span className='errorMessage-customizable'>{errMsg}</span></div>
-        ))}
-      {!isLoading && infoMsg &&
-        <div><span className='infoMessage-customizable'>{infoMsg}</span></div>
-      }
+      <InfoMsg isLoading={isLoading} msg={msg} />
     </div>
   );
 }

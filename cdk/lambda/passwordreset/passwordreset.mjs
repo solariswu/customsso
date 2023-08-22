@@ -41,7 +41,7 @@ export const handler = async (event) => {
 		const timestamp = results.Item.timestamp.N;
 
 		// 5mins
-		const expired = (new Date().getTime() - timestamp) > (1000 * 60 * 5);
+		const expired = (new Date().getTime() - timestamp) > (1000 * 60 * 10);
 
 		console.log(email);
 		console.log('payload', payload);

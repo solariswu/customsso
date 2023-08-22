@@ -252,6 +252,7 @@ export class TenantApiGateway {
           HOSTED_CLIENT_ID: hostedClientId,
           SESSION_ID_TABLE: sessionIdTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
+          TOTP_KEY_NAME: config.totpkeyname,
         },
         timeout: Duration.minutes(5),
         // 👇 place lambda in the VPC
@@ -299,9 +300,16 @@ export class TenantApiGateway {
         ],
       });
 
+    const policyKms =
+      new PolicyStatement({
+        actions: ['secretsmanager:GetSecretValue'],
+        resources: [`arn:aws:secretsmanager:${config.region}:*:secret:${config.totpkeyname}`],
+      });
+
+
     myLambda.role?.attachInlinePolicy(
       new Policy(this.scope, `amfa-${lambdaName}-lambda-policy`, {
-        statements: [policyStatementCognito, policyStatementDB],
+        statements: [policyStatementCognito, policyStatementDB, policyKms],
       })
     );
 
@@ -355,7 +363,7 @@ export class TenantApiGateway {
         resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
       });
 
-      const policyStatementDB =
+    const policyStatementDB =
       new PolicyStatement({
         actions: [
           'dynamodb:GetItem',

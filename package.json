@@ -11,6 +11,8 @@
 		"aws-cdk-lib": "^2.63.2",
 		"bootstrap": "^5.2.3",
 		"constructs": "^10.0.0",
+		"otplib": "^12.0.1",
+		"qrcode": "^1.5.3",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-google-recaptcha": "^2.1.0",

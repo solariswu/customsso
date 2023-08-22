@@ -101,9 +101,10 @@ const LOGIN = () => {
                 apti,
                 state,
                 redirectUri,
-                aemail: response2['custom:alter-email'],
+                aemail: response2.aemail,
                 phoneNumber: response2.phone_number,
-                vPhoneNumber: response2['custom:voice-number'] ? response2['custom:voice-number'] : response2.phone_number,
+                vPhoneNumber: response2.vPhoneNumber ? response2.vPhoneNumber : response2.phone_number,
+                mobileToken: response2.mobileToken,
                 otpOptions: response2.otpOptions,
               }
             });

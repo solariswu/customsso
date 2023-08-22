@@ -6,6 +6,10 @@ import {
 import { amfaSteps } from "./utils/amfaSteps.mjs";
 import { fetchConfig } from './utils/fetchConfig.mjs';
 
+import { checkSessionId } from './utils/checkSessionId.mjs';
+
+import { deleteTotp, registotp } from './utils/totp/registOtp.mjs';
+
 const validateInputParams = (payload) => {
   // check required params here
   switch (payload.phase) {
@@ -41,11 +45,13 @@ const validateInputParams = (payload) => {
       return (payload && payload.email && payload.authParam);
     case 'removeProfile':
       return (payload && payload.email && payload.authParam && payload.profile);
+    case 'registotp':
+      return (payload && payload.email && payload.uuid && payload.secretCode && payload.tokenLabel);
     default:
       break;
   }
 
-  console.log('Invalid payload', payload);
+  console.log('Phase not found.', payload);
 
   return false;
 };
@@ -88,6 +94,25 @@ export const handler = async (event) => {
     console.log('payload', payload);
 
     if (payload && validateInputParams(payload)) {
+
+      if (payload.phase === 'registotp') {
+        const isValidUuid = await checkSessionId(payload, payload.uuid);
+        if (isValidUuid) {
+          const amfaConfigs = await fetchConfig('amfaConfigs');
+          return await registotp(headers, payload, amfaConfigs, requestId);
+        }
+      }
+
+      console.log ('phase', payload.phase, ' otptype', payload.otptype);
+      if (payload.phase === 'removeProfile' && payload.otptype === 't') {
+        console.log ('removeProfile check uuid');
+        const isValidUuid = await checkSessionId(payload, payload.uuid);
+        console.log ('isValidUuid', isValidUuid);
+        if (isValidUuid) {
+          const amfaConfigs = await fetchConfig('amfaConfigs');
+          return await deleteTotp(headers, payload.email, amfaConfigs, requestId);
+        }
+      }
 
       const ipAddress = getIPFromHeader(
         event.headers['X-Forwarded-For'].trim()
@@ -141,9 +166,9 @@ export const handler = async (event) => {
       error = 'incoming params error.';
     }
   } catch (err) {
-    console.log('error details:', err);
+    console.error('error details:', err);
     return response(
-      err.statusCode ? err.statusCode : 500,
+      err.statusCode ? err.statusCode : 511,
       JSON.stringify({
         message: 'input param parse error',
       }),

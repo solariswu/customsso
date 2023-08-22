@@ -7,6 +7,7 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { createHash } from 'node:crypto';
+
 import { fetchCode } from './fetchCode.mjs';
 import { passwordlessLogin } from './passwordlessLogin.mjs';
 
@@ -17,8 +18,11 @@ import { cookie2NamePrefix } from '../const.mjs';
 import { genSessionID } from './genSessionID.mjs';
 import { fetchConfig } from './fetchConfig.mjs';
 
-import { checkSessionId, updateProfile } from './updateProfile.mjs';
+import { updateProfile } from './updateProfile.mjs';
+import { checkSessionId } from './checkSessionId.mjs';
 import { getTType } from './amfaUtils.mjs';
+import { getTotp } from './totp/getToken.mjs';
+import { validateTotp } from './totp/verifyOtp.mjs';
 
 export const amfaSteps = async (event, headers, cognito, step) => {
 
@@ -40,6 +44,18 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     'Access-Control-Expose-Headers': 'Set-Cookie',
     'Access-Control-Allow-Credentials': 'true',
   };
+
+  const transUAttr = (userAttributes) => {
+    const phoneNumber = userAttributes.phone_number ? userAttributes.phone_number.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
+    let aemail = userAttributes['custom:alter-email'] ? userAttributes['custom:alter-email'] : null;
+    (aemail && aemail.indexOf('@') > 0) ?
+      aemail = `${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}`
+      : aemail = null;
+
+    const vPhoneNumber = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'].replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
+
+    return ({phoneNumber, aemail, vPhoneNumber})
+  }
 
   function hash(content) {
     return createHash('md5').update(content).digest('hex');
@@ -65,6 +81,41 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     let user = null;
     let userAttributes = null;
     let ug = 'default';
+
+    const smtpConfig = {
+      service: amfaConfigs.smtp.service,
+      host: amfaConfigs.smtp.host,
+      port: amfaConfigs.smtp.port,
+      secure: amfaConfigs.smtp.secure,
+      auth: {
+        user: amfaConfigs.smtp.user,
+        pass: amfaConfigs.smtp.pass,
+      }
+    }
+
+    // TOTP verification 
+    const mobileTokenVerifySteps = [
+      'pwdresetverify2',
+      'pwdresetverify3',
+      'selfserviceverify2',
+      'selfserviceverify3'
+    ];
+
+    if (mobileTokenVerifySteps.includes(step) && event.otptype === 't') {
+      const isValid = await validateTotp(event, amfaConfigs);
+      if (isValid) {
+        const apti = step.startsWith('selfserviceverify') ? 'updateprofile' : event.apti;
+        const uuid = await genSessionID(event.email, apti);
+        return {
+          isBase64Encoded: false,
+          statusCode: 200,
+          headers: { ...headers, requestId: event.requestId },
+          body: JSON.stringify({ message: 'OK', uuid }),
+        };
+      }
+      return response(403, 'The identity code you entered was not correct. Please try again.', event.requestId)
+    }
+    // end TOTP verifiction
 
     if (step !== 'emailverificationSendOTP' && step !== 'emailverificationverifyotp') {
       const listUsersParam = {
@@ -173,33 +224,32 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         return response(400, 'Your entry was not valid, please try again.', event.requestId);
       }
 
-      await updateProfile(event.email, event.otptype, '', event.uuid, cognito);
+      await updateProfile(event.email, event.otptype, '', cognito, smtpConfig);
       return response(200, 'OK', event.requestId);
 
     }
 
     if (step === 'getOtpOptions') {
-      const phoneNumber = userAttributes.phone_number ? userAttributes.phone_number.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
-      let aemail = userAttributes['custom:alter-email'] ? userAttributes['custom:alter-email'] : null;
-      (aemail && aemail.indexOf('@') > 0) ?
-        aemail = `${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}`
-        : aemail = null;
-
-      const vPhoneNumber = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'].replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
+      const tempOtpData = transUAttr (userAttributes);
 
       let otpData = { aemail: null, phoneNumber: null, vPhoneNumber: null };
+
+      const mobileToken = await getTotp(event.email, amfaConfigs.totp?.asm_provider_id);
 
       if (amfaConfigs.master_additional_otp_methods) {
         amfaConfigs.master_additional_otp_methods.forEach(method => {
           switch (method) {
             case 'ae':
-              otpData.aemail = aemail;
+              otpData.aemail = tempOtpData.aemail;
               break;
             case 's':
-              otpData.phoneNumber = phoneNumber;
+              otpData.phoneNumber = tempOtpData.phoneNumber;
               break;
             case 'v':
-              otpData.vPhoneNumber = vPhoneNumber;
+              otpData.vPhoneNumber = tempOtpData.vPhoneNumber;
+              break;
+            case 't':
+              otpData.mobileToken = mobileToken;
               break;
             default:
               break;
@@ -334,6 +384,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       case 'selfserviceverify3':
       case 'updateProfile':
       case 'emailverificationverifyotp':
+        otpm = event.otptype;
         let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
         postURL = asmurl + '/extVerifyOtp.kv?l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
         break;
@@ -375,7 +426,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'updateProfile':
               if (amfaResponseJSON.message === 'OK') {
                 // update profile
-                await updateProfile(event.email, event.otptype, event.otpaddr, event.uuid, cognito);
+                await updateProfile(event.email, event.otptype, event.otpaddr, cognito, smtpConfig);
                 return response(200, 'OK', event.requestId);
               }
               else {
@@ -461,12 +512,14 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               // User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
               return response(202, 'Your identity requires password login.', event.requestId)
             case 'password':
+              const mobileToken = await getTotp(event.email, amfaConfigs.totp?.asm_provider_id);
               // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
+              const tempOtpData = transUAttr(userAttributes);
               return {
                 statusCode: 202,
                 isBase64Encoded: false,
                 headers: { ...cookieEnabledHeaders, requestId: event.requestId },
-                body: JSON.stringify({ ...userAttributes, otpOptions: amfaPolicies[ug].permissions })
+                body: JSON.stringify({ email: event.email, ...tempOtpData, mobileToken, otpOptions: amfaPolicies[ug].permissions })
               }
             case 'sendotp':
             case 'pwdreset2':

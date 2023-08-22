@@ -167,6 +167,7 @@ const LOGIN = () => {
         <input
           type="checkbox" id="remember-me" name="remember-me"
           checked={rememberDevice === 'true'}
+          disabled={isLoading}
           onChange={handleRememberDevice}
         />
         <span style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey' }}>

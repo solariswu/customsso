@@ -3,5 +3,6 @@ export const config = {
 	'region' : 'eu-west-1',
 	'tenantAppUrl': 'https://amfa.netlify.app/',
 	'tenantId' : 'epnd-dev004', // lowercase only
-	'magicstring': 'youguesswhat'
+	'magicstring': 'youguesswhat',
+	'totpkeyname':'amfa/totpsecrectkey-eEoRjE'
 }

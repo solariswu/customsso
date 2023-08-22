@@ -20,6 +20,7 @@ import RemoveProfile from './Pages/RemoveProfile';
 import { RegistrationVerify, RegistrationHome, RegistrationPasswords, RegistrationAttributes, RegistrationConsent } from './Pages/Registration';
 import { useFeConfigs } from './DataProviders/FeConfigProvider';
 import { Spinner } from 'reactstrap';
+import SetTOTP from './Pages/SetTOTP';
 
 const App = () => {
    const [time, setTime] = useState('');
@@ -63,6 +64,7 @@ const App = () => {
    }
 
    const selfserviceTimeOut = () => {
+      cd.current = 600;
       setTimerType('selfservice');
    }
 
@@ -128,9 +130,10 @@ const App = () => {
                      <Route path="/mfa" element={<MFA />} />
                      <Route path="/passwordreset" element={<NewPasswords />} />
                      <Route path="/otpmethods" element={<OTPMethods />} />
-                     <Route path="/selfservice" element={<SelfService />} />
+                     <Route path="/selfservice" element={<SelfService stoptimer={selfserviceTimeOut} />} />
                      <Route path="/updateprofile" element={<UpdateProfile />} />
                      <Route path='/removeprofile' element={<RemoveProfile />} />
+                     <Route path="/setuptotp" element={<SetTOTP />} />
                      <Route path="/registration" element={<RegistrationHome />} />
                      <Route path="/register_consent" element={<RegistrationConsent />} />
                      <Route path="/registration_password" element={<RegistrationPasswords />} />

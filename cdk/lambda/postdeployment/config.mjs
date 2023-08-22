@@ -7,7 +7,7 @@ export const amfaPolicies = {
 	"admin": {
 		"policy_name": "epnd-su-72ja37bc51mz",
 		"rank": 2,
-		"permissions": ['e', 'ae', 's', 'v']
+		"permissions": ['e', 'ae', 's', 'v', 't']
 	},
 	"cohort_owner": {
 		"policy_name": "epnd-cohort-owner-52ws89xs12gz",
@@ -17,7 +17,7 @@ export const amfaPolicies = {
 	"user": {
 		"policy_name": "epnd-user-63em98az26jq47",
 		"rank": 4,
-		"permissions": ['e', 'ae', 's', 'v']
+		"permissions": ['e', 'ae', 's', 'v', 't']
 	},
 	"password-reset": {
 		"policy_name": "EPND-Pwd-Reset-72vc59zx34",
@@ -36,16 +36,28 @@ export const amfaPolicies = {
 }
 
 export const amfaConfigs = {
-	"asmurl": "https://asm2.apersona.com:8443/asm",
+	"asmurl": "https://fs.apersonadev2.com:15312/asm",
 	"enable_passwordless": true,
 	"enable_password_reset": true,
 	"enable_self_service": true,
 	"enable_user_registration": true,
 	"enable_have_i_been_pwned": true,
 	"enable_google_recaptcha": true,
-	"master_additional_otp_methods": ["ae", "s", "v"],
+	"master_additional_otp_methods": ["ae", "s", "v", "t"],
 	"user_registration_default_group": "user",
 	"salt": "a-random-string-here",
+	"smtp": {
+		service: "gmail",
+		host: "smtp.gmail.com",
+		port: 587,
+		secure: false,
+		user: "niunaihemianbao012@gmail.com",
+		pass: "jwcjehfafowrmtlk",
+	},
+	"totp": {
+	  "asm_provider_id": 2,
+	  "asm_totp_salt": "**Salt-here!!!**"
+	}
 }
 
 export const amfaBrandings =
