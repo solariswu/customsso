@@ -20,13 +20,9 @@ export const getAsmSecret = async () => {
 		);
 		const secret = JSON.parse(response.SecretString);
 
-		console.log ('get secret string:', response.SecretString);
-		console.log ('secret', secret);
 		return secret.totpSecret;
 
 	} catch (error) {
-		// For a list of exceptions thrown, see
-		// https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
 		throw error;
 	}
 

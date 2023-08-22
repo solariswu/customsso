@@ -78,8 +78,6 @@ export const getSecretKey = async function (email, asm_token_salt, provider_id) 
 
 		secret_code = aesDecrypt({ toDecrypt: result, aesKey: final_encrypt_key });
 
-		console.log ('read from DB - secret_code', secret_code);
-
 	}
 
 	con.release();

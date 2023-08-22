@@ -32,8 +32,6 @@ export const registotp = async (headers, payload, configs, requestId) => {
                     configs.totp.asm_provider_id,
                     payload.tokenLabel);
 
-                console.log('secret_code', payload.secretCode);
-
                 return response(headers, 200, 'TOTP configured', requestId);
             }
             else {
@@ -48,8 +46,9 @@ export const registotp = async (headers, payload, configs, requestId) => {
     }
 }
 
-export const deleteTotp = async (headers, payload, configs, requestId) => {
-    await deleteToken (payload.email, configs.totp.asm_provider_id)
+export const deleteTotp = async (headers, email, configs, requestId) => {
+    console.log ('deleteTotp payload ', email, ' configs ', configs)
+    await deleteToken (email, configs.totp.asm_provider_id)
 
     return response(headers, 200, 'TOTP deleted', requestId);
 }

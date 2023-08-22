@@ -4,8 +4,6 @@ import mysql from 'mysql2/promise';
 import * as crypto from 'crypto';
 import { getAsmSecret } from './getKms.mjs';
 
-const tableName = 'tokens';
-
 const aesEncrypt = ({ toEncrypt, aesKey }) => {
 	const cipher = crypto.createCipheriv('aes-128-ecb', aesKey, '');
 	let encrypted = cipher.update(toEncrypt, 'utf8', 'base64');
@@ -31,7 +29,7 @@ const writeToDB = async (con, email, token, provider_id, device_name) => {
 	console.log ('starting to write token to db')
 
 	console.log ('delete all old token from db');
-	const deleteSql = `DELETE FROM ${tableName} WHERE email = ? AND provider_id = ?`;
+	const deleteSql = 'DELETE FROM tokens WHERE email = ? AND provider_id = ?';
 	const deleteValues = [email, provider_id];
 	const deleteResult = await con.query(deleteSql, deleteValues);
 	console.log ('delete result', deleteResult);
@@ -58,12 +56,13 @@ const pool = mysql.createPool({
 export const deleteToken = async (email, provider_id) => {
 	const con = await pool.getConnection();
 	await con.ping();
-	console.log("DB Connected!");
+	console.log("deleteToken DB Connected!");
 
 	console.log ('delete all old token from db');
-	const deleteSql = `DELETE FROM ${tableName} WHERE email = ? AND provider_id = ?`;
+	const deleteSql = 'DELETE FROM tokens WHERE email = ? AND provider_id = ?';
 	const deleteValues = [email, provider_id];
-	const deleteResult = await con.query(deleteSql, deleteValues);
+
+	const deleteResult = await con.execute(deleteSql, deleteValues);
 	console.log ('delete result', deleteResult);
 
 	con.release();
@@ -79,7 +78,9 @@ export default async function writeToken(secret_key, email, asm_token_salt, prov
 
 	console.log("DB Connected!");
 
-	await writeToDB(con, email, genTotpToken(secret_key, email, asm_token_salt), provider_id, device_name);
+	const encryptedToken = await genTotpToken(secret_key, email, asm_token_salt);
+
+	await writeToDB(con, email, encryptedToken, provider_id, device_name);
 
 	con.release();
 

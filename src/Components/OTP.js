@@ -376,6 +376,10 @@ export const OTP = () => {
           if (data.vPhoneNumber && data.vPhoneNumber !== data.phoneNumber)
             OTPMethodsCount++;
           break;
+        case 't':
+          if (data.mobileToken)
+            OTPMethodsCount++;
+          break;
         default:
           break;
       }
@@ -389,18 +393,18 @@ export const OTP = () => {
       setApti(getApti());
     }
 
-    if (otptype === 't') {
-      return (
-        <div className='row align-items-end'>
-          <div className='col-4'>TOTP:</div>
-          <div className='col'>
-            <span className='link-customizable' onClick={verifyMobileToken}>
-              mobile app token
-            </span>
-          </div>
-        </div>
-      )
-    }
+    // if (otptype === 't' && data?.mobileToken) {
+    //   return (
+    //     <div className='row align-items-end'>
+    //       <div className='col-4'>TOTP:</div>
+    //       <div className='col'>
+    //         <span className='link-customizable' onClick={verifyMobileToken}>
+    //           mobile app token
+    //         </span>
+    //       </div>
+    //     </div>
+    //   )
+    // }
 
     const table = {
       e: {
@@ -418,17 +422,23 @@ export const OTP = () => {
       v: {
         title: 'Voice',
         content: data?.vPhoneNumber ? `${data.vPhoneNumber}` : null,
-      }
+      },
+      t: {
+        title: 'TOTP',
+        content: data?.mobileToken ? 'mobile app token' : null,
+      },
     };
 
-    return (table[otptype].content &&
+    return (table[otptype]?.content &&
       <div className='row align-items-end'>
         <div className='col-4'>{table[otptype].title}:</div>
         <div className='col'>
-          <span className='link-customizable' onClick={() => sendOtp(otptype)}>
+          <span className='link-customizable' onClick={() => otptype === 't' ? verifyMobileToken() : sendOtp(otptype)}>
             {table[otptype].content}
           </span>
-          {otpInFly === otptype && <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>(resend code)</div>}
+          {otpInFly === otptype && <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>
+            {otptype === 't' ? data.mobileToken : '(resend code)'}
+          </div>}
         </div>
       </div>
     )
