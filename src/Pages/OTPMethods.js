@@ -53,10 +53,10 @@ const LOGIN = () => {
                     setErrorMsg(json.message);
                     return;
                 }
-                // set state with the result
-                if (!json.otpOptions.vPhoneNumber && json.otpOptions.phoneNumber) {
-                    json.otpOptions.vPhoneNumber = json.otpOptions.phoneNumber;
-                }
+                // // set state with the result
+                // if (!json.otpOptions.vPhoneNumber && json.otpOptions.phoneNumber) {
+                //     json.otpOptions.vPhoneNumber = json.otpOptions.phoneNumber;
+                // }
                 setData(json);
                 setShowOTP(true);
                 console.log('get otpoptions response: ', json);
@@ -94,7 +94,7 @@ const LOGIN = () => {
                     <div class="row"
                         style={{ fontWeight: 'bold' }}
                     >
-                        {updateType}:
+                        {updateType === 'Phone Number' ? 'Mobile/SMS Number' : updateType}:
                     </div>
                     <div class="row" style={{ color: '#C0C0C0' }}>
                         {profile ? profile : '---'}
@@ -298,7 +298,7 @@ const LOGIN = () => {
                     </>
                     }
                     {config.master_additional_otp_methods.includes('v') && <>
-                        <UpdateProfileElement updateType={'Voice Number'} profile={data?.vPhoneNumber ? data.vPhoneNumber : data?.phoneNumber ? data.phoneNumber : null} />
+                        <UpdateProfileElement updateType={'Voice Number'} profile={data?.vPhoneNumber} />
                         <hr className='hr-customizable' />
                     </>
                     }

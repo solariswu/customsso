@@ -45,6 +45,7 @@ export const amfaConfigs = {
 	"enable_google_recaptcha": true,
 	"master_additional_otp_methods": ["ae", "s", "v", "t"],
 	"user_registration_default_group": "user",
+	"update_profile_force_mobile_token_first_if_registered": true,
 	"salt": "a-random-string-here",
 	"smtp": {
 		service: "gmail",

@@ -45,7 +45,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     'Access-Control-Allow-Credentials': 'true',
   };
 
-  const transUAttr = (userAttributes) => {
+  const transUAttr = async (userAttributes, amfaConfigs) => {
     const phoneNumber = userAttributes.phone_number ? userAttributes.phone_number.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
     let aemail = userAttributes['custom:alter-email'] ? userAttributes['custom:alter-email'] : null;
     (aemail && aemail.indexOf('@') > 0) ?
@@ -53,8 +53,35 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       : aemail = null;
 
     const vPhoneNumber = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'].replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
+    const mobileToken = await getTotp(event.email, amfaConfigs.totp?.asm_provider_id);
 
-    return ({phoneNumber, aemail, vPhoneNumber})
+    let tempOtpData = { phoneNumber, aemail, vPhoneNumber, mobileToken };
+
+    let otpData = { aemail: null, phoneNumber: null, vPhoneNumber: null, mobileToken: null };
+
+    if (amfaConfigs.master_additional_otp_methods) {
+      amfaConfigs.master_additional_otp_methods.forEach(method => {
+        switch (method) {
+          case 'ae':
+            otpData.aemail = tempOtpData.aemail;
+            break;
+          case 's':
+            otpData.phoneNumber = tempOtpData.phoneNumber;
+            break;
+          case 'v':
+            otpData.vPhoneNumber = tempOtpData.vPhoneNumber;
+            break;
+          case 't':
+            otpData.mobileToken = mobileToken;
+            break;
+          default:
+            break;
+        }
+      });
+      return otpData;
+    }
+
+    return tempOtpData;
   }
 
   function hash(content) {
@@ -91,6 +118,21 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         user: amfaConfigs.smtp.user,
         pass: amfaConfigs.smtp.pass,
       }
+    }
+
+    // master otp methods controll check
+    const otp_steps_under_master_control_config = [
+      'sendotp', 'pwdreset2', 'pwdreset3', 'selfservice2', 'selfservice3', 'updateProfileSendOTP', 'emailverificationSendOTP',
+      'verifyotp', 'pwdresetverify2', 'pwdresetverify3', 'selfserviceverify2', 'selfserviceverify3', 'updateProfile', 'removeProfile'
+    ]
+
+    if (
+      amfaConfigs.master_additional_otp_methods &&
+      !amfaConfigs.master_additional_otp_methods.includes(event.otptype) &&
+      otp_steps_under_master_control_config.includes(step) &&
+      event.otptype !== 'e'
+    ) {
+      return response(403, 'Master OTP methods restriction', event.requestId);
     }
 
     // TOTP verification 
@@ -230,32 +272,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     }
 
     if (step === 'getOtpOptions') {
-      const tempOtpData = transUAttr (userAttributes);
-
-      let otpData = { aemail: null, phoneNumber: null, vPhoneNumber: null };
-
-      const mobileToken = await getTotp(event.email, amfaConfigs.totp?.asm_provider_id);
-
-      if (amfaConfigs.master_additional_otp_methods) {
-        amfaConfigs.master_additional_otp_methods.forEach(method => {
-          switch (method) {
-            case 'ae':
-              otpData.aemail = tempOtpData.aemail;
-              break;
-            case 's':
-              otpData.phoneNumber = tempOtpData.phoneNumber;
-              break;
-            case 'v':
-              otpData.vPhoneNumber = tempOtpData.vPhoneNumber;
-              break;
-            case 't':
-              otpData.mobileToken = mobileToken;
-              break;
-            default:
-              break;
-          }
-        })
-      }
+      const otpData = await transUAttr(userAttributes, amfaConfigs);
 
       const body = JSON.stringify({
         otpOptions: amfaPolicies[ug].permissions,
@@ -512,14 +529,13 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               // User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
               return response(202, 'Your identity requires password login.', event.requestId)
             case 'password':
-              const mobileToken = await getTotp(event.email, amfaConfigs.totp?.asm_provider_id);
               // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
-              const tempOtpData = transUAttr(userAttributes);
+              const otpData = await transUAttr(userAttributes, amfaConfigs);
               return {
                 statusCode: 202,
                 isBase64Encoded: false,
                 headers: { ...cookieEnabledHeaders, requestId: event.requestId },
-                body: JSON.stringify({ email: event.email, ...tempOtpData, mobileToken, otpOptions: amfaPolicies[ug].permissions })
+                body: JSON.stringify({ email: event.email, ...otpData, otpOptions: amfaPolicies[ug].permissions })
               }
             case 'sendotp':
             case 'pwdreset2':

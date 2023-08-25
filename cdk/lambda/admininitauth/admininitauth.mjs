@@ -52,7 +52,7 @@ const getUserWithPassword = async (payload, cognito, secretHash) => {
 	return user;
 }
 
-const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             getUser = async (payload, cognito) => {
+const getUser = async (payload, cognito) => {
 
 	const appclientId = process.env.APPCLIENT_ID;
 	const appclientSecret = process.env.APP_SECRET;
@@ -82,7 +82,7 @@ const storeTokens = async (user, payload, authCode, dynamodb, requestTimeEpoch) 
 	const params = {
 		Item: {
 			username: {
-				S:  payload.email.trim().toLowerCase(),
+				S: payload.email.trim().toLowerCase(),
 			},
 			apti: {
 				S: payload.apti,

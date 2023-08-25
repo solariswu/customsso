@@ -58,11 +58,17 @@ export const OTP = () => {
           setErrorMsg(json.message);
           return;
         }
-        // set state with the result
-        if (!json.vPhoneNumber && json.phoneNumber) {
-          json.vPhoneNumber = json.phoneNumber;
-        }
+        // // set state with the result
+        // if (!json.vPhoneNumber && json.phoneNumber) {
+        //   json.vPhoneNumber = json.phoneNumber;
+        // }
         setData(json);
+        if (config?.update_profile_force_mobile_token_first_if_registered &&
+          json.mobileToken) {
+          setOtpInFly('t');
+          setOtp({ ...otp, type: 't' });
+          setApti(getApti());
+        }
         setShowOTP(true);
         console.log('get otpoptions response: ', json);
       } catch (error) {
@@ -322,6 +328,7 @@ export const OTP = () => {
           const resMsg = await result.json();
           if (resMsg) {
             setErrorMsg(resMsg.message ? resMsg.message : resMsg.name ? resMsg.name : JSON.stringify(resMsg));
+            setOTPCode('');
           }
           else {
             navigate('/selfservice', {
@@ -352,6 +359,7 @@ export const OTP = () => {
       setLoading(false);
       console.error('error in otp password reset/selfservice', err);
       setErrorMsg('OTP verify error, please contact help desk.');
+      setOTPCode('');
     }
   }
 
@@ -483,9 +491,8 @@ export const OTP = () => {
           }}
           autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
           onKeyUp={e => confirmLogin(e)}
-          disabled={isLoading}
+          disabled={isLoading || otpInFly === ''}
         />
-
         <Button
           name='verifyotp'
           type='submit'
@@ -496,7 +503,9 @@ export const OTP = () => {
         >
           {isLoading ? showOTP ? 'Sending...' : 'Checking...' : 'Verify'}
         </Button>
-        {otpInFly && otpInFly !== '' && OTPMethodsCount > 1 &&
+        {config?.update_profile_force_mobile_token_first_if_registered && data?.mobileToken && otpInFly === 't' ?
+          <></> :
+          otpInFly && otpInFly !== '' && OTPMethodsCount > 1 &&
           <Button name='changeotp' type="submit" className="btn btn-secondary submitButton-customizable-back"
             disabled={isLoading}
             onClick={() => setOtpInFly('')}

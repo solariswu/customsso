@@ -312,6 +312,7 @@ const CONTENT = () => {
 							<input id="signInFormNewProfile" name="newProfile" type="email" className="form-control inputField-customizable"
 								style={{ height: '40px' }}
 								placeholder="user@email.com" value={newProfile} onChange={(e) => setNewProfile(e.target.value)}
+								autoComplete='off'
 								onKeyUp={e => confirmSubmit(e)}
 								disabled={isLoading}
 							/> </div> :
@@ -321,6 +322,7 @@ const CONTENT = () => {
 							defaultCountry="US"
 							placeholder="phone number"
 							value={newProfile}
+							autoComplete='off'
 							onChange={setNewProfile}
 							disabled={isLoading}
 						/>
@@ -356,7 +358,6 @@ const CONTENT = () => {
 								onKeyUp={e => confirmOTPVerify(e)}
 								disabled={isLoading}
 							/>
-
 							<Button
 								name='verifyotp'
 								type='submit'

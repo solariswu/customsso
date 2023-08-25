@@ -187,6 +187,7 @@ const MFAContent = () => {
           }
           else {
             setErrorMsg('Unknown OTP send error, please contact help desk.');
+            setOTPCode('');
           }
           break;
         case 203:
@@ -198,6 +199,7 @@ const MFAContent = () => {
           else {
             setErrorMsg('Unknown error, please contact help desk.');
           }
+          setOTPCode('');
           break;
       }
       setLoading(false);
@@ -206,6 +208,7 @@ const MFAContent = () => {
       setLoading(false);
       console.error('error in password login', err);
       setErrorMsg('OTP login error, please contact help desk.');
+      setOTPCode('');
     }
   }
 
@@ -313,7 +316,7 @@ const MFAContent = () => {
           style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
           autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
           onKeyUp={e => confirmLogin(e)}
-          disabled={isLoading}
+          disabled={isLoading || otpInFly === ''}
         />
         <Button
           name='verifyotp'
