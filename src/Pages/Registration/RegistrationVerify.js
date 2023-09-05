@@ -30,7 +30,7 @@ const CONTENT = () => {
 			method: 'POST',
 			body: JSON.stringify({
 				email,
-				otptype: 'email',
+				otptype: 'e',
 				apti,
 				authParam: window.getAuthParam(),
 				phase: 'emailverificationSendOTP',
@@ -123,7 +123,7 @@ const CONTENT = () => {
 				apti,
 				authParam: window.getAuthParam(),
 				otpcode,
-				otptype: 'email',
+				otptype: 'e',
 				attributes,
 				phase: 'emailverificationverifyotp'
 			}),
@@ -232,9 +232,9 @@ const CONTENT = () => {
 						className='btn btn-primary submitButton-customizable'
 						style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
 						disabled={isLoading}
-						onClick={!isLoading ? handleOTPVerify : null}
+						onClick={handleOTPVerify} 
 					>
-						{isLoading ? 'Sending...' : 'Verify OTP'}
+						{'Verify OTP'}
 					</Button>
 					<Button name='resend' type="submit" className="btn btn-primary submitButton-customizable"
 						disabled={isLoading}
@@ -243,7 +243,7 @@ const CONTENT = () => {
 					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable-back"
 						variant="outline-success"
 						disabled={isLoading}
-						onClick={!isLoading ? () =>
+						onClick={() =>
 							navigate('/registration_attributes', {
 								state: {
 									email,
@@ -251,8 +251,8 @@ const CONTENT = () => {
 									apti,
 									attributes,
 								}
-							}) : null}
-					>{!isLoading ? 'Back' : 'Sending...'}</Button>
+							})}
+					>{'Back'}</Button>
 					<InfoMsg msg={msg} isLoading={isLoading} />
 				</div>}
 		</div >

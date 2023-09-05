@@ -94,7 +94,7 @@ const LOGIN = () => {
                     <div class="row"
                         style={{ fontWeight: 'bold' }}
                     >
-                        {updateType === 'Phone Number' ? 'Mobile/SMS Number' : updateType}:
+                        {updateType === 'Phone Number' ? 'Mobile/SMS' : updateType === 'Voice Number' ? 'Voice' : updateType}:
                     </div>
                     <div class="row" style={{ color: '#C0C0C0' }}>
                         {profile ? profile : '---'}

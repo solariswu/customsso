@@ -122,8 +122,14 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     // master otp methods controll check
     const otp_steps_under_master_control_config = [
-      'sendotp', 'pwdreset2', 'pwdreset3', 'selfservice2', 'selfservice3', 'updateProfileSendOTP', 'emailverificationSendOTP',
-      'verifyotp', 'pwdresetverify2', 'pwdresetverify3', 'selfserviceverify2', 'selfserviceverify3', 'updateProfile', 'removeProfile'
+      //login
+      'sendotp', 'verifyotp',
+      //pwd reset
+      'pwdreset2', 'pwdreset3', 'pwdresetverify2', 'pwdresetverify3',
+      //selfservice
+      'selfservice2', 'selfservice3', 'selfserviceverify2', 'selfserviceverify3',
+      //updateprofile
+      'updateProfileSendOTP', 'updateProfile', 'removeProfile'
     ]
 
     if (
