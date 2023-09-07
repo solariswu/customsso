@@ -82,20 +82,21 @@ const App = () => {
          {time}
       </span>
       <br />
-      {
-         config.enable_google_recaptcha && <div style={{ color: '#f4f4f4' }}>
-            <span className='legalText-customizable'>
-               This site is protected by reCAPTCHA and the Google<br />
-               <a href="https://policies.google.com/privacy">Privacy Policy</a> and
-               <a href="https://policies.google.com/terms">Terms of Service</a> apply.
-            </span>
-         </div>
-      }
+
       <span
          className='legalText-customizable'
       >
          Copyright &copy; 2023 aPersona Inc. v1.0
       </span>
+      {
+         config.enable_google_recaptcha && <div >
+            <span className='legalText-customizable' style={{ color: '#d4d4d4', fontSize: '6px' }}>
+               This site is protected by reCAPTCHA and the Google
+               <a href="https://policies.google.com/privacy">Privacy Policy</a> and
+               <a href="https://policies.google.com/terms">Terms of Service</a> apply.
+            </span>
+         </div>
+      }
    </div>)
 
    if (!config)

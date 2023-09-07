@@ -42,6 +42,7 @@ const validateInputParams = (payload) => {
       return (payload && payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam && payload.uuid);
     case 'getOtpOptions':
+    case 'getUserOtpOptions':
       return (payload && payload.email && payload.authParam);
     case 'removeProfile':
       return (payload && payload.email && payload.authParam && payload.profile);

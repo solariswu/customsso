@@ -250,16 +250,21 @@ const MFAContent = () => {
     }
 
     if (otptype === 't') {
-      return (
-        <div className='row align-items-end'>
-          <div className='col-4'>TOTP:</div>
-          <div className='col'>
-            <span className='link-customizable' onClick={verifyMobileToken}>
-              mobile app token
-            </span>
+      if (mobileToken) {
+        return (
+          <div className='row align-items-end'>
+            <div className='col-4'>TOTP:</div>
+            <div className='col'>
+              <span className='link-customizable' onClick={verifyMobileToken}>
+                mobile app token
+              </span>
+            </div>
           </div>
-        </div>
-      )
+        )
+      }
+      else {
+        return null
+      }
     }
 
     const table = {

@@ -44,8 +44,23 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     'Access-Control-Expose-Headers': 'Set-Cookie',
     'Access-Control-Allow-Credentials': 'true',
   };
+  const intersectOtpPolicies = (usergroupPolicies, amfaConfigsMasterPolicies) => {
+    console.log('usergroup policies', usergroupPolicies)
+    console.log('amfaConfigsMasterPolicies', amfaConfigsMasterPolicies)
 
-  const transUAttr = async (userAttributes, amfaConfigs) => {
+    if (!amfaConfigsMasterPolicies) {
+      return usergroupPolicies;
+    }
+
+    console.log('master policies', amfaConfigsMasterPolicies)
+    console.log('usergroup policies', usergroupPolicies)
+    const intersectionPolicies = usergroupPolicies.filter(policy => amfaConfigsMasterPolicies.includes(policy));
+    console.log('intersection:', intersectionPolicies)
+
+    return intersectionPolicies;
+  }
+
+  const transUAttr = async (userAttributes, allowed_otp_methods, asm_provider_id) => {
     const phoneNumber = userAttributes.phone_number ? userAttributes.phone_number.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
     let aemail = userAttributes['custom:alter-email'] ? userAttributes['custom:alter-email'] : null;
     (aemail && aemail.indexOf('@') > 0) ?
@@ -53,14 +68,14 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       : aemail = null;
 
     const vPhoneNumber = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'].replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
-    const mobileToken = await getTotp(event.email, amfaConfigs.totp?.asm_provider_id);
+    const mobileToken = await getTotp(event.email, asm_provider_id);
 
     let tempOtpData = { phoneNumber, aemail, vPhoneNumber, mobileToken };
 
     let otpData = { aemail: null, phoneNumber: null, vPhoneNumber: null, mobileToken: null };
 
-    if (amfaConfigs.master_additional_otp_methods) {
-      amfaConfigs.master_additional_otp_methods.forEach(method => {
+    if (allowed_otp_methods) {
+      allowed_otp_methods.forEach(method => {
         switch (method) {
           case 'ae':
             otpData.aemail = tempOtpData.aemail;
@@ -277,16 +292,22 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     }
 
-    if (step === 'getOtpOptions') {
-      const otpData = await transUAttr(userAttributes, amfaConfigs);
+    if (step === 'getOtpOptions' || step === 'getUserOtpOptions') {
+      const  otpOptions = amfaConfigs.master_additional_otp_methods;
+
+      const otpData = await transUAttr(
+        userAttributes,
+        otpOptions,
+        amfaConfigs.totp?.asm_provider_id
+      );
 
       const body = JSON.stringify({
-        otpOptions: amfaPolicies[ug].permissions,
+        otpOptions,
         email: userAttributes.email,
         ...otpData,
       })
 
-      console.log('body:', body);
+      console.log(`${step} response body:`, body);
 
       return {
         statusCode: 200,
@@ -536,12 +557,20 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               return response(202, 'Your identity requires password login.', event.requestId)
             case 'password':
               // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
-              const otpData = await transUAttr(userAttributes, amfaConfigs);
+              const otpOptions = intersectOtpPolicies(
+                amfaPolicies[ug].permissions,
+                amfaConfigs.master_additional_otp_methods
+              );
+
+              const otpData = await transUAttr(
+                userAttributes,
+                otpOptions,
+                amfaConfigs.totp?.asm_provider_id);
               return {
                 statusCode: 202,
                 isBase64Encoded: false,
                 headers: { ...cookieEnabledHeaders, requestId: event.requestId },
-                body: JSON.stringify({ email: event.email, ...otpData, otpOptions: amfaPolicies[ug].permissions })
+                body: JSON.stringify({ email: event.email, ...otpData, otpOptions })
               }
             case 'sendotp':
             case 'pwdreset2':

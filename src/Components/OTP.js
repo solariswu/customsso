@@ -33,13 +33,13 @@ export const OTP = () => {
 
   useEffect(() => {
 
-    const getOtpOptions = async () => {
+    const getUserOtpOptions = async () => {
       // get the data from the api
       const params = {
         email: location.state?.email,
         rememberDevice: false,
         authParam: window.getAuthParam(),
-        phase: 'getOtpOptions'
+        phase: 'getUserOtpOptions'
       };
 
       setLoading(true);
@@ -96,7 +96,7 @@ export const OTP = () => {
 
       if (location.state?.type === 'passwordreset' || location.state?.type === 'otpmethods') {
         // call the function
-        getOtpOptions();
+        getUserOtpOptions();
       }
       else {
         // if the type is not passwordreset or updateotp, then we need to navigate to the home page
