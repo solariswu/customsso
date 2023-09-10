@@ -58,10 +58,7 @@ export const OTP = () => {
           setErrorMsg(json.message);
           return;
         }
-        // // set state with the result
-        // if (!json.vPhoneNumber && json.phoneNumber) {
-        //   json.vPhoneNumber = json.phoneNumber;
-        // }
+
         setData(json);
         if (config?.update_profile_force_mobile_token_first_if_registered &&
           json.mobileToken) {
@@ -363,15 +360,11 @@ export const OTP = () => {
     }
   }
 
-  let OTPMethodsCount = 0;
+  let OTPMethodsCount = 1;
 
   if (showOTP && data?.otpOptions) {
     data.otpOptions.forEach((option) => {
       switch (option) {
-        case 'e':
-          if (email)
-            OTPMethodsCount++;
-          break;
         case 'ae':
           if (data.aemail)
             OTPMethodsCount++;
@@ -392,11 +385,6 @@ export const OTP = () => {
           break;
       }
     })
-
-    if (OTPMethodsCount === 0) {
-      OTPMethodsCount = 1;
-      data.otpOptions = data.otpOptions.concat(['e']);
-    }
   }
 
   const OTPElement = ({ otptype }) => {
@@ -405,19 +393,6 @@ export const OTP = () => {
       setOtp({ ...otp, type: 't' });
       setApti(getApti());
     }
-
-    // if (otptype === 't' && data?.mobileToken) {
-    //   return (
-    //     <div className='row align-items-end'>
-    //       <div className='col-4'>TOTP:</div>
-    //       <div className='col'>
-    //         <span className='link-customizable' onClick={verifyMobileToken}>
-    //           mobile app token
-    //         </span>
-    //       </div>
-    //     </div>
-    //   )
-    // }
 
     const table = {
       e: {

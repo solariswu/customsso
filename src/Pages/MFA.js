@@ -349,7 +349,6 @@ const MFAContent = () => {
       </div>
       {otpOptions.map((option) => ((otpInFly === '' || otpInFly === option) && <OTPElement otptype={option} />))}
       <div style={{ padding: '5px 0 0 0' }}>
-        {otpInFly && otpInFly !== '' && <>
           <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
             style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
             autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
@@ -365,8 +364,7 @@ const MFAContent = () => {
             onClick={stepfour}
           >
             {isLoading ? 'Sending...' : 'Verify'}
-          </Button></>
-        }
+          </Button>
         {otpInFly && otpInFly !== '' && OTPMethodsCount > 1 &&
           <Button name='changeotp' type="submit" className="btn btn-secondary submitButton-customizable-back"
             disabled={isLoading}

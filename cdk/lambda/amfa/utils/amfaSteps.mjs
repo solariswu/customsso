@@ -284,14 +284,22 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     }
 
+    // getOtpOptions is for listing MFA methods in Update Profiles
+    // getUserOtpOptions is for challenging MFA to Update Profile/Pwd Reset
+
     if (step === 'getOtpOptions' || step === 'getUserOtpOptions') {
-      const otpOptions = amfaConfigs.master_additional_otp_methods;
+      let otpOptions = amfaConfigs.master_additional_otp_methods;
 
       const otpData = await transUAttr(
         userAttributes,
         otpOptions,
         amfaConfigs.totp?.asm_provider_id
       );
+
+      if ((!otpOptions || !otpOptions.includes('e')) &&
+        step === 'getUserOtpOptions') {
+        otpOptions = otpOptions ? ['e'].concat(otpOptions) : ['e'];
+      }
 
       const body = JSON.stringify({
         otpOptions,
