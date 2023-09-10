@@ -1,3 +1,4 @@
+import { notifyProfileChange } from "../mailer.mjs";
 import writeToken, { deleteToken } from "./writeToken.mjs"
 import { authenticator } from 'otplib'
 
@@ -32,10 +33,11 @@ export const registotp = async (headers, payload, configs, requestId) => {
                     configs.totp.asm_provider_id,
                     payload.tokenLabel);
 
+                await notifyProfileChange(payload.email, 'TOTP', payload.tokenLabel, configs.smtp);
                 return response(headers, 200, 'TOTP configured', requestId);
             }
             else {
-                return response(headers,506, 'No TOTP configured', requestId)
+                return response(headers, 506, 'No TOTP configured', requestId)
             }
         } catch (error) {
             return response(headers, 500, error, requestId);
@@ -47,8 +49,10 @@ export const registotp = async (headers, payload, configs, requestId) => {
 }
 
 export const deleteTotp = async (headers, email, configs, requestId) => {
-    console.log ('deleteTotp payload ', email, ' configs ', configs)
-    await deleteToken (email, configs.totp.asm_provider_id)
+    console.log('deleteTotp payload ', email, ' configs ', configs)
+    await deleteToken(email, configs.totp.asm_provider_id)
+
+    await notifyProfileChange(email, 'TOTP', null, configs.smtp);
 
     return response(headers, 200, 'TOTP deleted', requestId);
 }

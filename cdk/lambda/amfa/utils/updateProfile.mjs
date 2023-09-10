@@ -2,8 +2,7 @@ import {
 	AdminUpdateUserAttributesCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 
-import { mailer } from './mailer.mjs';
-import HTML_TEMPLATE from './htmlTemplate.mjs';
+import { notifyProfileChange } from './mailer.mjs';
 
 export const updateProfile = async (email, otptype, profile, cognitoClient, smtpConfig) => {
 	let UserAttributes = [];
@@ -48,18 +47,6 @@ export const updateProfile = async (email, otptype, profile, cognitoClient, smtp
 
 	await cognitoClient.send(param);
 
-	const change = profile && profile.length > 0 ? `changed to \n${profile}` : 'removed';
-
-	const message = `Hi ${email},\n\n Your ${profileTypes[otptype]} MFA has been ${change}.\nIf this is not your desired change, please login check or contact help desk.`
-	const options = {
-		from: "Admin <admin@amfasolution.com>", // sender address
-		to: email, // receiver email
-		subject: "Your profile has been updated", // Subject line
-		text: message,
-		html: HTML_TEMPLATE(email, profileTypes[otptype], profile),
-	}
-
-	console.log ('mailer options', options, ' smtp config:', smtpConfig);
-	await mailer(options, smtpConfig);
+	await notifyProfileChange(email, profileTypes[otptype], profile, smtpConfig);
 
 }

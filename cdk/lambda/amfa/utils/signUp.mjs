@@ -1,6 +1,7 @@
 import {
 	AdminAddUserToGroupCommand,
 	AdminCreateUserCommand,
+	AdminLinkProviderForUserCommand,
 	AdminSetUserPasswordCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { fetchConfig } from './fetchConfig.mjs';
@@ -58,6 +59,20 @@ export const signUp = async (username, password, attributes, cognito) => {
 		UserPoolId: process.env.USERPOOL_ID,
 		Username: username,
 	}));
+
+	await cognito.send(new AdminLinkProviderForUserCommand({
+		UserPoolId: process.env.USERPOOL_ID,
+		DestinationUser: {
+			ProviderName: 'Cognito',
+			ProviderAttributeName: 'email',
+			ProviderAttributeValue: username,
+		},
+		SourceUser: {
+			ProviderName: 'apersona',
+			ProviderAttributeName: 'email',
+			ProviderAttributeValue: username,
+		}
+	}))
 
 	console.log('user:', user);
 	return user;

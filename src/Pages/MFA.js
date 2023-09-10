@@ -40,6 +40,7 @@ const MFAContent = () => {
   const authParam = window.getAuthParam();
 
   const email = location.state?.email;
+  const uuid = location.state?.uuid;
   const rememberDevice = location.state?.rememberDevice;
   const apti = location.state?.apti;
   const state = location.state?.state;
@@ -48,7 +49,7 @@ const MFAContent = () => {
   const phoneNumber = location.state?.phoneNumber;
   const vPhoneNumber = location.state?.vPhoneNumber;
   const mobileToken = location.state?.mobileToken;
-  const otpOptions = location.state?.otpOptions;
+  let otpOptions = location.state?.otpOptions;
 
   const setInfoMsg = (msg) => {
     setMsg({ msg, type: 'info' });
@@ -299,6 +300,37 @@ const MFAContent = () => {
     )
   }
 
+  if (OTPMethodsCount === 0) {
+    return (
+      <div>
+        <span> <h4>{config?.branding.login_app_verification_page_header}</h4> </span>
+        <hr className='hr-customizable' />
+        <div>
+          <span
+            style={{ lineHeight: '1rem', color: 'grey' }}
+          >
+            Your account does not have sufficient verification methods to log in. Please update your profile.
+          </span>
+          <hr className='hr-customizable' />
+        </div>
+        <div>
+          <Button name='updateprofile' type="submit" className="btn btn-primary submitButton-customizable"
+            onClick={() => navigate('/otpmethods', {
+              state: {
+                email,
+                uuid,
+                validated: true,
+                msg: { msg: '', type: '' },
+              }
+            })}
+          >
+            Update Profile
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
       <span> <h4>{config?.branding.login_app_verification_page_header}</h4> </span>
@@ -317,22 +349,24 @@ const MFAContent = () => {
       </div>
       {otpOptions.map((option) => ((otpInFly === '' || otpInFly === option) && <OTPElement otptype={option} />))}
       <div style={{ padding: '5px 0 0 0' }}>
-        <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
-          style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-          autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
-          onKeyUp={e => confirmLogin(e)}
-          disabled={isLoading || otpInFly === ''}
-        />
-        <Button
-          name='verifyotp'
-          type='submit'
-          className='btn btn-primary submitButton-customizable'
-          style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-          disabled={isLoading || otpInFly === ''}
-          onClick={stepfour}
-        >
-          {isLoading ? 'Sending...' : 'Verify'}
-        </Button>
+        {otpInFly && otpInFly !== '' && <>
+          <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
+            style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
+            autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
+            onKeyUp={e => confirmLogin(e)}
+            disabled={isLoading || otpInFly === ''}
+          />
+          <Button
+            name='verifyotp'
+            type='submit'
+            className='btn btn-primary submitButton-customizable'
+            style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
+            disabled={isLoading || otpInFly === ''}
+            onClick={stepfour}
+          >
+            {isLoading ? 'Sending...' : 'Verify'}
+          </Button></>
+        }
         {otpInFly && otpInFly !== '' && OTPMethodsCount > 1 &&
           <Button name='changeotp' type="submit" className="btn btn-secondary submitButton-customizable-back"
             disabled={isLoading}

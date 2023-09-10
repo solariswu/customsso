@@ -96,7 +96,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       return otpData;
     }
 
-    return tempOtpData;
+    return otpData;
   }
 
   function hash(content) {
@@ -123,17 +123,6 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     let user = null;
     let userAttributes = null;
     let ug = 'default';
-
-    const smtpConfig = {
-      service: amfaConfigs.smtp.service,
-      host: amfaConfigs.smtp.host,
-      port: amfaConfigs.smtp.port,
-      secure: amfaConfigs.smtp.secure,
-      auth: {
-        user: amfaConfigs.smtp.user,
-        pass: amfaConfigs.smtp.pass,
-      }
-    }
 
     // master otp methods controll check
     const otp_steps_under_master_control_config = [
@@ -179,7 +168,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       return response(403, 'The identity code you entered was not correct. Please try again.', event.requestId)
     }
     // end TOTP verifiction
-
+    let realUsername = event.email;
     if (step !== 'emailverificationSendOTP' && step !== 'emailverificationverifyotp') {
       const listUsersParam = {
         UserPoolId: process.env.USERPOOL_ID,
@@ -187,6 +176,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       };
 
       const listUsersRes = await cognito.send(new ListUsersCommand(listUsersParam));
+      console.log('listUsersRes:', listUsersRes.Users);
 
       if (!listUsersRes || !listUsersRes.Users || listUsersRes.Users.length === 0) {
         console.log('Did not find valid user for email:', event.email);
@@ -219,6 +209,8 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         UserPoolId: process.env.USERPOOL_ID,
         Username: users[0].Username,
       };
+
+      realUsername = users[0].Username;
 
       const userGroup = await cognito.send(new AdminListGroupsForUserCommand(param));
       console.log('userGroup:', userGroup);
@@ -287,13 +279,13 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         return response(400, 'Your entry was not valid, please try again.', event.requestId);
       }
 
-      await updateProfile(event.email, event.otptype, '', cognito, smtpConfig);
+      await updateProfile(event.email, event.otptype, '', cognito, amfaConfigs.smtp);
       return response(200, 'OK', event.requestId);
 
     }
 
     if (step === 'getOtpOptions' || step === 'getUserOtpOptions') {
-      const  otpOptions = amfaConfigs.master_additional_otp_methods;
+      const otpOptions = amfaConfigs.master_additional_otp_methods;
 
       const otpData = await transUAttr(
         userAttributes,
@@ -372,8 +364,14 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     const amfaCookieName = hash(`${u}${wr}${salt}`);
     let c = '';
     if (event.cookies && event.cookies.trim().length > 0) {
-      const startIndex = event.cookies.trim().indexOf(amfaCookieName) + amfaCookieName.length + 1;
-      c = event.cookies.trim().substring(startIndex).split(';')[0];
+      const startingIdx = event.cookies.trim().indexOf(amfaCookieName);
+      if (startingIdx > -1) {
+        const startIndex = startingIdx + amfaCookieName.length + 1;
+        c = event.cookies.trim().substring(startIndex).split(';')[0];
+      }
+      else {
+        c = '';
+      }
     }
     //'278dcbdee5660876c230650ebb4bd70e';  // For every new MFA Auth login the nodeJS backend needs to read the cookie from teh client if it exists and send it in.
 
@@ -470,7 +468,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'updateProfile':
               if (amfaResponseJSON.message === 'OK') {
                 // update profile
-                await updateProfile(event.email, event.otptype, event.otpaddr, cognito, smtpConfig);
+                await updateProfile(event.email, event.otptype, event.otpaddr, cognito, amfaConfigs.smtp);
                 return response(200, 'OK', event.requestId);
               }
               else {
@@ -481,7 +479,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'password':
             case 'verifyotp':
               if (amfaResponseJSON.message === 'OK') {
-                const url = step === 'username' ? await passwordlessLogin(event, cognito) :
+                const url = step === 'username' ? await passwordlessLogin(realUsername, event, cognito) :
                   await fetchCode(event.email, event.apti);
                 console.log('url:', url);
                 if (url) {
@@ -551,6 +549,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               return response(505, 'The login service is not currently available. Contact the help desk.', event.requestId);
           }
         case 202:
+          let uuid = null;
           switch (step) {
             case 'username':
               // User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
@@ -566,11 +565,46 @@ export const amfaSteps = async (event, headers, cognito, step) => {
                 userAttributes,
                 otpOptions,
                 amfaConfigs.totp?.asm_provider_id);
+
+              let OTPMethodsCount = 0;
+              if (otpOptions) {
+                otpOptions.forEach((option) => {
+                  switch (option) {
+                    case 'e':
+                      if (otpData.email)
+                        OTPMethodsCount++;
+                      break;
+                    case 'ae':
+                      if (otpData.aemail)
+                        OTPMethodsCount++;
+                      break;
+                    case 's':
+                      if (otpData.phoneNumber)
+                        OTPMethodsCount++;
+                      break;
+                    case 'v':
+                      if (otpData.vPhoneNumber && otpData.vPhoneNumber !== otpData.phoneNumber)
+                        OTPMethodsCount++;
+                      break;
+                    case 't':
+                      if (otpData.mobileToken)
+                        OTPMethodsCount++;
+                      break
+                    default:
+                      break;
+                  }
+                })
+              }
+
+              if (OTPMethodsCount === 0) {
+                uuid = await genSessionID(event.email, event.apti, 'nonemfa');
+              }
+
               return {
                 statusCode: 202,
                 isBase64Encoded: false,
                 headers: { ...cookieEnabledHeaders, requestId: event.requestId },
-                body: JSON.stringify({ email: event.email, ...otpData, otpOptions })
+                body: JSON.stringify({ email: event.email, ...otpData, otpOptions, uuid })
               }
             case 'sendotp':
             case 'pwdreset2':
@@ -581,7 +615,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
               return response(202, amfaResponseJSON.message, event.requestId)
             case 'updateProfileSendOTP':
-              const uuid = await genSessionID(event.email, event.apti, event.otpaddr);
+              uuid = await genSessionID(event.email, event.apti, event.otpaddr);
               return {
                 isBase64Encoded: false,
                 statusCode: 202,
@@ -633,17 +667,17 @@ export const amfaSteps = async (event, headers, cognito, step) => {
   }
 }
 
-  // Once the adaptive mfa api is executed, there are a number of possible return codes.
-  // Below are those return codes along with the behavior that should be performed as a result.
-  // code: 200 message: 0K   (IMPORTANT: Pull the identifier from the response and save it as a SECURE (https only/domain specific) long life cookie 120 days. cookie_name: hash(u+wr+salt).
-  //                    Allow the user to login. Enable all SSO Tokens and put the user in session.)
-  //                    Reading and writing cookies: https://stackoverflow.com/questions/3393854/get-and-set-a-single-cookie-with-node-js-http-server
-  // code: 200 message: {anything other than OK}
-  //                    In this case the ASM Admin has set the policy in maintenace or turned on auto learning,
-  //                    which for passwordless we don't want to allow.
-  //                    DO NOT Log the user in. Instead put them back to the login page with
-  //                    error: "The login service is not currently available. Contact the help desk."
-  // code: 202          User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
-  // code: 203          Contry blocked or threat actor location detected. Push the user back to the initial login page with this error: "Your location is not permitted. Contact the help desk."
-  // code: Anything else: Default - Push the user back to the initial login page with the error: "We ran into an issue. Please contact the help desk."
-  //
+// Once the adaptive mfa api is executed, there are a number of possible return codes.
+// Below are those return codes along with the behavior that should be performed as a result.
+// code: 200 message: 0K   (IMPORTANT: Pull the identifier from the response and save it as a SECURE (https only/domain specific) long life cookie 120 days. cookie_name: hash(u+wr+salt).
+//                    Allow the user to login. Enable all SSO Tokens and put the user in session.)
+//                    Reading and writing cookies: https://stackoverflow.com/questions/3393854/get-and-set-a-single-cookie-with-node-js-http-server
+// code: 200 message: {anything other than OK}
+//                    In this case the ASM Admin has set the policy in maintenace or turned on auto learning,
+//                    which for passwordless we don't want to allow.
+//                    DO NOT Log the user in. Instead put them back to the login page with
+//                    error: "The login service is not currently available. Contact the help desk."
+// code: 202          User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
+// code: 203          Contry blocked or threat actor location detected. Push the user back to the initial login page with this error: "Your location is not permitted. Contact the help desk."
+// code: Anything else: Default - Push the user back to the initial login page with the error: "We ran into an issue. Please contact the help desk."
+//

@@ -38,7 +38,7 @@ export class TenantUserPool {
     this.addCustomAuthLambdaTriggers();
     this.oidcProvider = this.createOIDCProvider();
     this.hostedUIClient = this.addHostedUIAppClient();
-    this.hostedUIClient.node.addDependency (this.oidcProvider);
+    this.hostedUIClient.node.addDependency(this.oidcProvider);
     this.secretClient = this.addSecretClient();
     this.addHostedUIDomain();
   }
@@ -147,6 +147,15 @@ export class TenantUserPool {
         // the properties below are optional
         attributeMapping: {
           email: ProviderAttribute.other('email'),
+          phoneNumber: ProviderAttribute.other('phone_number'),
+          familyName: ProviderAttribute.other('family_name'),
+          givenName: ProviderAttribute.other('given_name'),
+          custom: {
+            email_verified: ProviderAttribute.other( 'email_verified'),
+            phone_number_verified: ProviderAttribute.other('phone_number_verified'),
+            'custom:alter-email': ProviderAttribute.other('custom:alter-email'),
+            'custom:voice-number': ProviderAttribute.other('custom:voice-number')
+          },
         },
         attributeRequestMethod: OidcAttributeRequestMethod.GET,
         endpoints: {

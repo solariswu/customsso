@@ -123,9 +123,9 @@ const storeTokens = async (user, payload, authCode) => {
 
 }
 
-export const passwordlessLogin = async (payload, cognito) => {
+export const passwordlessLogin = async (realUsername, payload, cognito) => {
 
-  const user = await getUser(payload.email, cognito);
+  const user = await getUser(realUsername, cognito);
 
   if (user.AuthenticationResult) {
     const authCode = makeId(32);

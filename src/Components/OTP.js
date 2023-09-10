@@ -392,6 +392,11 @@ export const OTP = () => {
           break;
       }
     })
+
+    if (OTPMethodsCount === 0) {
+      OTPMethodsCount = 1;
+      data.otpOptions = data.otpOptions.concat(['e']);
+    }
   }
 
   const OTPElement = ({ otptype }) => {
