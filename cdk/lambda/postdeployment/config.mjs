@@ -43,6 +43,7 @@ export const amfaConfigs = {
 	"enable_user_registration": true,
 	"enable_have_i_been_pwned": true,
 	"enable_google_recaptcha": true,
+	"NOTE!!! Please Take care of using 'master_additional_otp_methods'": "'e' would be always available for update profile and password reset, even if 'e' is not set",
 	"master_additional_otp_methods": ["ae", "s", "v", "t"],
 	"user_registration_default_group": "user",
 	"update_profile_force_mobile_token_first_if_registered": true,
