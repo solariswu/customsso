@@ -1,4 +1,4 @@
-// This file contains the aPersona MFA settings for the initial passwordless auth transaction verification. (Only available with a local EPND Login.)
+// This file contains the aPersona MFA settings for the initial passwordless auth transaction verification. (Only available with a local Login.)
 // NOTE: If a user elects to login via LSRI, this script will not be run, it will be skipped.
 //
 import {
@@ -339,7 +339,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     // This is the ASM Security Policy key. This key needs to be picked up from a NodeJS back-end propery file based on the role of the user based on their email address-keycloak account.
     // Ex. If user_role=super admin, then l='epnd-su-72ja37bc51mz', ELSE if user_role=cohort owner, then l=asm_policy_for_cohort_owners, etc. etc.
 
-    let wr = event.origin;//'epnd.com'; // This is the domain of the services where MFA is being setup. It must match the domain for the HTTPS URL domain where the cookie is secured.
+    let wr = event.origin;//'original web xxx.com'; // This is the domain of the services where MFA is being setup. It must match the domain for the HTTPS URL domain where the cookie is secured.
     let sfl = 6; // This should be picked up via property file. It should be set to 5 or 6. Can also be set based on user security group. If admin, sfl=6 else sfl=5. Should never be set less than 5.
 
     // API vars that come from the end-user javascript front-end client via post or cookie read

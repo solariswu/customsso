@@ -39,7 +39,7 @@ export class AmfaStack extends Stack {
     apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool);
     apigateway.createAmfaApiEndpoints(tenantUserPool.userpool, tenantUserPool.customAuthClient, tenantUserPool.hostedUIClient.userPoolClientId);
 
-    createPostDeploymentLambda (this, apigateway.configTable, tenantUserPool.userpool.userPoolId);
+    createPostDeploymentLambda(this, apigateway.configTable, tenantUserPool.userpool.userPoolId);
 
     // output
 
@@ -52,6 +52,6 @@ export class AmfaStack extends Stack {
     new CfnOutput(this, 'Token Endpoint', { value: `https://${config.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/token`, });
     new CfnOutput(this, 'UserInfo Endpoint', { value: `https://${config.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/userInfo`, });
 
-    new CfnOutput(this, 'cloudFrontId', {value: webapp.distribution.distributionId});
+    new CfnOutput(this, 'cloudFrontId', { value: webapp.distribution.distributionId });
   }
 }
