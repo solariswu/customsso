@@ -64,7 +64,7 @@ export const amfaConfigs = {
 
 export const amfaBrandings =
 {
-	logo_url: "https://images.ctfassets.net/sl1a372qfljc/352P1j3OiBPWKrbdoVRtQE/647cca9243e89197798cccc252271a9f/EPND_logo.svg",
+	logo_url: "https://images.squarespace-cdn.com/content/v1/6384c70defa1aa7a84c4a2bf/19179f7c-b44d-41d5-b112-11fd7fc8ce63/aPLogo-EffortlessAppSecurity-v3-370x73.T.png",
 	brand_base_color: "#337AB7",
 	login_app_main_page_header: "Sign in to your account",
 	login_app_main_page_message: "Login with your account email address.",
