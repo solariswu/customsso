@@ -20,48 +20,18 @@ import RemoveProfile from './Pages/RemoveProfile';
 import { RegistrationVerify, RegistrationHome, RegistrationPasswords, RegistrationAttributes, RegistrationConsent } from './Pages/Registration';
 import { useFeConfigs } from './DataProviders/FeConfigProvider';
 import { Spinner } from 'reactstrap';
+
 import SetTOTP from './Pages/SetTOTP';
+import PwnedPWDModal from './Components/PwnedPWDModal';
 
 const App = () => {
    const [time, setTime] = useState('');
    const [timerType, setTimerType] = useState('login');
-   const navigate = useNavigate();
-   const config = useFeConfigs();
    const cd = useRef(299);
    const timer = useRef(null);
 
-   const timerHandler = () => {
-      if (cd.current <= 0) {
-         const errorMsg = "You took too long or entered your otp wrong too many times. Try your login again.";
-         setTime('');
-         timer.current && clearTimeout(timer.current);
-         localStorage.setItem('OTPErrorMsg', errorMsg);
-         switch (timerType) {
-            case 'selfservice':
-               navigate('/selfservice', {
-                  state: {
-                     selfservicemsg: errorMsg,
-                  }
-               });
-               return;
-            case 'login':
-            default:
-               window.location.assign(`${applicationUrl}?amfa=relogin`)
-               return;
-         }
-      }
-      const m = parseInt(cd.current / 60) > 9 ? parseInt(cd.current / 60) : '0' + parseInt(cd.current / 60);
-      const s = parseInt(cd.current % 60) > 9 ? parseInt(cd.current % 60) : '0' + parseInt(cd.current % 60);
-      setTime(`${m}:${s}`);
-      cd.current--;
-      timer.current = setTimeout(() => {
-         timerHandler();
-      }, 1000);
-   };
-
-   const timerCleaner = () => {
-      timer.current && clearTimeout(timer.current);
-   }
+   const navigate = useNavigate();
+   const config = useFeConfigs();
 
    const selfserviceTimeOut = () => {
       cd.current = 600;
@@ -69,35 +39,70 @@ const App = () => {
    }
 
    useEffect(() => {
+      const timerHandler = () => {
+         if (cd.current <= 0) {
+            const errorMsg = "You took too long or entered your otp wrong too many times. Try your login again.";
+            setTime('');
+            timer.current && clearTimeout(timer.current);
+            localStorage.setItem('OTPErrorMsg', errorMsg);
+            switch (timerType) {
+               case 'selfservice':
+                  navigate('/selfservice', {
+                     state: {
+                        selfservicemsg: errorMsg,
+                     }
+                  });
+                  return;
+               case 'login':
+               default:
+                  window.location.assign(`${applicationUrl}?amfa=relogin`)
+                  return;
+            }
+         }
+         const m = parseInt(cd.current / 60) > 9 ? parseInt(cd.current / 60) : '0' + parseInt(cd.current / 60);
+         const s = parseInt(cd.current % 60) > 9 ? parseInt(cd.current % 60) : '0' + parseInt(cd.current % 60);
+         setTime(`${m}:${s}`);
+         cd.current--;
+         timer.current = setTimeout(() => {
+            timerHandler();
+         }, 1000);
+      };
+
       timerHandler();
 
       return () => {
+         const timerCleaner = () => {
+            timer.current && clearTimeout(timer.current);
+         }
+
          timerCleaner();
       }
-   }, []);
+   }, [timerType, navigate]);
 
-   const Footer = () => (<div className='footer-customizable'>
 
-      <span className='legalText-customizable'>
-         {time}
-      </span>
-      <br />
+   const Footer = () => {
 
-      <span
-         className='legalText-customizable'
-      >
-         Copyright &copy; 2023 aPersona Inc. v1.0
-      </span>
-      {
-         config.enable_google_recaptcha && <div >
-            <span className='legalText-customizable' style={{ color: '#d4d4d4', fontSize: '6px' }}>
-               This site is protected by reCAPTCHA and the Google
-               <a href="https://policies.google.com/privacy">Privacy Policy</a> and
-               <a href="https://policies.google.com/terms">Terms of Service</a> apply.
+      return (
+         <div className='footer-customizable'>
+            <span className='legalText-customizable'>
+               {time}
             </span>
-         </div>
-      }
-   </div>)
+            <span
+               className='legalText-customizable'
+            >
+               Copyright &copy; 2023 aPersona Inc. v1.0
+            </span>
+            {
+               config.enable_google_recaptcha && <div >
+                  <span className='legalText-customizable' style={{ color: '#d4d4d4', fontSize: '6px' }}>
+                     This site is protected by reCAPTCHA and the Google
+                     <a href="https://policies.google.com/privacy">Privacy Policy</a> and
+                     <a href="https://policies.google.com/terms">Terms of Service</a> apply.
+                  </span>
+               </div>
+            }
+         </div>)
+   }
 
    if (!config)
       return (
@@ -105,7 +110,7 @@ const App = () => {
             <div className="modal-dialog">
                <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm"></div>
                <div className="modal-body" style={{ textAlign: 'center' }}>
-                  <span className='errorMessage-customizable'><Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner></span>
+                  <Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner>
                </div>
             </div>
          </div>
@@ -143,6 +148,10 @@ const App = () => {
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <Footer />
+                  {config?.enable_have_i_been_pwned &&
+                     <PwnedPWDModal />
+                  }
+
                </div>
             </div>
          </div>

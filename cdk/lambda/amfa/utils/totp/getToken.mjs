@@ -26,7 +26,9 @@ const aesDecrypt = ({ toDecrypt, aesKey }) => {
 };
 
 export const getTotp = async (email, provider_id) => {
+	console.log ('Trying to connect TOTP DB')
 	const con = await pool.getConnection();
+	console.log ('DB connection returned.')
 	await con.ping();
 
 	console.log("DB Connected!");

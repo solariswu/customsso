@@ -327,6 +327,10 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       l = amfaPolicies['self-service'].policy_name ? encodeURI(amfaPolicies['self-service'].policy_name) : '';
     }
 
+    if (step.startsWith('emailverification')) {
+      l = amfaPolicies['user-registration'].policy_name ? encodeURI(amfaPolicies['user-registration'].policy_name) : '';
+    }
+
     if (l === '') {
       console.log('Did not find a valid ASM Policy for the user group:', ug);
       return response(
@@ -362,7 +366,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     // API vars that are hard coded for this type of API call in the back-end node.js
     let otpp = 1; // OTP PAUSE: This tells asm to not send out an otp, essentially pauses it. For the initial passwordless auth, this should be set and sent.
-    let nsf = 3; // No saving of Forensics:  nsf=0 means ASM will continue to save and update forensics and passwordless auth will auto extend to the policy ttl.
+    let nsf = 0; // No saving of Forensics:  nsf=0 means ASM will continue to save and update forensics and passwordless auth will auto extend to the policy ttl.
     // nsf=1 means asm will not save any forensics and as a result, passwordless will expire no matter what on the ttl.
     // With the next release of ASM, we will be setting nsf=3 which will not save device forensics, but it will contine to update the one time use cookie/token, which is more secure.
 
@@ -396,8 +400,6 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       c +
       '&wr=' +
       wr +
-      '&igd=' +
-      igd +
       '&otpm=' +
       otpm +
       '&p=' +
@@ -413,19 +415,22 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     console.log('step:', step);
 
+    nsf = event.rememberDevice ? 0 : 1;
+
     switch (step) {
       case 'username':
-        postURL = postURL + '&sfl=' + sfl + '&nsf=' + nsf + '&tType=' + tType;
+        nsf = event.rememberDevice? 0 : 3;
+        postURL = `${postURL}&igd=${igd}&nsf=${nsf}&tType=${tType}&sfl=${sfl}`;
         break;
       case 'password':
-        postURL = postURL + '&tType=' + tType;
+        postURL = `${postURL}&igd=${igd}&nsf=${nsf}&tType=${tType}`;
         break;
       case 'sendotp':
         otpm = event.otptype;
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
         //e for email, s for sms, v for voice, ae for alt-email.
         p = encodeURIComponent(event.otpaddr);
-        postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType
+        postURL = `${asmurl}/extResendOtp.kv?l=${l}&u=${u}&apti=${apti}&uIp=${uIp}&otpm=${otpm}&p=${p}&tType=${tType}`;
         break;
       case 'verifyotp':
       case 'pwdresetverify2':
@@ -436,7 +441,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       case 'emailverificationverifyotp':
         otpm = event.otptype;
         let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
-        postURL = asmurl + '/extVerifyOtp.kv?l=' + l + '&u=' + u + '&uIp=' + uIp + '&apti=' + apti + '&wr=' + wr + '&igd=' + igd + '&otpm=' + otpm + '&p=' + p + '&otpp=' + otpp + '&tType=' + tType + '&af1=' + af1 + '&a=' + a + '&o=' + o;
+        postURL = `${asmurl}/extVerifyOtp.kv?l=${l}&u=${u}&uIp=${uIp}&apti=${apti}&wr=${wr}&igd=${igd}&nsf=${nsf}&otpm=${otpm}&p=${p}&otpp=${otpp}&tType=${tType}&o=${o}&af1=${af1}&a=${a}`;
         break;
       case 'pwdreset2':
       case 'pwdreset3':
@@ -452,7 +457,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         else {
           otpp = 0;
           sfl = 7;
-          postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp;
+          postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp + '&nsf=' + nsf + '&igd=' + igd;
         }
         break;
       default:

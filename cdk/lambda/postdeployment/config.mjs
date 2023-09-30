@@ -57,7 +57,7 @@ export const amfaConfigs = {
 		pass: "jwcjehfafowrmtlk",
 	},
 	"totp": {
-	  "asm_provider_id": 2,
+	  "asm_provider_id": 1,
 	  "asm_totp_salt": "**Salt-here!!!**"
 	}
 }
