@@ -1,35 +1,35 @@
 export const amfaPolicies = {
 	"super_admin": {
-		"policy_name": "epnd-su-rg83ed78xa38",
+		"policy_name": "su-rg83ed78xa38",
 		"rank": 1,
 		"permissions": ['e', 'ae', 'v']
 	},
 	"admin": {
-		"policy_name": "epnd-su-72ja37bc51mz",
+		"policy_name": "admin-72ja37bc51mz",
 		"rank": 2,
 		"permissions": ['e', 'ae', 's', 'v', 't']
 	},
-	"cohort_owner": {
-		"policy_name": "epnd-cohort-owner-52ws89xs12gz",
+	"executive": {
+		"policy_name": "exec-52ws89xs12gz",
 		"rank": 3,
 		"permissions": ['e', 'ae', 's', 'v']
 	},
 	"user": {
-		"policy_name": "epnd-user-63em98az26jq47",
+		"policy_name": "user-63em98az26jq47",
 		"rank": 4,
 		"permissions": ['e', 'ae', 's', 'v', 't']
 	},
 	"password-reset": {
-		"policy_name": "EPND-Pwd-Reset-72vc59zx34",
+		"policy_name": "pwd-reset-92wx58dz37"
 	},
 	"self-service": {
-		"policy_name": "EPND-Self-Service-72vc59zx34",
+		"policy_name": "update-profile-72vc59zx34"
 	},
 	"user-registration": {
-		"policy_name": "EPND-User-Registration-72vc59zx34",
+		"policy_name": "user-registration-34he12cp74"
 	},
 	"default": {
-		"policy_name": "epnd-default-72ws81aq67jf",
+		"policy_name": "default-72ws81aq67jf",
 		"rank": 5,
 		"permissions": ['e']
 	},
@@ -57,8 +57,8 @@ export const amfaConfigs = {
 		pass: "jwcjehfafowrmtlk",
 	},
 	"totp": {
-	  "asm_provider_id": 1,
-	  "asm_totp_salt": "**Salt-here!!!**"
+		"asm_provider_id": 1,
+		"asm_totp_salt": "**Salt-here!!!**"
 	}
 }
 
