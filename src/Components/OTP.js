@@ -119,7 +119,7 @@ export const OTP = () => {
   const amfaStepPrefix = location.state?.type === 'passwordreset' ? 'pwdreset' : 'selfservice';
 
   const setOTPCode = (e) => {
-    setOtp({ ...otp, code: e.target.value });
+    setOtp({ ...otp, code: e.target?.value ? e.target.value : '' });
   }
 
   const confirmLogin = (e) => {

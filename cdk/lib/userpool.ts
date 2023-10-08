@@ -39,7 +39,7 @@ export class TenantUserPool {
     this.oidcProvider = this.createOIDCProvider();
     this.hostedUIClient = this.addHostedUIAppClient();
     this.hostedUIClient.node.addDependency(this.oidcProvider);
-    this.secretClient = this.addSecretClient();
+    // this.secretClient = this.addSecretClient();
     this.addHostedUIDomain();
   }
 
