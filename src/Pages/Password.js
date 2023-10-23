@@ -110,9 +110,12 @@ const LOGIN = () => {
             window.location.assign(`${applicationUrl}?amfa=relogin`);
             break;
           default:
-            const data = await result.json();
+            const res = await result.json();
             let errMsg = 'Something went wrong, please try your login again.';
-            if (data.message === "NotAuthorizedException") {
+            if (res) {
+              errMsg = res.message ? res.message : res.name ? res.name : JSON.stringify(res);
+            }
+            if (errMsg === "NotAuthorizedException") {
               errMsg = 'Invalid credentials.';
             }
             localStorage.setItem('OTPErrorMsg', errMsg);
