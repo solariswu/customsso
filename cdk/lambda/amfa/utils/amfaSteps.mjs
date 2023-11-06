@@ -145,29 +145,6 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       return response(403, 'Master OTP methods restriction', event.requestId);
     }
 
-    // TOTP verification 
-    const mobileTokenVerifySteps = [
-      'pwdresetverify2',
-      'pwdresetverify3',
-      'selfserviceverify2',
-      'selfserviceverify3'
-    ];
-
-    if (mobileTokenVerifySteps.includes(step) && event.otptype === 't') {
-      const isValid = await validateTotp(event, amfaConfigs);
-      if (isValid) {
-        const apti = step.startsWith('selfserviceverify') ? 'updateprofile' : event.apti;
-        const uuid = await genSessionID(event.email, apti);
-        return {
-          isBase64Encoded: false,
-          statusCode: 200,
-          headers: { ...headers, requestId: event.requestId },
-          body: JSON.stringify({ message: 'OK', uuid }),
-        };
-      }
-      return response(403, 'The identity code you entered was not correct. Please try again.', event.requestId)
-    }
-    // end TOTP verifiction
     let realUsername = event.email;
     if (step !== 'emailverificationSendOTP' && step !== 'emailverificationverifyotp') {
       const listUsersParam = {
@@ -419,7 +396,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     switch (step) {
       case 'username':
-        nsf = event.rememberDevice? 0 : 3;
+        nsf = event.rememberDevice ? 0 : 3;
         postURL = `${postURL}&igd=${igd}&nsf=${nsf}&tType=${tType}&sfl=${sfl}`;
         break;
       case 'password':
@@ -455,7 +432,8 @@ export const amfaSteps = async (event, headers, cognito, step) => {
           postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType;
         }
         else {
-          otpp = 0;
+          //This puts ASM into an otp state for the user, then you can send a mobile token.
+          otpp = ['pwdreset2', 'pwdreset3', 'selfservice2', 'selfservice3'].includes(step) ? 1 : 0;
           sfl = 7;
           postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp + '&nsf=' + nsf + '&igd=' + igd;
         }

@@ -62,6 +62,7 @@ export const OTP = () => {
         setData(json);
         if (config?.update_profile_force_mobile_token_first_if_registered &&
           json.mobileToken) {
+          sendOtp('t');
           setOtpInFly('t');
           setOtp({ ...otp, type: 't' });
           setApti(getApti());
