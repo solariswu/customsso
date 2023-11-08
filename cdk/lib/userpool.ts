@@ -66,6 +66,7 @@ export class TenantUserPool {
       customAttributes: {
         "alter-email": new StringAttribute({ mutable: true }),
         "voice-number": new StringAttribute({ mutable: true }),
+        "totp-label": new StringAttribute({ mutable: true }),
       },
       // temporary password lives for 30 days
       passwordPolicy: {

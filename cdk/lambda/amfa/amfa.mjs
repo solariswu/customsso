@@ -100,7 +100,7 @@ export const handler = async (event) => {
         const isValidUuid = await checkSessionId(payload, payload.uuid);
         if (isValidUuid) {
           const amfaConfigs = await fetchConfig('amfaConfigs');
-          return await registotp(headers, payload, amfaConfigs, requestId);
+          return await registotp(headers, payload, amfaConfigs, requestId, client);
         }
       }
 
@@ -111,7 +111,7 @@ export const handler = async (event) => {
         console.log ('isValidUuid', isValidUuid);
         if (isValidUuid) {
           const amfaConfigs = await fetchConfig('amfaConfigs');
-          return await deleteTotp(headers, payload.email, amfaConfigs, requestId);
+          return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client);
         }
       }
 

@@ -1,3 +1,4 @@
+import { AdminUpdateUserAttributesCommand } from "@aws-sdk/client-cognito-identity-provider";
 import { notifyProfileChange } from "../mailer.mjs";
 import writeToken, { deleteToken } from "./writeToken.mjs"
 import { authenticator } from 'otplib'
@@ -15,7 +16,7 @@ const response = (headers, statusCode, body, requestIdIn) => {
     };
 };
 
-export const registotp = async (headers, payload, configs, requestId) => {
+export const registotp = async (headers, payload, configs, requestId, cognito) => {
 
     const token = authenticator.generate(payload.secretCode);
     console.log('otp validate token', token);
@@ -33,6 +34,16 @@ export const registotp = async (headers, payload, configs, requestId) => {
                     configs.totp.asm_provider_id,
                     payload.tokenLabel);
 
+                await cognito.send(new AdminUpdateUserAttributesCommand(
+                    {
+                        UserPoolId: process.env.USERPOOL_ID,
+                        Username: payload.email,
+                        UserAttributes: [{
+                            Name:'custom:totp-label',
+                            Value: payload.tokenLabel
+                        }]
+                    }));
+
                 await notifyProfileChange(payload.email, 'TOTP', payload.tokenLabel, configs.smtp);
                 return response(headers, 200, 'TOTP configured', requestId);
             }
@@ -48,9 +59,18 @@ export const registotp = async (headers, payload, configs, requestId) => {
     }
 }
 
-export const deleteTotp = async (headers, email, configs, requestId) => {
+export const deleteTotp = async (headers, email, configs, requestId, cognito) => {
     console.log('deleteTotp payload ', email, ' configs ', configs)
     await deleteToken(email, configs.totp.asm_provider_id)
+
+    await cognito.AdminUpdateUserAttributesCommand({
+        UserPoolId: process.env.USERPOOL_ID,
+        Username: email,
+        UserAttributes: [{
+            Name: 'custom:totp-label',
+            Value: ''
+        }]
+    })
 
     await notifyProfileChange(email, 'TOTP', null, configs.smtp);
 
