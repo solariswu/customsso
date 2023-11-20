@@ -13,11 +13,13 @@ import { deleteTotp, registotp } from './utils/totp/registOtp.mjs';
 const validateInputParams = (payload) => {
   // check required params here
   switch (payload.phase) {
+    case 'admindeletetotp':
+      return (payload.email);
     case 'username':
-      return (payload && payload.email &&
+      return (payload.email &&
         payload.apti && payload.authParam);
     case 'password':
-      return (payload && payload.email && payload.password &&
+      return (payload.email && payload.password &&
         payload.apti && payload.authParam);
     case 'sendotp':
     case 'pwdreset2':
@@ -26,28 +28,28 @@ const validateInputParams = (payload) => {
     case 'selfservice3':
     case 'updateProfileSendOTP':
     case 'emailverificationSendOTP':
-      return (payload && payload.email && payload.otptype &&
+      return (payload.email && payload.otptype &&
         payload.apti && payload.authParam);
     case 'verifyotp':
     case 'pwdresetverify2':
     case 'pwdresetverify3':
     case 'selfserviceverify2':
     case 'selfserviceverify3':
-      return (payload && payload.email && payload.otpcode && payload.otptype &&
+      return (payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam);
     case 'emailverificationverifyotp':
-      return (payload && payload.email && payload.otpcode && payload.otptype &&
+      return (payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam && payload.attributes && payload.password);
     case 'updateProfile':
-      return (payload && payload.email && payload.otpcode && payload.otptype &&
+      return (payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam && payload.uuid);
     case 'getOtpOptions':
     case 'getUserOtpOptions':
-      return (payload && payload.email && payload.authParam);
+      return (payload.email && payload.authParam);
     case 'removeProfile':
-      return (payload && payload.email && payload.authParam && payload.profile);
+      return (payload.email && payload.authParam && payload.profile);
     case 'registotp':
-      return (payload && payload.email && payload.uuid && payload.secretCode && payload.tokenLabel);
+      return (payload.email && payload.uuid && payload.secretCode && payload.tokenLabel);
     default:
       break;
   }
@@ -95,6 +97,10 @@ export const handler = async (event) => {
     console.log('payload', payload);
 
     if (payload && validateInputParams(payload)) {
+      if (payload.phase === 'admindeletetotp') {
+        const amfaConfigs = await fetchConfig('amfaConfigs');
+        return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client);
+      }
 
       if (payload.phase === 'registotp') {
         const isValidUuid = await checkSessionId(payload, payload.uuid);
@@ -104,11 +110,11 @@ export const handler = async (event) => {
         }
       }
 
-      console.log ('phase', payload.phase, ' otptype', payload.otptype);
+      console.log('phase', payload.phase, ' otptype', payload.otptype);
       if (payload.phase === 'removeProfile' && payload.otptype === 't') {
-        console.log ('removeProfile check uuid');
+        console.log('removeProfile check uuid');
         const isValidUuid = await checkSessionId(payload, payload.uuid);
-        console.log ('isValidUuid', isValidUuid);
+        console.log('isValidUuid', isValidUuid);
         if (isValidUuid) {
           const amfaConfigs = await fetchConfig('amfaConfigs');
           return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client);

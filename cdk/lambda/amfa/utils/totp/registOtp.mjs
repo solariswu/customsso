@@ -39,7 +39,7 @@ export const registotp = async (headers, payload, configs, requestId, cognito) =
                         UserPoolId: process.env.USERPOOL_ID,
                         Username: payload.email,
                         UserAttributes: [{
-                            Name:'custom:totp-label',
+                            Name: 'custom:totp-label',
                             Value: payload.tokenLabel
                         }]
                     }));
@@ -63,14 +63,19 @@ export const deleteTotp = async (headers, email, configs, requestId, cognito) =>
     console.log('deleteTotp payload ', email, ' configs ', configs)
     await deleteToken(email, configs.totp.asm_provider_id)
 
-    await cognito.AdminUpdateUserAttributesCommand({
-        UserPoolId: process.env.USERPOOL_ID,
-        Username: email,
-        UserAttributes: [{
-            Name: 'custom:totp-label',
-            Value: ''
-        }]
-    })
+    try {
+        await cognito.AdminUpdateUserAttributesCommand({
+            UserPoolId: process.env.USERPOOL_ID,
+            Username: email,
+            UserAttributes: [{
+                Name: 'custom:totp-label',
+                Value: ''
+            }]
+        })
+    } catch (error) {
+        // no issue as this may due to user has been deleted
+        console.log('Function[deleteTotp] remove User custom attributes error ', error)
+    }
 
     await notifyProfileChange(email, 'TOTP', null, configs.smtp);
 
