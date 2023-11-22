@@ -4,6 +4,7 @@ import { Duration } from 'aws-cdk-lib';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
 import { config } from '../lib/config';
+import { Table } from 'aws-cdk-lib/aws-dynamodb';
 
 
 
@@ -49,3 +50,38 @@ export const createAuthChallengeFn = (
 
   return fn;
 };
+
+export const createCustomMessageLambda = (scope: Construct, configTable: Table) => {
+  const lambdaName = 'custommessage';
+
+  const lambda = new Function(scope, lambdaName, {
+    runtime: Runtime.NODEJS_18_X,
+    handler: 'index.handler',
+    code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
+    environment: {
+      CONFIG_TABLE: configTable.tableName,
+      APP_URL: config.tenantAppUrl,
+      SERVICE_NAME: config.serviceName,
+    },
+    timeout: Duration.minutes(5)
+  });
+
+  lambda.role?.attachInlinePolicy(
+    new Policy(scope, `${lambdaName}-policy`, {
+      statements: [
+        new PolicyStatement({
+          resources:
+            [configTable.tableArn]
+          ,
+          actions: [
+            'dynamodb:GetItem',
+            'dynamodb:Scan',
+          ],
+        }),
+      ],
+    })
+  );
+
+  return lambda;
+
+}

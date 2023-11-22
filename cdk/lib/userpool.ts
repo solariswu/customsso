@@ -19,7 +19,8 @@ import { Duration } from 'aws-cdk-lib';
 
 import { config } from './config';
 import { DNS, AMFAIdPName } from './const';
-import { createAuthChallengeFn } from './lambda';
+import { createAuthChallengeFn, createCustomMessageLambda } from './lambda';
+import { Table } from 'aws-cdk-lib/aws-dynamodb';
 
 export class TenantUserPool {
   scope: Construct;
@@ -30,7 +31,7 @@ export class TenantUserPool {
   oidcProvider: UserPoolIdentityProviderOidc;
   api: RestApi;
 
-  constructor(scope: Construct) {
+  constructor(scope: Construct, configTable: Table) {
     this.scope = scope;
 
     this.userpool = this.createUserPool();
@@ -39,8 +40,8 @@ export class TenantUserPool {
     this.oidcProvider = this.createOIDCProvider();
     this.hostedUIClient = this.addHostedUIAppClient();
     this.hostedUIClient.node.addDependency(this.oidcProvider);
-    // this.secretClient = this.addSecretClient();
     this.addHostedUIDomain();
+    this.addCustomMessageLambdaTrigger(configTable);
   }
 
   private createUserPool = () => {
@@ -99,19 +100,6 @@ export class TenantUserPool {
     });
   };
 
-  private addSecretClient() {
-    return new UserPoolClient(this.scope, 'secretClient', {
-      userPool: this.userpool,
-      generateSecret: true,
-      preventUserExistenceErrors: true,
-      authFlows: {
-        userSrp: true,
-        adminUserPassword: true,
-      },
-      userPoolClientName: 'SecretClient',
-    });
-  };
-
   private addHostedUIAppClient() {
     return new UserPoolClient(this.scope, 'hostedUIClient', {
       userPool: this.userpool,
@@ -152,7 +140,7 @@ export class TenantUserPool {
           familyName: ProviderAttribute.other('family_name'),
           givenName: ProviderAttribute.other('given_name'),
           custom: {
-            email_verified: ProviderAttribute.other( 'email_verified'),
+            email_verified: ProviderAttribute.other('email_verified'),
             phone_number_verified: ProviderAttribute.other('phone_number_verified'),
             'custom:alter-email': ProviderAttribute.other('custom:alter-email'),
             'custom:voice-number': ProviderAttribute.other('custom:voice-number')
@@ -195,6 +183,16 @@ export class TenantUserPool {
       authChallengeFns[2]
     );
   };
+
+  private addCustomMessageLambdaTrigger(configTable) {
+    const lambdaFn = createCustomMessageLambda(
+      this.scope, configTable
+    );
+    this.userpool.addTrigger(
+      UserPoolOperation.CUSTOM_MESSAGE,
+      lambdaFn
+    );
+  }
 
   private addHostedUIDomain(
   ) {

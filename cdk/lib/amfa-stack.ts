@@ -33,7 +33,7 @@ export class AmfaStack extends Stack {
     const apigateway = new TenantApiGateway(this, props.apiCertificate, props.hostedZone);
 
     // userpool hostedui customauth-oidc customauth-lambda triggers.
-    const tenantUserPool = new TenantUserPool(this);
+    const tenantUserPool = new TenantUserPool(this, apigateway.configTable);
 
     // create custom auth oauth endpoints
     apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool);

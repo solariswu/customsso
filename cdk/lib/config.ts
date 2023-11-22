@@ -4,5 +4,6 @@ export const config = {
 	'tenantAppUrl': 'https://amfa.netlify.app/',
 	'tenantId' : 'amfa-dev004', // lowercase only
 	'magicstring': 'youguesswhat',
-	'totpkeyname':'amfa/totpsecrectkey-eEoRjE'
+	'totpkeyname':'amfa/totpsecrectkey-eEoRjE',
+	'serviceName':'apersona',
 }
