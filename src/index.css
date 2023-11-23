@@ -349,6 +349,16 @@ body {
   color: #0062cc;
   /* text-shadow: 1px 1px 1px #555; */
 }
+.about-customizable {
+  position: fixed;
+  left: 0;
+  bottom: 55px;
+  width: 100%;
+  background-color: white;
+  color: grey;
+  text-align: center;
+  font-size: 12px;
+}
 .footer-customizable {
   position: fixed;
   left: 0;

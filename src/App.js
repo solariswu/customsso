@@ -84,9 +84,11 @@ const App = () => {
 
       return (
          <div className='footer-customizable'>
-            <span className='legalText-customizable'>
-               {time}
-            </span>
+            <div>
+               <span className='legalText-customizable'>
+                  {time}
+               </span>
+            </div>
             <span
                className='legalText-customizable'
             >
@@ -148,10 +150,12 @@ const App = () => {
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <Footer />
-                  {config?.enable_have_i_been_pwned &&
-                     <PwnedPWDModal />
-                  }
-
+                  <div className='about-customizable' style={{ textAlign: 'center' }}>
+                     {
+                        config?.enable_have_i_been_pwned &&
+                        <PwnedPWDModal />
+                     }
+                  </div>
                </div>
             </div>
          </div>
