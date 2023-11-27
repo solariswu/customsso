@@ -245,18 +245,17 @@ const MFAContent = () => {
   }
 
   const OTPElement = ({ otptype }) => {
-    const verifyMobileToken = () => {
-      setOtpInFly('t');
-      setOtp({ ...otp, type: 't' });
-    }
 
     if (otptype === 't') {
       if (mobileToken) {
+        setOtpInFly('t');
+        setOtp({ ...otp, type: 't' });
+
         return (
           <div className='row align-items-end'>
             <div className='col-4'>TOTP:</div>
             <div className='col'>
-              <span className='link-customizable' onClick={verifyMobileToken}>
+              <span className='link-customizable'>
                 mobile app token
               </span>
             </div>
@@ -349,22 +348,27 @@ const MFAContent = () => {
       </div>
       {otpOptions.map((option) => ((otpInFly === '' || otpInFly === option) && <OTPElement otptype={option} />))}
       <div style={{ padding: '5px 0 0 0' }}>
-          <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
-            style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-            autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
-            onKeyUp={e => confirmLogin(e)}
-            disabled={isLoading || otpInFly === ''}
-          />
-          <Button
-            name='verifyotp'
-            type='submit'
-            className='btn btn-primary submitButton-customizable'
-            style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-            disabled={isLoading || otpInFly === ''}
-            onClick={stepfour}
-          >
-            {isLoading ? 'Sending...' : 'Verify'}
-          </Button>
+        {
+          otpInFly && otpInFly !== '' &&
+          <>
+            <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
+              style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
+              autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
+              onKeyUp={e => confirmLogin(e)}
+              disabled={isLoading || otpInFly === ''}
+            />
+            <Button
+              name='verifyotp'
+              type='submit'
+              className='btn btn-primary submitButton-customizable'
+              style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
+              disabled={isLoading || otpInFly === ''}
+              onClick={stepfour}
+            >
+              {isLoading ? 'Sending...' : 'Verify'}
+            </Button>
+          </>
+        }
         {otpInFly && otpInFly !== '' && OTPMethodsCount > 1 &&
           <Button name='changeotp' type="submit" className="btn btn-secondary submitButton-customizable-back"
             disabled={isLoading}

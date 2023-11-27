@@ -10,6 +10,7 @@ import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
 
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
+
 const LOGIN = () => {
   const location = useLocation();
   const config = useFeConfigs();
@@ -19,6 +20,7 @@ const LOGIN = () => {
 
   const [isLoading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ msg: '', type: '' });
+  const [consent, setConsent] = useState(false);
   const [email, setEmail] = useState(location.state ? location.state.email : '');
 
   const setErrorMsg = (msg) => {
@@ -77,14 +79,9 @@ const LOGIN = () => {
   useEffect(() => {
     document.title = 'Registration';
 
-    if (!location.state || !location.state.consent) {
-      navigate('/register_consent');
-      return;
-    }
-
     handleReCaptchaVerify();
 
-  }, [location, navigate, handleReCaptchaVerify]);
+  }, [handleReCaptchaVerify]);
 
   const confirmSignUp = (e) => {
     if (e.key === "Enter") {
@@ -147,13 +144,37 @@ const LOGIN = () => {
     }
   }
 
+
   return (
     <div>
       <span>
         <h4>Registration</h4>
       </span>
       <hr className="hr-customizable" />
+
       {config && config.enable_user_registration && <div>
+        <div>
+          <span
+            style={{ lineHeight: '1rem', color: 'grey' }}
+          >
+            {
+              config?.branding.consent_content
+            }
+          </span>
+          <hr className='hr-customizable' />
+        </div>
+        <div>
+          <input
+            type="checkbox" id="consent-tick" name="consent-tick"
+            checked={consent}
+            onChange={() => setConsent(consent => !consent)}
+          />
+          <span style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey' }}>
+            I Agree
+          </span>
+          <br />
+        </div>
+        <hr className='hr-customizable' />
         <span className='idpDescription-customizable'> Enter your {clientName} account ID </span>
         <div>
           <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
@@ -165,7 +186,19 @@ const LOGIN = () => {
             name="confirm" type="submit"
             className="btn btn-primary submitButton-customizable"
             disabled={isLoading}
-            onClick={config.enable_google_recaptcha ? signUpWithCaptcha : signUp}
+            onClick={() => {
+              if (consent) {
+                if (config.enable_google_recaptcha) {
+                  signUpWithCaptcha()
+                }
+                else {
+                  signUp()
+                }
+              }
+              else {
+                setErrorMsg('Please tick the box to confirm')
+              }
+            }}
           >
             {isLoading ? 'Loading...' : 'Next'}
           </Button>

@@ -312,7 +312,7 @@ const CONTENT = () => {
 							<input id="signInFormNewProfile" name="newProfile" type="email" className="form-control inputField-customizable"
 								style={{ height: '40px' }}
 								placeholder="user@email.com" value={newProfile} onChange={(e) => setNewProfile(e.target.value)}
-								autoComplete='off'
+								autocomplete='off'
 								onKeyUp={e => confirmSubmit(e)}
 								disabled={isLoading}
 							/> </div> :

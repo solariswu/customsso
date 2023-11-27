@@ -149,16 +149,20 @@ const LOGIN = () => {
                 <div class="row"
                     style={{ fontWeight: 'bold' }}
                 >
-                    Update Password:
+                    Update
                 </div>
-                <div class="row" style={{ color: '#C0C0C0' }}></div>
+                <div class="row"
+                    style={{ fontWeight: 'bold' }}
+                >
+                    Password:
+                </div>
             </div>
             <div class="col-4" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
                 <Button
                     name='updatePassword'
                     type='submit'
                     // className='btn btn-primary submitButton-customizable'
-                    className='btn btn-sm btn-success'
+                    className='btn-sm btn-success'
                     disabled={isLoading}
                     onClick={() => navigate('/passwordreset', {
                         state: {
@@ -174,11 +178,13 @@ const LOGIN = () => {
                     Update
                 </Button>
             </div>
+            <div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
+            </div>
         </div>)
 
     const removeTOTP = async () => {
         console.log('remove TOTP');
-        if (window.confirm('Do you want to remove your TOTP verification method?')) {
+        if (window.confirm('Do you want to remove your Mobile Token verification method?')) {
             const params = {
                 email,
                 uuid,

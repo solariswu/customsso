@@ -165,7 +165,10 @@ export const OTP = () => {
       switch (result.status) {
         case 202:
           if (resultMsg.message) {
-            setInfoMsg(resultMsg.message);
+            if (otptype !== 't') {
+              // mobile token no need to display sent message
+              setInfoMsg(resultMsg.message);
+            }
             setTimeout(() => {
               setInfoMsg('');
             }, 8000);
@@ -389,12 +392,6 @@ export const OTP = () => {
   }
 
   const OTPElement = ({ otptype }) => {
-    const verifyMobileToken = () => {
-      setOtpInFly('t');
-      setOtp({ ...otp, type: 't' });
-      setApti(getApti());
-    }
-
     const table = {
       e: {
         title: 'Email',
@@ -413,8 +410,8 @@ export const OTP = () => {
         content: data?.vPhoneNumber ? `${data.vPhoneNumber}` : null,
       },
       t: {
-        title: 'TOTP',
-        content: data?.mobileToken ? 'mobile app token' : null,
+        title: 'Mobile Token',
+        content: data?.mobileToken ? `amfa: ${email}` : null,
       },
     };
 
@@ -422,9 +419,15 @@ export const OTP = () => {
       <div className='row align-items-end'>
         <div className='col-4'>{table[otptype].title}:</div>
         <div className='col'>
-          <span className='link-customizable' onClick={() => otptype === 't' ? verifyMobileToken() : sendOtp(otptype)}>
-            {table[otptype].content}
-          </span>
+          {otptype === 't' ?
+            <span className='link-customizable'>
+              {table[otptype].content}
+            </span>
+            :
+            <span className='link-customizable' onClick={() => sendOtp(otptype)}>
+              {table[otptype].content}
+            </span>
+          }
           {otpInFly === otptype && <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>
             {otptype === 't' ? data.mobileToken : '(resend code)'}
           </div>}
@@ -435,14 +438,15 @@ export const OTP = () => {
 
   const SubjectMessage = ({ otpInFly, OTPMethodsCount, currentStage }) => {
     if (otpInFly === '') {
-      if (OTPMethodsCount === 1) {
+      if (OTPMethodsCount === 1 && currentStage !== 2 ) {
+        // with mobile token, OTPMethodsCount would be one when there is another MFA other than mobile token
         return (<>Access requires a verification.<br /> Click your ID below to receive a one time verification code</>)
       }
       return (currentStage === 2 ? config?.branding.update_profile_app_verify2_message : config?.branding.update_profile_app_verify1_message)
     }
 
     if (otpInFly === 't') {
-      return (<>Please enter the TOTP code showing on your mobile app below and click Verify.</>)
+      return (<>Please enter your mobile authenticator one-time code below and click Verify.</>)
     }
 
     return config?.branding.update_profile_app_verify_retreive_message
@@ -466,24 +470,36 @@ export const OTP = () => {
         data.otpOptions.map((option) => ((otpInFly === '' || otpInFly === option) && <OTPElement otptype={option} />))}
       <br />
       <div>
-        <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
-          style={{
-            width: '42%', margin: 'auto 10px', display: 'inline', height: '40px', textAlign: 'justify'
-          }}
-          autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
-          onKeyUp={e => confirmLogin(e)}
-          disabled={isLoading || otpInFly === ''}
-        />
-        <Button
-          name='verifyotp'
-          type='submit'
-          className='btn btn-primary submitButton-customizable'
-          style={{ width: '42%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-          disabled={isLoading || otpInFly === ''}
-          onClick={verifyOtp}
-        >
-          {isLoading ? showOTP ? 'Sending...' : 'Checking...' : 'Verify'}
-        </Button>
+        {otpInFly && otpInFly !== '' &&
+          <>
+            <input
+              name="otpcode" id="otpcode" type="tel"
+              className="form-control inputField-customizable"
+              placeholder={otpInFly === 't' ? "######" : "####"}
+              style={{
+                width: '42%', margin: 'auto 10px',
+                display: 'inline', height: '40px', textAlign: 'justify'
+              }}
+              autoCapitalize="none"
+              required
+              aria-label="otp code"
+              value={otp.code}
+              onChange={setOTPCode}
+              onKeyUp={e => confirmLogin(e)}
+              disabled={isLoading || otpInFly === ''}
+            />
+            <Button
+              name='verifyotp'
+              type='submit'
+              className='btn btn-primary submitButton-customizable'
+              style={{ width: '42%', margin: 'auto 10px', display: 'inline', height: '40px' }}
+              disabled={isLoading || otpInFly === ''}
+              onClick={verifyOtp}
+            >
+              {isLoading ? showOTP ? 'Sending...' : 'Checking...' : 'Verify'}
+            </Button>
+          </>
+        }
         {config?.update_profile_force_mobile_token_first_if_registered && data?.mobileToken && otpInFly === 't' ?
           <></> :
           otpInFly && otpInFly !== '' && OTPMethodsCount > 1 &&
@@ -495,6 +511,7 @@ export const OTP = () => {
           </Button>
         }
       </div>
+      <br />
       {showOTP && <InfoMsg isLoading={isLoading} msg={msg} />}
     </div>
   );

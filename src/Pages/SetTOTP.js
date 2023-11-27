@@ -93,7 +93,7 @@ const CONTENT = () => {
 						break;
 					default:
 						const data = await res.json();
-						let errMsg = 'Something went wrong, please try your login again.';
+						let errMsg = 'Invalid Token, please try again.';
 						if (data.message === "NotAuthorizedException") {
 							errMsg = 'Invalid credentials.';
 						}
@@ -185,7 +185,7 @@ const CONTENT = () => {
 			{isUpdateDone ? <UpdateDone /> :
 				(secretCode && secretCode.length > 0) ?
 					<div style={{ textAlign: "left" }}>
-						<span className='idpDescription-customizable'>Launch your Authorizator to Update it:</span>
+						<span className='idpDescription-customizable'>Open your Authorizator to Update it:</span>
 						<div>1. Scan the code or enter the code. </div>
 						<div>Your code:
 							<span style={{ color: '#2e6da4' }}>
@@ -204,7 +204,7 @@ const CONTENT = () => {
 								disabled={isLoading}
 							/>
 						</div>
-						<div>3. Token Label. ex. iPhone X, & click Update.</div>
+						<div>3. Token Label. ex. iPhone X</div>
 						<div className="input-group">
 							<input id="tokenlabel" name="tokenLabel" type="text" className="form-control inputField-customizable"
 								style={{ height: '40px' }}

@@ -433,7 +433,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         else {
           //This puts ASM into an otp state for the user, then you can send a mobile token.
           // On the second verification, the auth api call is sending otpp=1, but it should be otpp=0 becuase we want ASM to push the otp immediately to the selected channel.
-          otpp = ['pwdreset2', 'selfservice2'].includes(step) ? 1 : 0;
+          otpp = event.otptype === 't' && ['pwdreset2', 'selfservice2'].includes(step) ? 1 : 0;
           sfl = 7;
           postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp + '&nsf=' + nsf + '&igd=' + igd;
         }
@@ -604,7 +604,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'selfservice3':
             case 'emailverificationSendOTP':
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
-              return response(202, amfaResponseJSON.message, event.requestId)
+              return response(202, 'OTP sent', event.requestId)
             case 'updateProfileSendOTP':
               uuid = await genSessionID(event.email, event.apti, event.otpaddr);
               return {

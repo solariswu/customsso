@@ -177,7 +177,7 @@ const CONTENT = () => {
 		return (
 			<div>
 				<span className='idpDescription-customizable'> Your account has been registed. </span><br />
-				<span> Now it's time to config one or more MFA methods. </span>
+				<span> Please click Continue to register your Multi-Factor Authentication Methods. </span>
 				<hr className="hr-customizable" />
 				<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
 					variant="success"

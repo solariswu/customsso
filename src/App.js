@@ -17,7 +17,7 @@ import { applicationUrl } from './const';
 import UpdateProfile from './Pages/UpdateProfile';
 import RemoveProfile from './Pages/RemoveProfile';
 
-import { RegistrationVerify, RegistrationHome, RegistrationPasswords, RegistrationAttributes, RegistrationConsent } from './Pages/Registration';
+import { RegistrationVerify, RegistrationHome, RegistrationPasswords, RegistrationAttributes } from './Pages/Registration';
 import { useFeConfigs } from './DataProviders/FeConfigProvider';
 import { Spinner } from 'reactstrap';
 
@@ -143,7 +143,6 @@ const App = () => {
                      <Route path='/removeprofile' element={<RemoveProfile />} />
                      <Route path="/setuptotp" element={<SetTOTP />} />
                      <Route path="/registration" element={<RegistrationHome />} />
-                     <Route path="/register_consent" element={<RegistrationConsent />} />
                      <Route path="/registration_password" element={<RegistrationPasswords />} />
                      <Route path="/registration_attributes" element={<RegistrationAttributes />} />
                      <Route path="/registration_verify" element={<RegistrationVerify />} />

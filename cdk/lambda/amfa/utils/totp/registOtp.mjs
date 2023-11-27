@@ -18,6 +18,8 @@ const response = (headers, statusCode, body, requestIdIn) => {
 
 export const registotp = async (headers, payload, configs, requestId, cognito) => {
 
+    authenticator.options = {window: 10};
+
     const token = authenticator.generate(payload.secretCode);
     console.log('otp validate token', token);
     console.log('otp validate payload', payload);
@@ -77,7 +79,7 @@ export const deleteTotp = async (headers, email, configs, requestId, cognito) =>
         console.log('Function[deleteTotp] remove User custom attributes error ', error)
     }
 
-    await notifyProfileChange(email, 'TOTP', null, configs.smtp);
+    await notifyProfileChange(email, 'Mobile Token', null, configs.smtp);
 
-    return response(headers, 200, 'TOTP deleted', requestId);
+    return response(headers, 200, 'Mobile Token deleted', requestId);
 }
