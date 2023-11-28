@@ -156,9 +156,10 @@ const LOGIN = () => {
         <div>
           <span
             style={{ lineHeight: '1rem', color: 'grey' }}
+            dangerouslySetInnerHTML={{__html: config?.branding.consent_content}}
           >
             {
-              config?.branding.consent_content
+              // config?.branding.consent_content
             }
           </span>
           <hr className='hr-customizable' />
