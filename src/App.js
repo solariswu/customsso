@@ -120,7 +120,7 @@ const App = () => {
 
    return (
       <div className="container">
-         <div className="modal-dialog">
+         <div className="modal-dialog" style={{marginTop: '0px'}}>
             <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm">
                <div class="banner-customizable">
                   <center>
@@ -145,7 +145,7 @@ const App = () => {
                      <Route path="/registration" element={<RegistrationHome />} />
                      <Route path="/registration_password" element={<RegistrationPasswords />} />
                      <Route path="/registration_attributes" element={<RegistrationAttributes />} />
-                     <Route path="/registration_verify" element={<RegistrationVerify />} />
+                     <Route path="/registration_verify" element={<RegistrationVerify stoptimer={selfserviceTimeOut} />} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <Footer />

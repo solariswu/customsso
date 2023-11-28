@@ -195,22 +195,22 @@ const CONTENT = () => {
 						<div style={{ textAlign: "center", marginTop: '10px' }}>
 							<canvas ref={canvasRef} />
 						</div>
-						<div>2. Enter 6 digit result...</div>
-						<div className="input-group">
-							<input id="totpResult" name="totpresult" type="text" className="form-control inputField-customizable"
-								style={{ height: '40px' }}
-								placeholder="6 digit result" required value={sixDigits} onChange={(e) => setSixDigits(e.target.value)}
-								autoFocus
-								disabled={isLoading}
-							/>
-						</div>
-						<div>3. Token Label. ex. iPhone X</div>
+						<div>2. Token Label. ex. iPhone X</div>
 						<div className="input-group">
 							<input id="tokenlabel" name="tokenLabel" type="text" className="form-control inputField-customizable"
 								style={{ height: '40px' }}
 								placeholder="Token Label" required value={tokenLabel} onChange={(e) => setTokenLabel(e.target.value)}
-								onKeyUp={e => confirmLabel(e)}
 								disabled={isLoading}
+								autoFocus
+							/>
+						</div>
+						<div>3. Enter 6 digit result...</div>
+						<div className="input-group">
+							<input id="totpResult" name="totpresult" type="text" className="form-control inputField-customizable"
+								style={{ height: '40px' }}
+								placeholder="6 digit result" required value={sixDigits} onChange={(e) => setSixDigits(e.target.value)}
+								disabled={isLoading}
+								onKeyUp={e => confirmLabel(e)}
 							/>
 						</div>
 						<Button name="update" type="submit" className="btn btn-primary submitButton-customizable"

@@ -102,6 +102,9 @@ const storeTokens = async (user, payload, authCode, dynamodb, requestTimeEpoch) 
 			timestamp: {
 				N: `${requestTimeEpoch}`,
 			},
+			ttl: {
+				N: `${parseInt(requestTimeEpoch / 1000 + 3600)}`,
+			},
 		},
 		ReturnConsumedCapacity: 'TOTAL',
 		TableName: process.env.AUTHCODE_TABLE,

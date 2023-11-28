@@ -378,6 +378,7 @@ const MFAContent = () => {
           </Button>
         }
       </div>
+      <br />
       <InfoMsg isLoading={isLoading} msg={msg} />
     </div>
   );

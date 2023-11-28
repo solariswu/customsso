@@ -604,7 +604,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'selfservice3':
             case 'emailverificationSendOTP':
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
-              return response(202, 'OTP sent', event.requestId)
+              return response(202, event.otpType === 't' ? 'OTP sent': amfaResponseJSON.message, event.requestId)
             case 'updateProfileSendOTP':
               uuid = await genSessionID(event.email, event.apti, event.otpaddr);
               return {

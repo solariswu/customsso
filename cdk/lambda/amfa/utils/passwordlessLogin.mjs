@@ -110,6 +110,9 @@ const storeTokens = async (user, payload, authCode) => {
       timestamp: {
         N: `${payload.requestTimeEpoch}`,
       },
+      ttl: {
+        N: `${parseInt(payload.requestTimeEpoch / 1000 + 3600)}`
+      }
     },
     ReturnConsumedCapacity: 'TOTAL',
     TableName: process.env.AUTHCODE_TABLE,
