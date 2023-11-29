@@ -316,6 +316,42 @@ export class TenantApiGateway {
     return myLambda;
   };
 
+  private createLogoutLambda(sessionIdTable: Table) {
+    const lambdaName = 'signout';
+    const myLambda = new Function(
+      this.scope,
+      `${lambdaName}-${config.tenantId}`,
+      {
+        runtime: Runtime.NODEJS_18_X,
+        handler: `${lambdaName}.handler`,
+        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
+        environment: {
+          SESSION_ID_TABLE: sessionIdTable.tableName,
+        },
+        timeout: Duration.minutes(5),
+      }
+    );
+
+    myLambda.role?.attachInlinePolicy(
+      new Policy(this.scope, `${lambdaName}-policy`, {
+        statements: [
+          new PolicyStatement({
+            resources: [
+              sessionIdTable.tableArn,
+            ],
+            actions: [
+              'dynamodb:Scan',
+              'dynamodb:GetItem',
+              'dynamodb:DeleteItem',
+            ],
+          }),
+        ],
+      })
+    );
+
+    return myLambda;
+  }
+
   // token endpoint of passworless login lambda function
   private attachLambdaToApiGWService(
     api: IResource,
@@ -460,6 +496,6 @@ export class TenantApiGateway {
     this.attachLambdaToApiGWService(rootPathAPI, this.createFeConfigLambda(this.configTable), 'feconfig', false);
     this.attachLambdaToApiGWService(rootPathAPI, this.createCheckUserLambda(userpool), 'checkuser');
     this.attachLambdaToApiGWService(rootPathAPI, this.createVerifyCaptchaLambda(), 'verifyrecaptcha');
+    this.attachLambdaToApiGWService(rootPathAPI, this.createLogoutLambda(this.sessionIdTable), 'signout');
   }
-  ;
 }

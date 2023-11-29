@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Spinner } from 'reactstrap';
 import InfoMsg from '../Components/InfoMsg';
 
-import { apiUrl } from '../const';
+import { apiUrl, applicationUrl } from '../const';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 import { getApti } from '../Components/utils';
 
@@ -316,6 +316,38 @@ const LOGIN = () => {
                     <UpdatePassword />
                 </> : <Spinner color="primary" style={{ margin: '8px auto' }}>{''}</Spinner>}
             <hr className='hr-customizable' />
+            <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
+                variant="success"
+                onClick={
+                    async () => {
+                        if (location.state && location.state.uuid) {
+                            const params = {
+                                email,
+                                uuid: location.state.uuid,
+                            };
+
+                            setLoading(true);
+                            try {
+                                await fetch(`${apiUrl}/oauth2/signout`, {
+                                    method: 'POST',
+                                    body: JSON.stringify(params),
+                                    credentials: 'include',
+                                });
+                            }
+                            catch (err) {
+                                console.log(err);
+                            }
+                            setLoading(false);
+                        }
+                        if (applicationUrl) {
+                            window.location.assign(`${applicationUrl}?amfa=relogin`)
+                        }
+                        else { window.close() }
+                    }
+                }
+            >
+                {applicationUrl ? 'Return to the Login Page' : 'Close this window'}
+            </Button>
             <InfoMsg isLoading={isLoading} msg={msg} />
         </div >
 

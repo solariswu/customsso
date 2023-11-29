@@ -254,9 +254,33 @@ const CONTENT = () => {
 				<span className='idpDescription-customizable'> Your {updateType} has been changed. </span><br />
 				<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
 					variant="success"
-					onClick={{ applicationUrl } ?
-						() => window.location.assign(`${applicationUrl}?amfa=relogin`) :
-						() => window.close()}
+					onClick={
+						async () => {
+							if (location.state && location.state.uuid) {
+								const params = {
+									email,
+									uuid: location.state.uuid,
+								};
+
+								setLoading(true);
+								try {
+									await fetch(`${apiUrl}/oauth2/signout`, {
+										method: 'POST',
+										body: JSON.stringify(params),
+										credentials: 'include',
+									});
+								}
+								catch (err) {
+									console.log(err);
+								}
+								setLoading(false);
+							}
+							if (applicationUrl) {
+								window.location.assign(`${applicationUrl}?amfa=relogin`)
+							}
+							else { window.close() }
+						}
+					}
 				>
 					{applicationUrl ? 'Return to the Login Page' : 'Close this window'}
 				</Button>
