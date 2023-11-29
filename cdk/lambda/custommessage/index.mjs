@@ -33,7 +33,7 @@ export const handler = async (event, context, callback) => {
   const templateInvite = (name, email, username, code, configs) => `<html>
   <body
     style="
-      background-color: #333;
+      background-color: #fff;
       font-family: PT Sans, Trebuchet MS, sans-serif;
     "
   >
@@ -55,71 +55,52 @@ export const handler = async (event, context, callback) => {
           style="
             border: 0;
             display: block;
-            height: auto;
-            width: 100%;
-            max-width: 373px;
+            height: 57px;
+            width: 249px;
           "
+          height="57"
+          width="249"
           alt="Animage"
-          height="200"
-          width="300"
-          src="${configs.logo_url}"
+          src="${configs.email_logo_url}"
         />
-        <h2
+        <div
           style="
-            font-size: 28px;
+            font-size: 12pt;
             margin-top: 20px;
             margin-bottom: 0;
             font-style: normal;
             font-weight: bold;
             color: #000;
-            font-size: 24px;
             line-height: 32px;
             text-align: center;
           "
         >
           Hi ${name ? name : username}
-        </h2>
-        <div style="display:none;">
-            ${username}
-          </div>
-        <p
+        </div><div style="display:none;">${username}</div>
+        <div
           style="
             margin-top: 20px;
             margin-bottom: 0;
-            font-size: 16px;
+            font-size: 12pt;
             line-height: 24px;
             color: #000;
           "
         >
-          ${process.env.SERVICE_NAME} has created a new account for you. Your login id is ${email} and your temporary password is ${code}
+        <p>
+          ${process.env.SERVICE_NAME} has created a new account for you.
         </p>
-        <div style="display: inline-block; margin: 0 auto">
-          <p
-          style="
-            margin-top: 20px;
-            margin-bottom: 0;
-            font-size: 16px;
-            line-height: 24px;
-            color: #000;
-            text-align: left;
-          "
-          >
+        <p>
+          Your login id is ${email} and your temporary password is ${code}
+        </p>
+        </div>
           <div
             style="
-              color: 'white';
-              text-align: 'center';
-              background-color: '#6B6B6B';
-              border-radius: '4px';
-              margin-right: '5px';
-              border: '1px solid #e5e5e5';
-              box-shadow: '0px 0px 5px #e5e5e5'
+              text-align: center;
+              font-size: 12pt;
             "
           />
               <a href="${process.env.APP_URL}" style="text-decoration: none"> Complete Registration </a>
           </div>
-
-		      </p>
-        </div>
       </div>
     </div>
   </body>

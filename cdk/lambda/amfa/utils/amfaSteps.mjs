@@ -225,10 +225,18 @@ export const amfaSteps = async (event, headers, cognito, step) => {
 
     event.otpaddr = event.otpaddr?.toLowerCase();
 
-    // event.profile '' means legacy profile is not set
-    if (step === 'updateProfileSendOTP' && event.profile !== '' && event.otpaddr !== event.profile?.toLowerCase()) {
-      // legacy profile not correct
-      return response(400, 'Your entry was not valid, please try again.', event.requestId);
+    if (step === 'updateProfileSendOTP') {
+      // event.profile '' means legacy profile is not set
+      if (event.profile !== '' && event.otpaddr !== event.profile?.toLowerCase()) {
+        // legacy profile not correct
+        return response(400, 'Your entry was not valid, please try again.', event.requestId);
+      }
+
+      if (event.otptype === 'ae') {
+        if (event.newProfile?.toLowerCase().trim() === event.email.toLowerCase().trim()) {
+          return response(400, "Your alt-email can't be same as your account email.", event.requestId);
+        }
+      }
     }
 
     if (step === 'updateProfileSendOTP' || step === 'updateProfile') {
@@ -604,7 +612,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'selfservice3':
             case 'emailverificationSendOTP':
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
-              return response(202, event.otpType === 't' ? 'OTP sent': amfaResponseJSON.message, event.requestId)
+              return response(202, event.otpType === 't' ? 'OTP sent' : amfaResponseJSON.message, event.requestId)
             case 'updateProfileSendOTP':
               uuid = await genSessionID(event.email, event.apti, event.otpaddr);
               return {

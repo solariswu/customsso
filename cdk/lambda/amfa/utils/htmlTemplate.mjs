@@ -10,7 +10,7 @@ const HTML_TEMPLATE = (user, type, value) => {
 	  <html>
 		<head>
 		  <meta charset="utf-8">
-		  <title>NodeMailer Email Template</title>
+		  <title>Email Title</title>
 		  <style>
 			.container {
 			  width: 100%;

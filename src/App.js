@@ -20,13 +20,16 @@ import RemoveProfile from './Pages/RemoveProfile';
 import { RegistrationVerify, RegistrationHome, RegistrationPasswords, RegistrationAttributes } from './Pages/Registration';
 import { useFeConfigs } from './DataProviders/FeConfigProvider';
 import { Spinner } from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
 import SetTOTP from './Pages/SetTOTP';
-import PwnedPWDModal from './Components/PwnedPWDModal';
+
 
 const App = () => {
-   const [time, setTime] = useState('');
    const [timerType, setTimerType] = useState('login');
+   const [modal, setModal] = useState(false);
+
+   const [time, setTime] = useState('');
    const cd = useRef(299);
    const timer = useRef(null);
 
@@ -38,12 +41,15 @@ const App = () => {
       setTimerType('selfservice');
    }
 
-   useEffect(() => {
+   const pauseTimer = () => timer.current && clearTimeout(timer.current);
+   const resumeTimer = () => {
       const timerHandler = () => {
+
+         timer.current && clearTimeout(timer.current);
+
          if (cd.current <= 0) {
             const errorMsg = "You took too long or entered your otp wrong too many times. Try your login again.";
             setTime('');
-            timer.current && clearTimeout(timer.current);
             localStorage.setItem('OTPErrorMsg', errorMsg);
             switch (timerType) {
                case 'selfservice':
@@ -62,10 +68,47 @@ const App = () => {
          const m = parseInt(cd.current / 60) > 9 ? parseInt(cd.current / 60) : '0' + parseInt(cd.current / 60);
          const s = parseInt(cd.current % 60) > 9 ? parseInt(cd.current % 60) : '0' + parseInt(cd.current % 60);
          setTime(`${m}:${s}`);
-         cd.current--;
+         cd.current = cd.current - 5;
          timer.current = setTimeout(() => {
             timerHandler();
-         }, 1000);
+         }, 5000);
+      };
+
+      timer.current = setTimeout(() => {
+         timerHandler();
+      }, 5000);
+   }
+
+   useEffect(() => {
+      const timerHandler = () => {
+
+         timer.current && clearTimeout(timer.current);
+
+         if (cd.current <= 0) {
+            const errorMsg = "You took too long or entered your otp wrong too many times. Try your login again.";
+            setTime('');
+            localStorage.setItem('OTPErrorMsg', errorMsg);
+            switch (timerType) {
+               case 'selfservice':
+                  navigate('/selfservice', {
+                     state: {
+                        selfservicemsg: errorMsg,
+                     }
+                  });
+                  return;
+               case 'login':
+               default:
+                  window.location.assign(`${applicationUrl}?amfa=relogin`)
+                  return;
+            }
+         }
+         const m = parseInt(cd.current / 60) > 9 ? parseInt(cd.current / 60) : '0' + parseInt(cd.current / 60);
+         const s = parseInt(cd.current % 60) > 9 ? parseInt(cd.current % 60) : '0' + parseInt(cd.current % 60);
+         setTime(`${m}:${s}`);
+         cd.current = cd.current - 5;
+         timer.current = setTimeout(() => {
+            timerHandler();
+         }, 5000);
       };
 
       timerHandler();
@@ -79,20 +122,57 @@ const App = () => {
       }
    }, [timerType, navigate]);
 
+   const Timer = () => {
+      return (
+         <div className='about-customizable' style={{ textAlign: 'center' }}>
+            <span className='legalText-customizable'>
+               {time}
+            </span>
+         </div>
+      )
+   }
+
+   const PwnedPWDModal = () => {
+      const toggle = () => {
+         if (modal) {
+            resumeTimer();
+         }
+         setModal(!modal)
+      };
+
+      return <Modal isOpen={modal} toggle={toggle}>
+         <ModalHeader toggle={toggle}>Copyright 2023 - aPersona, Inc.</ModalHeader>
+         <ModalBody>
+
+            Copyright 2023 - aPersona, Inc.<br />
+            Licensed by aPersona, Inc.<br />
+            Refer to your signed aPersona Subscription Agreement.<br /><br />
+
+            Password breach checking is provided by Have I Been Pwned:
+            <a href='https://haveibeenpwned.com'>https://haveibeenpwned.com</a><br />
+            License: <a href='https://creativecommons.org/licenses/by/4.0/'>https://creativecommons.org/licenses/by/4.0/</a><br />
+         </ModalBody>
+         <ModalFooter>
+            <Button variant="secondary" onClick={toggle}>
+               OK
+            </Button>
+         </ModalFooter>
+      </Modal>
+
+   };
 
    const Footer = () => {
 
       return (
          <div className='footer-customizable'>
-            <div>
-               <span className='legalText-customizable'>
-                  {time}
-               </span>
-            </div>
             <span
                className='legalText-customizable'
             >
-               Copyright &copy; 2023 aPersona Inc. v1.0
+               Copyright &copy; 2023 aPersona Inc. v1.0&nbsp;
+               <div className="link-customizable" style={{ fontSize: "11px", display: 'inline' }} onClick={() => {pauseTimer(); setModal(true)}}>
+                  about
+               </div>
+
             </span>
             {
                config.enable_google_recaptcha && <div >
@@ -120,7 +200,7 @@ const App = () => {
 
    return (
       <div className="container">
-         <div className="modal-dialog" style={{marginTop: '0px'}}>
+         <div className="modal-dialog" style={{ marginTop: '0px' }}>
             <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm">
                <div class="banner-customizable">
                   <center>
@@ -148,13 +228,9 @@ const App = () => {
                      <Route path="/registration_verify" element={<RegistrationVerify stoptimer={selfserviceTimeOut} />} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
+                  <Timer />
                   <Footer />
-                  <div className='about-customizable' style={{ textAlign: 'center' }}>
-                     {
-                        config?.enable_have_i_been_pwned &&
-                        <PwnedPWDModal />
-                     }
-                  </div>
+                  {config?.enable_have_i_been_pwned && <PwnedPWDModal key={'pwned'} />}
                </div>
             </div>
          </div>
