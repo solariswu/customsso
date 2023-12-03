@@ -404,7 +404,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     switch (step) {
       case 'username':
         nsf = event.rememberDevice ? 0 : 3;
-        postURL = `${postURL}&igd=${igd}&nsf=${nsf}&tType=${tType}&sfl=${sfl}`;
+        postURL = `${postURL}&igd=${igd}&nsf=${nsf}&tType=${tType}&sfl=${sfl}&bypassthreat=1`;
         break;
       case 'password':
         postURL = `${postURL}&igd=${igd}&nsf=${nsf}&tType=${tType}`;
@@ -414,7 +414,16 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
         //e for email, s for sms, v for voice, ae for alt-email.
         p = encodeURIComponent(event.otpaddr);
-        postURL = `${asmurl}/extResendOtp.kv?l=${l}&u=${u}&apti=${apti}&uIp=${uIp}&otpm=${otpm}&p=${p}&tType=${tType}`;
+        if (event.isResend) {
+          postURL = `${asmurl}/extResendOtp.kv?l=${l}&u=${u}&apti=${apti}&uIp=${uIp}&otpm=${otpm}&p=${p}&tType=${tType}`;
+        }
+        else {
+          //This puts ASM into an otp state for the user, then you can send a mobile token.
+          // On the second verification, the auth api call is sending otpp=1, but it should be otpp=0 becuase we want ASM to push the otp immediately to the selected channel.
+          otpp = 1;
+          sfl = 7;
+          postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp + '&nsf=' + nsf + '&igd=' + igd;
+        }
         break;
       case 'verifyotp':
       case 'pwdresetverify2':
@@ -612,7 +621,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'selfservice3':
             case 'emailverificationSendOTP':
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
-              return response(202, event.otpType === 't' ? 'OTP sent' : amfaResponseJSON.message, event.requestId)
+              return response(202, event.otpType === 't' ? 'Input Mobile Token' : amfaResponseJSON.message, event.requestId)
             case 'updateProfileSendOTP':
               uuid = await genSessionID(event.email, event.apti, event.otpaddr);
               return {

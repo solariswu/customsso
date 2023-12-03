@@ -64,6 +64,7 @@ export const amfaConfigs = {
 
 export const amfaBrandings =
 {
+	service_name: "apersona",
 	logo_url: "https://images.squarespace-cdn.com/content/v1/6384c70defa1aa7a84c4a2bf/19179f7c-b44d-41d5-b112-11fd7fc8ce63/aPLogo-EffortlessAppSecurity-v3-370x73.T.png",
 	email_logo_url: "https://cdn.jsdelivr.net/gh/solariswu/free-cdn-source@main/aPLogo_blue_T_for_email.png",
 	brand_base_color: "#337AB7",
@@ -79,5 +80,5 @@ export const amfaBrandings =
 	update_profile_app_verify2_message: "Access requires 2 verifications. Verification Step 2. Choose contact method:",
 	update_profile_app_verify_retreive_message: "A verification code has been sent to you. Please retrieve it, enter it below and click Verify.",
 	update_provile_app_portal_header: "Update Profile: Verify Methods",
-	consent_content: "Sample Consent Form Content"
+	consent_content: 'By signing up, I accept the <a href="https://example.com" target="_blank">privacy policy</a> and the <a href="https://example2.com" target="_blank"> terms &amp; conditions</a>',
 }

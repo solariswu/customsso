@@ -9,11 +9,14 @@ import { fetchConfig } from './utils/fetchConfig.mjs';
 import { checkSessionId } from './utils/checkSessionId.mjs';
 
 import { deleteTotp, registotp } from './utils/totp/registOtp.mjs';
+import { amfaPolicies } from '../postdeployment/config.mjs';
+import { asmDeleteUser } from './utils/asmDeleteUser.mjs';
 
 const validateInputParams = (payload) => {
   // check required params here
   switch (payload.phase) {
     case 'admindeletetotp':
+    case 'admindeleteuser':
       return (payload.email);
     case 'username':
       return (payload.email &&
@@ -100,6 +103,15 @@ export const handler = async (event) => {
       if (payload.phase === 'admindeletetotp') {
         const amfaConfigs = await fetchConfig('amfaConfigs');
         return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client);
+      }
+
+      if (payload.phase === 'admindeleteuser') {
+        const amfaConfigs = await fetchConfig('amfaConfigs');
+        await asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies);
+        if (payload.hasTOTP) {
+          await deleteTotp(headers, payload.email, amfaConfigs, requestId, client);
+        }
+        return;
       }
 
       if (payload.phase === 'registotp') {

@@ -204,7 +204,7 @@ const CONTENT = () => {
 								autoFocus
 							/>
 						</div>
-						<div>3. Enter 6 digit result...</div>
+						<div style={{marginTop: '15px'}}>3. Enter 6 digit result...</div>
 						<div className="input-group">
 							<input id="totpResult" name="totpresult" type="text" className="form-control inputField-customizable"
 								style={{ height: '40px' }}

@@ -66,14 +66,14 @@ export const deleteTotp = async (headers, email, configs, requestId, cognito) =>
     await deleteToken(email, configs.totp.asm_provider_id)
 
     try {
-        await cognito.AdminUpdateUserAttributesCommand({
+        await cognito.send(new AdminUpdateUserAttributesCommand({
             UserPoolId: process.env.USERPOOL_ID,
             Username: email,
             UserAttributes: [{
                 Name: 'custom:totp-label',
                 Value: ''
             }]
-        })
+        }));
     } catch (error) {
         // no issue as this may due to user has been deleted
         console.log('Function[deleteTotp] remove User custom attributes error ', error)

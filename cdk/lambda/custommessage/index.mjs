@@ -56,10 +56,10 @@ export const handler = async (event, context, callback) => {
             border: 0;
             display: block;
             height: 57px;
-            width: 249px;
+            width: 313px;
           "
           height="57"
-          width="249"
+          width="313"
           alt="Animage"
           src="${configs.email_logo_url}"
         />

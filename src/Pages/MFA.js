@@ -246,26 +246,26 @@ const MFAContent = () => {
 
   const OTPElement = ({ otptype }) => {
 
-    if (otptype === 't') {
-      if (mobileToken) {
-        setOtpInFly('t');
-        setOtp({ ...otp, type: 't' });
+    // if (otptype === 't') {
+    //   if (mobileToken) {
+    //     setOtpInFly('t');
+    //     setOtp({ ...otp, type: 't' });
 
-        return (
-          <div className='row align-items-end'>
-            <div className='col-4'>TOTP:</div>
-            <div className='col'>
-              <span className='link-customizable'>
-                mobile app token
-              </span>
-            </div>
-          </div>
-        )
-      }
-      else {
-        return null
-      }
-    }
+    //     return (
+    //       <div className='row align-items-end'>
+    //         <div className='col-4'>TOTP:</div>
+    //         <div className='col'>
+    //           <span className='link-customizable'>
+    //             mobile app token
+    //           </span>
+    //         </div>
+    //       </div>
+    //     )
+    //   }
+    //   else {
+    //     return null
+    //   }
+    // }
 
     const table = {
       e: {
@@ -283,6 +283,10 @@ const MFAContent = () => {
       v: {
         title: 'Voice',
         content: vPhoneNumber ? vPhoneNumber : null,
+      },
+      t: {
+        title: 'TOTP',
+        content: mobileToken ? 'mobile app token' : null,
       }
     };
 
@@ -293,7 +297,7 @@ const MFAContent = () => {
           <span className='link-customizable' onClick={() => sendOtp(otptype)}>
             {table[otptype].content}
           </span>
-          {otpInFly === otptype && <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>(resend code)</div>}
+          {otpInFly === otptype && otptype !== 't' && <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>(resend code)</div>}
         </div>
       </div>
     )

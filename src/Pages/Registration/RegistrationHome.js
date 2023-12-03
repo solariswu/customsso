@@ -154,29 +154,19 @@ const LOGIN = () => {
 
       {config && config.enable_user_registration && <div>
         <div>
-          <span
-            style={{ lineHeight: '1rem', color: 'grey' }}
-            dangerouslySetInnerHTML={{__html: config?.branding.consent_content}}
-          >
-            {
-              // config?.branding.consent_content
-            }
-          </span>
-          <hr className='hr-customizable' />
-        </div>
-        <div>
           <input
             type="checkbox" id="consent-tick" name="consent-tick"
             checked={consent}
             onChange={() => setConsent(consent => !consent)}
           />
-          <span style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey' }}>
-            I Agree
+          <span
+            style={{ marginLeft: '4px', lineHeight: '1rem', color: 'grey', display: 'inline' }}
+            dangerouslySetInnerHTML={{ __html: config?.branding.consent_content }}
+          >
           </span>
-          <br />
         </div>
         <hr className='hr-customizable' />
-        <span className='idpDescription-customizable'> Enter your {clientName} account ID </span>
+        <span className='idpDescription-customizable'> Enter your {config?.branding.service_name} account ID </span>
         <div>
           <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
             autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
