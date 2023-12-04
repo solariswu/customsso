@@ -334,6 +334,20 @@ const MFAContent = () => {
     )
   }
 
+  const SubjectMessage = ({ otpInFly, OTPMethodsCount }) => {
+    if (otpInFly === '' || !otpInFly) {
+      return (OTPMethodsCount > 1 ?
+        config?.branding.login_app_verify_page_message :
+        'Access requires a verification. Click your ID below to receive a one time verification code.')
+    }
+
+    if (otpInFly === 't') {
+      return (<>Please enter your mobile authenticator one-time code below and click Verify.</>)
+    }
+
+    return config?.branding.update_profile_app_verify_retreive_message
+  }
+
   return (
     <div>
       <span> <h4>{config?.branding.login_app_verification_page_header}</h4> </span>
@@ -342,11 +356,7 @@ const MFAContent = () => {
         <span
           style={{ lineHeight: '1rem', color: 'grey' }}
         >
-          {
-            OTPMethodsCount > 1 ?
-              config?.branding.login_app_verify_page_message :
-              'Access requires a verification. Click your ID below to receive a one time verification code.'
-          }
+          <SubjectMessage otpInFly={otpInFly} OTPMethodsCount={OTPMethodsCount}/>
         </span>
         <hr className='hr-customizable' />
       </div>

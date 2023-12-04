@@ -11,10 +11,10 @@ const response = (headers, statusCode, body, requestIdIn) => {
     };
 };
 
-export const asmDeleteUser = async (headers, email, configs, requestId, policies) => {
+export const asmDeleteUser = async (headers, email, configs, requestId, policies, admin) => {
 
 	console.log('asmDeleteUser payload ', email, ' configs ', configs)
-	const postURL = `${configs.asmurl}/extRemoveUser.kv?l=${policies.user['policy_name']}&u=${encodeURIComponent(email)}&admin=admin&reason=${encodeURIComponent('AWS Admin Delete')}`
+	const postURL = `${configs.asmurl}/extRemoveUser.kv?l=${policies.user['policy_name']}&u=${encodeURIComponent(email)}&admin=${encodeURIComponent(admin ? admin : 'AWS-ASM-Svc')}&reason=${encodeURIComponent('AWS Admin Delete')}`
 
 	try {
 		console.log ('Now posting to ', postURL);

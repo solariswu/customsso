@@ -107,7 +107,8 @@ export const handler = async (event) => {
 
       if (payload.phase === 'admindeleteuser') {
         const amfaConfigs = await fetchConfig('amfaConfigs');
-        await asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies);
+        console.log ('asm delete user payload', payload);
+        await asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin);
         if (payload.hasTOTP) {
           await deleteTotp(headers, payload.email, amfaConfigs, requestId, client);
         }

@@ -410,20 +410,25 @@ export const amfaSteps = async (event, headers, cognito, step) => {
         postURL = `${postURL}&igd=${igd}&nsf=${nsf}&tType=${tType}`;
         break;
       case 'sendotp':
+        if (event.otptype === 't') {
+          // In the login,
+          // After passwordless.
+          // After the user enters their password.
+          // You run extAuth. otpp=1.
+
+          // The user clicks mobile token.
+          // You do nothing but push the user the the otp page.  No need to do an otp resend.
+
+          // In otp page, the user enters mobile token.
+          // You send it with otp verify.
+          return response(202, 'Awaiting Mobile Token code', event.requestId)
+        }
         otpm = event.otptype;
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
         //e for email, s for sms, v for voice, ae for alt-email.
         p = encodeURIComponent(event.otpaddr);
-        if (event.isResend) {
-          postURL = `${asmurl}/extResendOtp.kv?l=${l}&u=${u}&apti=${apti}&uIp=${uIp}&otpm=${otpm}&p=${p}&tType=${tType}`;
-        }
-        else {
-          //This puts ASM into an otp state for the user, then you can send a mobile token.
-          // On the second verification, the auth api call is sending otpp=1, but it should be otpp=0 becuase we want ASM to push the otp immediately to the selected channel.
-          otpp = 1;
-          sfl = 7;
-          postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp + '&nsf=' + nsf + '&igd=' + igd;
-        }
+        //  should simply execute an otp resend. No otpp needed.
+        postURL = `${asmurl}/extResendOtp.kv?l=${l}&u=${u}&apti=${apti}&uIp=${uIp}&otpm=${otpm}&p=${p}&tType=${tType}`;
         break;
       case 'verifyotp':
       case 'pwdresetverify2':
