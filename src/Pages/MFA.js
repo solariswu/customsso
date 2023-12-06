@@ -170,10 +170,14 @@ const MFAContent = () => {
       switch (result.status) {
         case 200:
           const response = await result.json();
-          setOtpInFly('');
+          console.log('MFA login response', response);
           if (response.location) {
             window.location.assign(response.location);
             return;
+          }
+          else {
+            setErrorMsg('Unknown OTP verification system error, please contact help desk.');
+            setOtpInFly('');
           }
           break;
         // case 203:
@@ -187,7 +191,7 @@ const MFAContent = () => {
             return;
           }
           else {
-            setErrorMsg('Unknown OTP send error, please contact help desk.');
+            setErrorMsg('Unknown OTP verification error, please contact help desk.');
             setOTPCode('');
           }
           break;
@@ -356,7 +360,7 @@ const MFAContent = () => {
         <span
           style={{ lineHeight: '1rem', color: 'grey' }}
         >
-          <SubjectMessage otpInFly={otpInFly} OTPMethodsCount={OTPMethodsCount}/>
+          <SubjectMessage otpInFly={otpInFly} OTPMethodsCount={OTPMethodsCount} />
         </span>
         <hr className='hr-customizable' />
       </div>
