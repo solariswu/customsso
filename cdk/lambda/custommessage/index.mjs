@@ -90,7 +90,7 @@ export const handler = async (event, context, callback) => {
           ${process.env.SERVICE_NAME} has created a new account for you.
         </p>
         <p>
-          Your login id is ${email} and your temporary password is ${code}
+          Your login id is ${email} and your temporary password is <span style="background-color:#43ad7f7f">${code}</span>
         </p>
         </div>
           <div

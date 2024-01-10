@@ -18,7 +18,7 @@ const response = (headers, statusCode, body, requestIdIn) => {
 
 export const registotp = async (headers, payload, configs, requestId, cognito) => {
 
-    authenticator.options = {window: 10};
+    authenticator.options = { window: 10 };
 
     const token = authenticator.generate(payload.secretCode);
     console.log('otp validate token', token);
@@ -61,7 +61,7 @@ export const registotp = async (headers, payload, configs, requestId, cognito) =
     }
 }
 
-export const deleteTotp = async (headers, email, configs, requestId, cognito) => {
+export const deleteTotp = async (headers, email, configs, requestId, cognito, needNotify) => {
     console.log('deleteTotp payload ', email, ' configs ', configs)
     await deleteToken(email, configs.totp.asm_provider_id)
 
@@ -74,12 +74,16 @@ export const deleteTotp = async (headers, email, configs, requestId, cognito) =>
                 Value: ''
             }]
         }));
+
+        if (needNotify) {
+            // user may deleted
+            await notifyProfileChange(email, 'Mobile Token', null, configs.smtp);
+        }
+
     } catch (error) {
         // no issue as this may due to user has been deleted
         console.log('Function[deleteTotp] remove User custom attributes error ', error)
     }
-
-    await notifyProfileChange(email, 'Mobile Token', null, configs.smtp);
 
     return response(headers, 200, 'Mobile Token deleted', requestId);
 }

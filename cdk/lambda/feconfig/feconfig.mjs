@@ -35,6 +35,7 @@ export const handler = async (event) => {
 
 	const FeConfig = await fetchConfig('amfaConfigs', dynamodb);
 	const BrandingConfig = await fetchConfig('amfaBrandings', dynamodb);
+	const LegalConfig = await fetchConfig('amfaLegals', dynamodb);
 
 	return {
 		statusCode: 200,
@@ -43,6 +44,9 @@ export const handler = async (event) => {
 			...FeConfig,
 			branding: {
 				...BrandingConfig,
+			},
+			legal: {
+				...LegalConfig,
 			}
 		}),
 	};

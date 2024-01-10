@@ -5,13 +5,14 @@ import {
 } from '@aws-sdk/client-dynamodb';
 
 import { CognitoIdentityProviderClient, CreateGroupCommand } from '@aws-sdk/client-cognito-identity-provider';
-import { amfaPolicies, amfaConfigs, amfaBrandings } from './config.mjs';
+import { amfaPolicies, amfaConfigs, amfaBrandings, amfaLegals } from './config.mjs';
 
 const createAmfaConfigs = async (configType, dynamodb) => {
 	const values = {
 		'amfaPolicies': amfaPolicies,
 		'amfaConfigs': amfaConfigs,
-		'amfaBrandings': amfaBrandings
+		'amfaBrandings': amfaBrandings,
+		'amfaLegals': amfaLegals,
 	};
 	try {
 		let value = JSON.stringify(values[configType], null, "  ");
@@ -46,6 +47,7 @@ export const handler = async (event) => {
 	await createAmfaConfigs('amfaPolicies', dynamodb);
 	await createAmfaConfigs('amfaBrandings', dynamodb);
 	await createAmfaConfigs('amfaConfigs', dynamodb);
+	await createAmfaConfigs('amfaLegals', dynamodb);
 
 	const param = {
 		GroupName: amfaConfigs.user_registration_default_group,

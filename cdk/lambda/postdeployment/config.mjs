@@ -82,3 +82,9 @@ export const amfaBrandings =
 	update_provile_app_portal_header: "Update Profile: Verify Methods",
 	consent_content: 'By signing up, I accept the <a href="https://example.com" target="_blank">privacy policy</a> and the <a href="https://example2.com" target="_blank"> terms &amp; conditions</a>',
 }
+
+export const amfaLegals =
+{
+	terms_of_service: "New User terms and conditions",
+	privacy_policy: "service privacy policy here",
+}

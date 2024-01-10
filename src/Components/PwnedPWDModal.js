@@ -20,13 +20,17 @@ function PwnedPWDModal(args) {
 
 					Copyright 2023 - aPersona, Inc.<br />
 					Licensed by aPersona, Inc.<br />
-					Refer to your signed aPersona Subscription Agreement.<br /><br />
+					Refer to your signed aPersona Subscription Agreement.
+					aPersona Terms and Conditioins & Privacy Policy<br /><br />
+
+					AWS Terms and Conditions & Privacy Policy<br /><br />
 
 					Password breach checking is provided by Have I Been Pwned:
 					<a href='https://haveibeenpwned.com'>https://haveibeenpwned.com</a><br />
 					License: <a href='https://creativecommons.org/licenses/by/4.0/'>https://creativecommons.org/licenses/by/4.0/</a><br />
+
 				</ModalBody>
-				<ModalFooter>
+				<ModalFooter style={{textAlign: "center"}}>
 					<Button variant="secondary" onClick={toggle}>
 						OK
 					</Button>
