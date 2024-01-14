@@ -181,6 +181,7 @@ const LOGIN = () => {
           autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
           onKeyUp={e => confirmLogin(e)}
           disabled={isLoading}
+          autoFocus
         />
         <Button
           name="confirm" type="submit"

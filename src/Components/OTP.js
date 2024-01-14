@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
@@ -22,6 +22,21 @@ export const OTP = () => {
   const [otpInFly, setOtpInFly] = useState('');
 
   const [apti, setApti] = useState(null);
+
+  const useFocus = () => {
+    const htmlElRef = useRef(null)
+    const setFocus = () => { htmlElRef.current && htmlElRef.current.focus() }
+
+    return [htmlElRef, setFocus]
+  }
+  const [inputRef, setInputFocus] = useFocus()
+
+  useEffect(() => {
+    if (otpInFly && otpInFly !== '') {
+      setInputFocus()
+    }
+  }, [otpInFly, setInputFocus])
+
 
   const setInfoMsg = (msg) => {
     setMsg({ msg, type: 'info' });
@@ -50,12 +65,14 @@ export const OTP = () => {
           credentials: 'include',
         });
         // convert the data to json
+        console.log('getUserOtpOptions response', response);
         const json = await response.json();
+        console.log('getotpconfig json', json);
         setLoading(false);
 
-        if (json.message) {
-          setShowOTP(false);
-          setErrorMsg(json.message);
+        if (!response.ok) {
+          localStorage.setItem('OTPErrorMsg', json.message);
+          window.location.assign(`${applicationUrl}?amfa=relogin`);
           return;
         }
 
@@ -253,7 +270,7 @@ export const OTP = () => {
           if (otp.stage === 1) {
             setOtp({ ...otp, type: '', code: '', addr: '', stage: otp.stage + 1 });
 
-            let idx = data.otpOptions.findIndex(option => option === otp.type);
+            let idx = data?.otpOptions.findIndex(option => option === otp.type);
             console.log('idx:', idx);
             console.log('count:', OTPMethodsCount);
 
@@ -438,7 +455,7 @@ export const OTP = () => {
 
   const SubjectMessage = ({ otpInFly, OTPMethodsCount, currentStage }) => {
     if (otpInFly === '') {
-      if (OTPMethodsCount === 1 && currentStage !== 2 ) {
+      if (OTPMethodsCount === 1 && currentStage !== 2) {
         // with mobile token, OTPMethodsCount would be one when there is another MFA other than mobile token
         return (<>Access requires a verification.<br /> Click your ID below to receive a one time verification code</>)
       }
@@ -451,6 +468,8 @@ export const OTP = () => {
 
     return config?.branding.update_profile_app_verify_retreive_message
   }
+
+
 
   return (
     <div>
@@ -467,7 +486,7 @@ export const OTP = () => {
       </div>
       <hr className='hr-customizable' />
       {showOTP &&
-        data.otpOptions.map((option) => ((otpInFly === '' || otpInFly === option) && <OTPElement otptype={option} />))}
+        data?.otpOptions.map((option) => ((otpInFly === '' || otpInFly === option) && <OTPElement otptype={option} />))}
       <br />
       <div>
         {otpInFly && otpInFly !== '' &&
@@ -481,12 +500,14 @@ export const OTP = () => {
                 display: 'inline', height: '40px', textAlign: 'justify'
               }}
               autoCapitalize="none"
+              autoFocus
               required
               aria-label="otp code"
               value={otp.code}
               onChange={setOTPCode}
               onKeyUp={e => confirmLogin(e)}
               disabled={isLoading || otpInFly === ''}
+              ref={inputRef}
             />
             <Button
               name='verifyotp'

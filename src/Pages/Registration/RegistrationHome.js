@@ -162,10 +162,6 @@ const LOGIN = () => {
           <span
             style={{ marginLeft: '4px', lineHeight: '1rem', color: 'grey', display: 'inline' }}
             dangerouslySetInnerHTML={{ __html: config?.branding.consent_content }} />
-          <span
-            style={{ marginLeft: '4px', lineHeight: '1rem', color: 'grey', display: 'inline' }}
-            dangerouslySetInnerHTML={{ __html: config?.legal.terms_of_service }}
-          />
         </div>
         <hr className='hr-customizable' />
         <span className='idpDescription-customizable'> Enter your {config?.branding.service_name} account ID </span>

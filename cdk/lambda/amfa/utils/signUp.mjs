@@ -28,6 +28,11 @@ export const signUp = async (username, password, attributes, cognito) => {
 		Value: 'true',
 	});
 
+	attJson.push ({
+		Name: 'name',
+		Value: attributes['given_name'] + ' ' + attributes['family_name'],
+	})
+
 	let cognitoParam = {
 		UserPoolId: process.env.USERPOOL_ID,
 		Username: username.replace('@', '_').replace('.', '_'),

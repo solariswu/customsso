@@ -222,6 +222,7 @@ const CONTENT = ({stoptimer}) => {
 					<input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
 						style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
 						autoCapitalize="none" required aria-label="otp code" value={otpcode}
+						autoFocus
 						onChange={(e) => setOtpcode(e.target.value)}
 						onKeyUp={e => confirmOTPVerify(e)}
 						disabled={isLoading}

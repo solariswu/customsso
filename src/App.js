@@ -147,7 +147,7 @@ const App = () => {
             Copyright 2023 - aPersona, Inc.<br />
             Licensed by aPersona, Inc.<br />
             Refer to your signed aPersona Subscription Agreement.
-            aPersona Terms and Conditioins & Privacy Policy<br/ ><br/>
+            aPersona Terms and Conditioins & Privacy Policy<br /><br />
 
             AWS Terms and Conditions & Privacy Policy<br /><br />
 
@@ -155,7 +155,7 @@ const App = () => {
             <a href='https://haveibeenpwned.com'>https://haveibeenpwned.com</a><br />
             License: <a href='https://creativecommons.org/licenses/by/4.0/'>https://creativecommons.org/licenses/by/4.0/</a><br />
          </ModalBody>
-         <ModalFooter style={{textAlign: "center"}}>
+         <ModalFooter style={{ textAlign: "center" }}>
             <Button variant="secondary" onClick={toggle}>
                OK
             </Button>
@@ -171,11 +171,16 @@ const App = () => {
             <span
                className='legalText-customizable'
             >
-               {config?.legal.privacy_policy}&nbsp;
-               <div className="link-customizable" style={{ fontSize: "11px", display: 'inline' }} onClick={() => {pauseTimer(); setModal(true)}}>
+               &copy; 2024 -&nbsp;
+               <div className="link-customizable" style={{ fontSize: "11px", display: 'inline' }} onClick={() => { pauseTimer(); setModal(true) }}>
                   about
                </div>
-
+               &nbsp;
+               <a href={config?.legal.privacy_policy} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>
+                  Privacy Policy
+               </a>
+               &nbsp;
+               <a href={config?.legal.terms_of_service} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Terms of Service</a>
             </span>
             {
                config.enable_google_recaptcha && <div >
@@ -186,7 +191,7 @@ const App = () => {
                   </span>
                </div>
             }
-         </div>)
+         </div >)
    }
 
    if (!config)
