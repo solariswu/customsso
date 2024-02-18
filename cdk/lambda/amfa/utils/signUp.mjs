@@ -29,7 +29,7 @@ export const signUp = async (username, password, attributes, cognito) => {
 	});
 
 	attJson.push ({
-		Name: 'name',
+		Name: 'nickname',
 		Value: attributes['given_name'] + ' ' + attributes['family_name'],
 	})
 

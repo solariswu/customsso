@@ -23,13 +23,19 @@ const hasSpecial = (value) => {
   if (value && /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(value)) return undefined;
   return 'Password must contain at least one special character';
 }
+const hasSpaces = (value) => {
+  if (value && / /.test(value)) return 'Password must not contain spaces';
+  return undefined;
+}
 export const validatePassword = (value) => {
   if (minLength(value)) return minLength(value);
   if (hasLowercase(value)) return hasLowercase(value);
   if (hasUppercase(value)) return hasUppercase(value);
   if (hasNumber(value)) return hasNumber(value);
   if (hasSpecial(value)) return hasSpecial(value);
-  return undefined;
+  if (hasSpaces(value)) return hasSpaces(value);
+  if (value) return undefined;
+  return 'Password is required';
 }
 
 export const validateEmail = (value) => {

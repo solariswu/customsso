@@ -58,7 +58,7 @@ const LOGIN = () => {
 
     const params = {
       email,
-      password,
+      password: password.trim(),
       rememberDevice,
       authParam,
       apti,
@@ -69,7 +69,7 @@ const LOGIN = () => {
 
     const options = {
       method: 'POST',
-      body: JSON.stringify({ email, password, apti, state, redirectUri }),
+      body: JSON.stringify({ email, password: password.trim(), apti, state, redirectUri }),
     };
 
     setLoading(true);

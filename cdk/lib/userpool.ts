@@ -139,6 +139,7 @@ export class TenantUserPool {
           phoneNumber: ProviderAttribute.other('phone_number'),
           familyName: ProviderAttribute.other('family_name'),
           givenName: ProviderAttribute.other('given_name'),
+          nickname: ProviderAttribute.other('nickname'),
           custom: {
             email_verified: ProviderAttribute.other('email_verified'),
             phone_number_verified: ProviderAttribute.other('phone_number_verified'),

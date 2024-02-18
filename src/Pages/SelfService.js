@@ -39,7 +39,7 @@ const LOGIN = () => {
 
 		const options = {
 			method: 'POST',
-			body: JSON.stringify({ email, password, apti: 'admininitauth' }),
+			body: JSON.stringify({ email, password: password.trim(), apti: 'admininitauth' }),
 		};
 
 		setLoading(true);
