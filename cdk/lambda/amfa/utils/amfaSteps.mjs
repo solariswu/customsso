@@ -357,7 +357,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
     let af1 = u + 'passwordless_check' + uIp; // This is the passwordless behavior tracker.
     // This var creates a behavior key for passwordless auth. By adding the email and uIP, a user will only be able to use passwordless auth from a known previously used location.
 
-    const amfaCookieName = hash(`${u}${wr}${salt}`);
+    const amfaCookieName = hash(`${u}${amfaPolicies[ug].policy_name}${wr}${salt}`);
     let c = '';
     if (event.cookies && event.cookies.trim().length > 0) {
       const startingIdx = event.cookies.trim().indexOf(amfaCookieName);
