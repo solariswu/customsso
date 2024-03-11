@@ -23,6 +23,7 @@ import { Spinner } from 'reactstrap';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
 import SetTOTP from './Pages/SetTOTP';
+import TimeOut from './Pages/TimeOut';
 
 
 const App = () => {
@@ -30,7 +31,7 @@ const App = () => {
    const [modal, setModal] = useState(false);
 
    const [time, setTime] = useState('');
-   const cd = useRef(299);
+   const cd = useRef(300-30);
    const timer = useRef(null);
 
    const navigate = useNavigate();
@@ -39,6 +40,10 @@ const App = () => {
    const selfserviceTimeOut = () => {
       cd.current = 600;
       setTimerType('selfservice');
+   }
+
+   const timeout = () => {
+      timer.current && clearTimeout(timer.current);
    }
 
    const pauseTimer = () => timer.current && clearTimeout(timer.current);
@@ -98,7 +103,13 @@ const App = () => {
                   return;
                case 'login':
                default:
-                  window.location.assign(`${applicationUrl}?amfa=relogin`)
+                  navigate('/timeout');
+
+                  // const uri = sessionStorage.getItem('amfa-callback-uri');
+                  // sessionStorage.removeItem('amfa-callback-uri');
+                  // const state = sessionStorage.getItem('amfa-callback-state');
+                  // sessionStorage.removeItem('amfa-callback-state');
+                  // window.location.assign(`${uri}?error=idplogintimeout&state=${state}`)
                   return;
             }
          }
@@ -234,6 +245,7 @@ const App = () => {
                      <Route path="/registration_password" element={<RegistrationPasswords />} />
                      <Route path="/registration_attributes" element={<RegistrationAttributes />} />
                      <Route path="/registration_verify" element={<RegistrationVerify stoptimer={selfserviceTimeOut} />} />
+                     <Route path="/timeout" element={<TimeOut stoptimer={timeout} />} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <Timer />

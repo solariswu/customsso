@@ -33,6 +33,8 @@ const LOGIN = () => {
 
     setRedirectUri(redirect_uri);
     setState(state);
+    // sessionStorage.setItem('amfa-callback-uri', redirect_uri);
+    // sessionStorage.setItem('amfa-callback-state', state);
 
     const previousState = sessionStorage.getItem('amfa-state');
 
