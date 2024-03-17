@@ -439,7 +439,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       case 'emailverificationverifyotp':
         otpm = event.otptype;
         let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
-        postURL = `${asmurl}/extVerifyOtp.kv?l=${l}&u=${u}&uIp=${uIp}&apti=${apti}&wr=${wr}&igd=${igd}&nsf=${nsf}&otpm=${otpm}&p=${p}&otpp=${otpp}&tType=${tType}&o=${o}&af1=${af1}&a=${a}`;
+        postURL = `${asmurl}/extVerifyOtp.kv?l=${l}&u=${u}&uIp=${uIp}&c=${c}&apti=${apti}&wr=${wr}&igd=${igd}&nsf=${nsf}&otpm=${otpm}&p=${p}&otpp=${otpp}&tType=${tType}&o=${o}&af1=${af1}&a=${a}`;
         break;
       case 'pwdreset2':
       case 'pwdreset3':
