@@ -13,6 +13,7 @@ import { config } from './config';
 export const createPostDeploymentLambda = (
 	scope: Construct,
 	configTable: Table,
+	tenantTable: Table,
 	userPoolId: string,
 ) => {
 
@@ -23,6 +24,7 @@ export const createPostDeploymentLambda = (
 		code: Code.fromAsset(path.join(__dirname + `/../lambda/${lambdaName}`)),
 		environment: {
 			AMFACONFIG_TABLE: configTable.tableName,
+			AMFATENANT_TABLE: tenantTable.tableName,
 			USERPOOL_ID: userPoolId,
 		},
 		timeout: Duration.minutes(5),
@@ -37,7 +39,7 @@ export const createPostDeploymentLambda = (
 						'dynamodb:GetItem',
 						'dynamodb:PutItem',
 					],
-					resources: [configTable.tableArn],
+					resources: [configTable.tableArn, tenantTable.tableArn],
 				}),
 				new PolicyStatement({
 					actions: [

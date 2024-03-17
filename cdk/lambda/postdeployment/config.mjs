@@ -88,3 +88,12 @@ export const amfaLegals =
 	terms_of_service: "New User terms and conditions",
 	privacy_policy: "service privacy policy here",
 }
+
+export const amfaTenants = [
+	{
+		id: 'amfa-dev004',
+		name: 'amfa dev004',
+		contact: 'admin@apersona.com',
+		url: 'https://amfa-dev004.amfa.aws-amplify.dev'
+	}
+]

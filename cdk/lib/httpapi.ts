@@ -25,24 +25,31 @@ const defaultCorsPreflightOptions = {
 
 export class TenantApiGateway {
   scope: Construct;
+  account: string | undefined;
+  region: string | undefined;
   api: RestApi;
   authCodeTable: Table;
   sessionIdTable: Table;
   configTable: Table;
+  tenantTable: Table;
   userpool: UserPool;
   certificate: Certificate;
   hostedZone: PublicHostedZone;
   vpc: Vpc;
 
-  constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone) {
+  constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
+    account: string | undefined, region: string | undefined) {
     this.scope = scope;
     this.certificate = certificate;
     this.hostedZone = hostedZone;
+    this.account = account;
+    this.region = region;
 
     // DB for storing custom auth session data
     this.authCodeTable = this.createAuthCodeTable();
     this.configTable = this.createAmfaConfigTable();
     this.sessionIdTable = this.createSessionIdTable();
+    this.tenantTable = this.createAmfaTenantTable();
 
     this.createApiGateway();
     this.createVpc();
@@ -464,6 +471,15 @@ export class TenantApiGateway {
       partitionKey: { name: 'uuid', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY,
+    });
+    return table;
+  }
+
+  private createAmfaTenantTable() {
+    const table = new Table(this.scope, 'amfa-tenant', {
+      tableName: `amfa-${this.account}-${this.region}-tenanttable`,
+      partitionKey: { name: 'id', type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
     });
     return table;
   }

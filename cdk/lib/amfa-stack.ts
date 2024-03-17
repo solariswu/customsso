@@ -30,7 +30,7 @@ export class AmfaStack extends Stack {
 
     // backend
     // amfa apis
-    const apigateway = new TenantApiGateway(this, props.apiCertificate, props.hostedZone);
+    const apigateway = new TenantApiGateway(this, props.apiCertificate, props.hostedZone, props.env?.account, props.env?.region);
 
     // userpool hostedui customauth-oidc customauth-lambda triggers.
     const tenantUserPool = new TenantUserPool(this, apigateway.configTable);
@@ -39,7 +39,7 @@ export class AmfaStack extends Stack {
     apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool);
     apigateway.createAmfaApiEndpoints(tenantUserPool.userpool, tenantUserPool.customAuthClient, tenantUserPool.hostedUIClient.userPoolClientId);
 
-    createPostDeploymentLambda(this, apigateway.configTable, tenantUserPool.userpool.userPoolId);
+    createPostDeploymentLambda(this, apigateway.configTable, apigateway.tenantTable, tenantUserPool.userpool.userPoolId);
 
     // output
 
