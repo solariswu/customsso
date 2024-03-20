@@ -5,7 +5,7 @@ import { getAsmSecret } from './getKms.mjs';
 
 const pool = mysql.createPool({
 	connectionLimit: 10,
-	host: "asm-authenticators.cdxmlz2ujbyj.eu-west-1.rds.amazonaws.com",
+	host: "asm.cdxmlz2ujbyj.eu-west-1.rds.amazonaws.com",
 	user: "admin",
 	password: "KzYbHHdaNM4LuimM7aPp",
 	database: "asm_authenticators",
