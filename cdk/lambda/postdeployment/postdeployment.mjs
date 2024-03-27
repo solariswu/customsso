@@ -44,7 +44,8 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 }
 
 
-const createTenants = async (dynamodb) => {
+const createTenants = async (dynamodb, userpoolIds ) => {
+	console.log ('createTenants userpoolIds', userpoolIds);
 	for (let index = 0; index < amfaTenants.length; index++) {
 		try {
 			const element = amfaTenants[index];
@@ -61,6 +62,9 @@ const createTenants = async (dynamodb) => {
 					},
 					url: {
 						S: element.url,
+					},
+					userpool: {
+						S: userpoolIds[element.id],
 					},
 				},
 				ReturnConsumedCapacity: 'TOTAL',
@@ -95,6 +99,12 @@ export const handler = async (event) => {
 		console.error('RequestId: ' + err.requestId);
 	}
 
-	await createTenants(dynamodb);
+	try {
+		const userpoolIds = JSON.parse (process.env.USERPOOL_IDS);
+		await createTenants(dynamodb, userpoolIds);
+	}
+	catch (err) {
+		console.error('parse userpool ids failed with:', err);
+	}
 
 };

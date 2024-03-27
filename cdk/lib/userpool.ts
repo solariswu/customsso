@@ -24,15 +24,19 @@ import { Table } from 'aws-cdk-lib/aws-dynamodb';
 
 export class TenantUserPool {
   scope: Construct;
+  region: string | undefined;
   userpool: UserPool;
   hostedUIClient: UserPoolClient;
   customAuthClient: UserPoolClient;
   secretClient: UserPoolClient;
   oidcProvider: UserPoolIdentityProviderOidc;
   api: RestApi;
+  tenantId: string;
 
-  constructor(scope: Construct, configTable: Table) {
+  constructor(scope: Construct, configTable: Table, region:string | undefined, tenantId: string) {
     this.scope = scope;
+    this.region = region;
+    this.tenantId = tenantId;
 
     this.userpool = this.createUserPool();
     this.customAuthClient = this.addCustomAuthClient();
@@ -112,8 +116,8 @@ export class TenantUserPool {
           authorizationCodeGrant: true,
         },
         scopes: [OAuthScope.OPENID, OAuthScope.PROFILE, OAuthScope.COGNITO_ADMIN],
-        callbackUrls: [config.tenantAppUrl, 'http://localhost:3000'],
-        logoutUrls: [config.tenantAppUrl, 'http://localhost:3000'],
+        callbackUrls: [config[this.tenantId].tenantAppUrl, 'http://localhost:3000'],
+        logoutUrls: [config[this.tenantId].tenantAppUrl, 'http://localhost:3000'],
       },
       userPoolClientName: 'hostedUIClient',
       supportedIdentityProviders: [UserPoolClientIdentityProvider.custom(AMFAIdPName)]
@@ -121,9 +125,9 @@ export class TenantUserPool {
   };
 
   private createOIDCProvider() {
-    const issuerUrl = `https://cognito-idp.${config.region}.amazonaws.com/${this.userpool.userPoolId}`;
-    const customauthUrl = `https://${config.tenantId}.${DNS.RootDomainName}`;
-    const serviceApiUrl = `https://api.${config.tenantId}.${DNS.RootDomainName}`;
+    const issuerUrl = `https://cognito-idp.${this.region}.amazonaws.com/${this.userpool.userPoolId}`;
+    const customauthUrl = `https://${this.tenantId}.${DNS.RootDomainName}`;
+    const serviceApiUrl = `https://api.${this.tenantId}.${DNS.RootDomainName}`;
 
     return new UserPoolIdentityProviderOidc(
       this.scope,
@@ -152,7 +156,7 @@ export class TenantUserPool {
           authorization: `${customauthUrl}/oauth2/authorize`,
           jwksUri: `${issuerUrl}/.well-known/jwks.json`,
           token: `${serviceApiUrl}/oauth2/token`,
-          userInfo: `https://${config.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/userInfo`,
+          userInfo: `https://${this.tenantId}-apersona.auth.${this.region}.amazoncognito.com/oauth2/userInfo`,
         },
         identifiers: ['apersona'],
         name: AMFAIdPName,
@@ -168,7 +172,7 @@ export class TenantUserPool {
       { name: 'verifyauthchallenge', runtime: Runtime.NODEJS_18_X },
     ];
     const authChallengeFns = authChallengeFnsConfig.map((fn) =>
-      createAuthChallengeFn(this.scope, fn.name, fn.runtime)
+      createAuthChallengeFn(this.scope, fn.name, fn.runtime, this.tenantId)
     );
 
     this.userpool.addTrigger(
@@ -187,7 +191,7 @@ export class TenantUserPool {
 
   private addCustomMessageLambdaTrigger(configTable) {
     const lambdaFn = createCustomMessageLambda(
-      this.scope, configTable
+      this.scope, configTable, this.tenantId
     );
     this.userpool.addTrigger(
       UserPoolOperation.CUSTOM_MESSAGE,
@@ -199,7 +203,7 @@ export class TenantUserPool {
   ) {
     return this.userpool.addDomain('amfaHostedUI-domain', {
       cognitoDomain: {
-        domainPrefix: `${config.tenantId}-apersona`,
+        domainPrefix: `${this.tenantId}-apersona`,
       },
     });
   };

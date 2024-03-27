@@ -24,12 +24,14 @@ export class WebApplication {
     aRecord: ARecord;
     s3bucket: Bucket;
     distribution: Distribution;
+    tenantId: string;
 
-    constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone) {
+    constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone, tenantId: string) {
         this.scope = scope;
-        this.domainName = `${config.tenantId}.${DNS.RootDomainName}`;
+        this.domainName = `${tenantId}.${DNS.RootDomainName}`;
         this.certificate = certificate;
         this.hostedZone = hostedZone;
+        this.tenantId = tenantId;
 
         this.distribution = this.createDistribution();
         this.aRecord = this.createRoute53ARecord();
@@ -37,7 +39,7 @@ export class WebApplication {
 
     private createS3Bucket() {
         return new Bucket(this.scope, 'amfaWebAppDeployBucket', {
-            bucketName: `${config.awsaccount}-amfa-${config.tenantId.toLowerCase()}`,
+            bucketName: `${config[this.tenantId].awsaccount}-amfa-${this.tenantId.toLowerCase()}`,
             accessControl: BucketAccessControl.PRIVATE,
             removalPolicy: RemovalPolicy.DESTROY,
         });
@@ -64,7 +66,7 @@ export class WebApplication {
         // set up cloudfront
         const distribution = new Distribution(this.scope, 'Distribution', {
             defaultRootObject: 'index.html',
-            domainNames: [`${config.tenantId}.${DNS.RootDomainName}`],
+            domainNames: [`${this.tenantId}.${DNS.RootDomainName}`],
             certificate: this.certificate,
             defaultBehavior: {
                 origin: new S3Origin(bucket, { originAccessIdentity }),

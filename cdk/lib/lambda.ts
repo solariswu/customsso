@@ -30,7 +30,8 @@ export const getOAuthLambdaPolicy = (oAuthEndpointName: string) => {
 export const createAuthChallengeFn = (
   scope: Construct,
   lambdaName: string,
-  runtime: Runtime
+  runtime: Runtime,
+  tenantId: string,
 ) => {
   const fn = new Function(scope, lambdaName, {
     runtime,
@@ -38,7 +39,7 @@ export const createAuthChallengeFn = (
     code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
     timeout: Duration.minutes(5),
     environment: {
-      MAGIC_STRING: config.magicstring,
+      MAGIC_STRING: config[tenantId].magicstring,
     },
   });
 
@@ -51,7 +52,7 @@ export const createAuthChallengeFn = (
   return fn;
 };
 
-export const createCustomMessageLambda = (scope: Construct, configTable: Table) => {
+export const createCustomMessageLambda = (scope: Construct, configTable: Table, tenantId: string) => {
   const lambdaName = 'custommessage';
 
   const lambda = new Function(scope, lambdaName, {
@@ -60,14 +61,14 @@ export const createCustomMessageLambda = (scope: Construct, configTable: Table) 
     code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
     environment: {
       CONFIG_TABLE: configTable.tableName,
-      APP_URL: config.tenantAppUrl,
-      SERVICE_NAME: config.serviceName,
+      APP_URL: config[tenantId].tenantAppUrl,
+      SERVICE_NAME: config[tenantId].serviceName,
     },
     timeout: Duration.minutes(5)
   });
 
   lambda.role?.attachInlinePolicy(
-    new Policy(scope, `${lambdaName}-policy`, {
+    new Policy(scope, `${lambdaName}-policy-${tenantId}`, {
       statements: [
         new PolicyStatement({
           resources:

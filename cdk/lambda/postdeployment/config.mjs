@@ -94,6 +94,7 @@ export const amfaTenants = [
 		id: 'amfa-dev004',
 		name: 'amfa dev004',
 		contact: 'admin@apersona.com',
-		url: 'https://amfa-dev004.amfa.aws-amplify.dev'
+		url: 'https://amfa-dev004.amfa.aws-amplify.dev',
+		samlproxy: false,
 	}
 ]

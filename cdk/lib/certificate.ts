@@ -7,17 +7,16 @@ import { IRole, Role } from "aws-cdk-lib/aws-iam";
 
 import { DNS } from './const';
 
-import { config } from './config';
 
 export class CertificateStack extends Stack {
 	siteCertificate: Certificate;
 	apiCertificate: Certificate;
 	hostedZone: PublicHostedZone;
 
-	constructor(scope: Construct, id: string, props: StackProps) {
+	constructor(scope: Construct, id: string, props: StackProps, tenantId: string) {
 		super(scope, id, props);
 
-		const certificateResources = new CertificateResources(this, 'certificate');
+		const certificateResources = new CertificateResources(this, 'certificate', tenantId);
 		this.siteCertificate = certificateResources.acmcert;
 		this.hostedZone = certificateResources.hostedZone;
 		this.apiCertificate = certificateResources.wildcert;
@@ -29,12 +28,12 @@ export class CertificateResources extends Construct {
 	public readonly acmcert: Certificate;
 	public readonly wildcert: Certificate;
 
-	constructor(scope: Construct, id: string) {
+	constructor(scope: Construct, id: string, tenantId: string) {
 		super(scope, id);
 
-		const hostedZoneName = `${config.tenantId}-HostedZone`;
+		const hostedZoneName = `${tenantId}-HostedZone`;
 		this.hostedZone = new PublicHostedZone(this, hostedZoneName, {
-			zoneName: `${config.tenantId}.${DNS.RootDomainName}` // <tenantId>.<rootDomainName>
+			zoneName: `${tenantId}.${DNS.RootDomainName}` // <tenantId>.<rootDomainName>
 		});
 		this.hostedZone.applyRemovalPolicy(RemovalPolicy.RETAIN);
 
@@ -45,14 +44,14 @@ export class CertificateResources extends Construct {
 			delegatedZone: this.hostedZone
 		});
 
-		this.acmcert = new Certificate(this, `${config.tenantId}-ACMCertificate`, {
+		this.acmcert = new Certificate(this, `${tenantId}-ACMCertificate`, {
 			validation: CertificateValidation.fromDns(this.hostedZone),
-			domainName: `${config.tenantId}.${DNS.RootDomainName}`,
+			domainName: `${tenantId}.${DNS.RootDomainName}`,
 		});
 
-		this.wildcert = new Certificate(this, `${config.tenantId}-ACMwildCertificate`, {
+		this.wildcert = new Certificate(this, `${tenantId}-ACMwildCertificate`, {
 			validation: CertificateValidation.fromDns(this.hostedZone),
-			domainName: `*.${config.tenantId}.${DNS.RootDomainName}`,
+			domainName: `*.${tenantId}.${DNS.RootDomainName}`,
 		});
 	}
 

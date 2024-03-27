@@ -28,6 +28,7 @@ export class TenantApiGateway {
   account: string | undefined;
   region: string | undefined;
   api: RestApi;
+  tenantId: string;
   authCodeTable: Table;
   sessionIdTable: Table;
   configTable: Table;
@@ -38,12 +39,13 @@ export class TenantApiGateway {
   vpc: Vpc;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
-    account: string | undefined, region: string | undefined) {
+    account: string | undefined, region: string | undefined, tenantId: string) {
     this.scope = scope;
     this.certificate = certificate;
     this.hostedZone = hostedZone;
     this.account = account;
     this.region = region;
+    this.tenantId = tenantId;
 
     // DB for storing custom auth session data
     this.authCodeTable = this.createAuthCodeTable();
@@ -58,7 +60,7 @@ export class TenantApiGateway {
   // create APIGateway
   private createApiGateway() {
     const apiDomainName = new DomainName(this.scope, 'TenantApiGatewayDomain', {
-      domainName: `api.${config.tenantId}.${DNS.RootDomainName}`,
+      domainName: `api.${this.tenantId}.${DNS.RootDomainName}`,
       certificate: this.certificate,
       endpointType: EndpointType.EDGE
     });
@@ -100,11 +102,11 @@ export class TenantApiGateway {
     });
   }
 
-  private createPwdResetLambda(userpool: UserPool, sessionIdTable: Table) {
+  private createPwdResetLambda(tenantId: string, userpool: UserPool, sessionIdTable: Table) {
     const lambdaName = 'passwordreset';
     const myLambda = new Function(
       this.scope,
-      `${lambdaName}-${config.tenantId}`,
+      `${lambdaName}-${tenantId}`,
       {
         runtime: Runtime.NODEJS_18_X,
         handler: `${lambdaName}.handler`,
@@ -150,7 +152,7 @@ export class TenantApiGateway {
     const lambdaName = 'feconfig';
     const myLambda = new Function(
       this.scope,
-      `${lambdaName}-${config.tenantId}`,
+      `${lambdaName}-${this.tenantId}`,
       {
         runtime: Runtime.NODEJS_18_X,
         handler: `${lambdaName}.handler`,
@@ -185,7 +187,7 @@ export class TenantApiGateway {
     const lambdaName = 'checkuser';
     const myLambda = new Function(
       this.scope,
-      `${lambdaName}-${config.tenantId}`,
+      `${lambdaName}-${this.tenantId}`,
       {
         runtime: Runtime.NODEJS_18_X,
         handler: `${lambdaName}.handler`,
@@ -198,13 +200,13 @@ export class TenantApiGateway {
     );
 
     myLambda.role?.attachInlinePolicy(
-      new Policy(this.scope, `${lambdaName}-policy`, {
+      new Policy(this.scope, `${this.tenantId}-${lambdaName}-policy`, {
         statements: [
           new PolicyStatement({
             actions: [
               'cognito-idp:AdminGetUser',
             ],
-            resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
+            resources: [`arn:aws:cognito-idp:${this.region}:*:userpool/${userpool.userPoolId}`],
           }),
         ],
       })
@@ -217,7 +219,7 @@ export class TenantApiGateway {
     const lambdaName = 'verifyrecaptcha';
     const myLambda = new Function(
       this.scope,
-      `${lambdaName}-${config.tenantId}`,
+      `${lambdaName}-${this.tenantId}`,
       {
         runtime: Runtime.NODEJS_18_X,
         handler: `${lambdaName}.handler`,
@@ -243,23 +245,23 @@ export class TenantApiGateway {
 
     const myLambda = new Function(
       this.scope,
-      `${lambdaName}lambda-${config.tenantId}`,
+      `${lambdaName}lambda-${this.tenantId}`,
       {
         runtime: Runtime.NODEJS_18_X,
         handler: `${lambdaName}.handler`,
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}/dist`)),
         environment: {
-          TENANT_ID: config.tenantId,
+          TENANT_ID: this.tenantId,
           USERPOOL_ID: userpool.userPoolId,
           DOMAIN_NAME: DNS.RootDomainName,
           AUTHCODE_TABLE: authCodeTable.tableName,
           APPCLIENT_ID: userPoolClient.userPoolClientId,
           APP_SECRET: userPoolClient.userPoolClientSecret.unsafeUnwrap(),
-          MAGIC_STRING: config.magicstring,
+          MAGIC_STRING: config[this.tenantId].magicstring,
           HOSTED_CLIENT_ID: hostedClientId,
           SESSION_ID_TABLE: sessionIdTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
-          TOTP_KEY_NAME: config.totpkeyname,
+          TOTP_KEY_NAME: config[this.tenantId].totpkeyname,
         },
         timeout: Duration.minutes(5),
         // 👇 place lambda in the VPC
@@ -289,7 +291,7 @@ export class TenantApiGateway {
           'cognito-idp:AdminLinkProviderForUser',
           'cognito-idp:AdminSetUserPassword',
         ],
-        resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
+        resources: [`arn:aws:cognito-idp:${this.region}:*:userpool/${userpool.userPoolId}`],
       });
 
 
@@ -310,7 +312,7 @@ export class TenantApiGateway {
     const policyKms =
       new PolicyStatement({
         actions: ['secretsmanager:GetSecretValue'],
-        resources: [`arn:aws:secretsmanager:${config.region}:*:secret:${config.totpkeyname}`],
+        resources: [`arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpkeyname}`],
       });
 
 
@@ -327,7 +329,7 @@ export class TenantApiGateway {
     const lambdaName = 'signout';
     const myLambda = new Function(
       this.scope,
-      `${lambdaName}-${config.tenantId}`,
+      `${lambdaName}-${this.tenantId}`,
       {
         runtime: Runtime.NODEJS_18_X,
         handler: `${lambdaName}.handler`,
@@ -340,7 +342,7 @@ export class TenantApiGateway {
     );
 
     myLambda.role?.attachInlinePolicy(
-      new Policy(this.scope, `${lambdaName}-policy`, {
+      new Policy(this.scope, `${this.tenantId}-${lambdaName}-policy`, {
         statements: [
           new PolicyStatement({
             resources: [
@@ -403,7 +405,7 @@ export class TenantApiGateway {
         actions: [
           'cognito-idp:AdminInitiateAuth',
         ],
-        resources: [`arn:aws:cognito-idp:${config.region}:*:userpool/${userpool.userPoolId}`],
+        resources: [`arn:aws:cognito-idp:${this.region}:*:userpool/${userpool.userPoolId}`],
       });
 
     const policyStatementDB =
@@ -420,7 +422,7 @@ export class TenantApiGateway {
         ],
       });
 
-    const myLambda = new Function(this.scope, `amfa-customauth-${name}`, {
+    const myLambda = new Function(this.scope, `amfa-customauth-${name}-${this.tenantId}`, {
       runtime: name === 'token' ? Runtime.PYTHON_3_9 : Runtime.NODEJS_18_X,
       handler: name === 'token' ? `my${name}.handler` : `${name}.handler`,
       code: Code.fromAsset(path.join(__dirname, `/../lambda/${name}`)),
@@ -435,7 +437,7 @@ export class TenantApiGateway {
     });
 
     myLambda.role?.attachInlinePolicy(
-      new Policy(this.scope, `amfa-customauth-${name}-lambda-policy`, {
+      new Policy(this.scope, `amfa-customauth-${name}-lambda-policy-${this.tenantId}`, {
         statements: [policyStatementCognito, policyStatementDB],
       })
     );
@@ -450,7 +452,7 @@ export class TenantApiGateway {
   };
 
   private createAuthCodeTable() {
-    const table = new Table(this.scope, `amfa-authcode-${config.tenantId}`, {
+    const table = new Table(this.scope, `amfa-authcode-${this.tenantId}`, {
       partitionKey: { name: 'username', type: AttributeType.STRING },
       sortKey: { name: 'apti', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
@@ -459,7 +461,7 @@ export class TenantApiGateway {
     return table;
   }
   private createAmfaConfigTable() {
-    const table = new Table(this.scope, `amfa-config-${config.tenantId}`, {
+    const table = new Table(this.scope, `amfa-config-${this.tenantId}`, {
       partitionKey: { name: 'configtype', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
     });
@@ -467,7 +469,7 @@ export class TenantApiGateway {
   }
 
   private createSessionIdTable() {
-    const table = new Table(this.scope, `amfa-sessionid-${config.tenantId}`, {
+    const table = new Table(this.scope, `amfa-sessionid-${this.tenantId}`, {
       partitionKey: { name: 'uuid', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY,
@@ -506,7 +508,7 @@ export class TenantApiGateway {
     });
 
     // create password reset endpoint
-    const mylambdaFunction = this.createPwdResetLambda(userpool, this.sessionIdTable);
+    const mylambdaFunction = this.createPwdResetLambda(this.tenantId, userpool, this.sessionIdTable);
     this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, 'passwordreset');
 
     this.attachLambdaToApiGWService(rootPathAPI, this.createFeConfigLambda(this.configTable), 'feconfig', false);
