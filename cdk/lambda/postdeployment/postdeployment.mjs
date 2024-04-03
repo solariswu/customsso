@@ -63,8 +63,11 @@ const createTenants = async (dynamodb, userpoolIds ) => {
 					url: {
 						S: element.url,
 					},
+					samlIdPMetadataUrl: {
+						S: element.samlIdPMetadataUrl,
+					},
 					userpool: {
-						S: userpoolIds[element.id],
+						S: userpoolIds[index],
 					},
 				},
 				ReturnConsumedCapacity: 'TOTAL',

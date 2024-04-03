@@ -32,7 +32,7 @@ export const createPostDeploymentLambda = (
 		environment: {
 			AMFACONFIG_TABLE: configTable.tableName,
 			AMFATENANT_TABLE: tenantTable.tableName,
-			USERPOOL_ID: userPoolId,
+			USERPOOL_IDS: JSON.stringify([userPoolId]),
 			// USERPOOL_IDS: JSON.stringify(userpoolIds),
 		},
 		timeout: Duration.minutes(5),
