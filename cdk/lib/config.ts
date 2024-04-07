@@ -8,6 +8,7 @@ export const config = {
 		'magicstring': 'youguesswhat',
 		'totpkeyname': 'amfa/totpsecrectkey-eEoRjE',
 		'serviceName': 'apersona',
+		'samlproxyinstanceid': 'i-028b38d91c41d660c',
 	}
 }
 

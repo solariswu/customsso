@@ -44,8 +44,8 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 }
 
 
-const createTenants = async (dynamodb, userpoolIds ) => {
-	console.log ('createTenants userpoolIds', userpoolIds);
+const createTenants = async (dynamodb, userpoolIds) => {
+	console.log('createTenants userpoolIds', userpoolIds);
 	for (let index = 0; index < amfaTenants.length; index++) {
 		try {
 			const element = amfaTenants[index];
@@ -62,6 +62,9 @@ const createTenants = async (dynamodb, userpoolIds ) => {
 					},
 					url: {
 						S: element.url,
+					},
+					samlproxy: {
+						BOOL: element.samlproxy,
 					},
 					samlIdPMetadataUrl: {
 						S: element.samlIdPMetadataUrl,
@@ -89,12 +92,13 @@ export const handler = async (event) => {
 	await createAmfaConfigs('amfaConfigs', dynamodb);
 	await createAmfaConfigs('amfaLegals', dynamodb);
 
-	const param = {
-		GroupName: amfaConfigs.user_registration_default_group,
-		UserPoolId: process.env.USERPOOL_ID,
-	}
-
 	try {
+		const userpoolIds = JSON.parse(process.env.USERPOOL_IDS);
+
+		const param = {
+			GroupName: amfaConfigs.user_registration_default_group,
+			UserPoolId: userpoolIds[0],
+		}
 		await cognito.send(new CreateGroupCommand(param));
 	}
 	catch (err) {
@@ -103,7 +107,7 @@ export const handler = async (event) => {
 	}
 
 	try {
-		const userpoolIds = JSON.parse (process.env.USERPOOL_IDS);
+		const userpoolIds = JSON.parse(process.env.USERPOOL_IDS);
 		await createTenants(dynamodb, userpoolIds);
 	}
 	catch (err) {

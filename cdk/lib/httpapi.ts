@@ -215,6 +215,41 @@ export class TenantApiGateway {
     return myLambda;
   }
 
+  private createReloadSamlProxyLambda(tenantId: string) {
+    const lambdaName = 'reloadsamlproxy';
+    const myLambda = new Function(
+      this.scope,
+      `${lambdaName}-${this.tenantId}`,
+      {
+        runtime: Runtime.NODEJS_18_X,
+        handler: `${lambdaName}.handler`,
+        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
+        environment: {
+          SAMLPROXY_INSTANCE_ID: config[tenantId].samlproxyinstanceid,
+        },
+        timeout: Duration.minutes(5),
+      }
+    );
+
+    myLambda.role?.attachInlinePolicy(
+      new Policy(this.scope, `${this.tenantId}-${lambdaName}-policy`, {
+        statements: [
+          new PolicyStatement({
+            actions: [
+              'ssm:SendCommand',
+            ],
+            resources: [
+              `arn:aws:ec2:${this.region}:${config[tenantId].awsaccount}:instance/${config[tenantId].samlproxyinstanceid}`,
+              `arn:aws:ssm:${this.region}::document/AWS-RunShellScript`
+            ],
+          }),
+        ],
+      })
+    );
+
+    return myLambda;
+  }
+
   private createVerifyCaptchaLambda() {
     const lambdaName = 'verifyrecaptcha';
     const myLambda = new Function(
@@ -515,5 +550,6 @@ export class TenantApiGateway {
     this.attachLambdaToApiGWService(rootPathAPI, this.createCheckUserLambda(userpool), 'checkuser');
     this.attachLambdaToApiGWService(rootPathAPI, this.createVerifyCaptchaLambda(), 'verifyrecaptcha');
     this.attachLambdaToApiGWService(rootPathAPI, this.createLogoutLambda(this.sessionIdTable), 'signout');
+    this.attachLambdaToApiGWService(rootPathAPI, this.createReloadSamlProxyLambda(this.tenantId), 'reloadsamlproxy', false);
   }
 }
