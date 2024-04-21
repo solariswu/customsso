@@ -297,6 +297,8 @@ export class TenantApiGateway {
           SESSION_ID_TABLE: sessionIdTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
           TOTP_KEY_NAME: config[this.tenantId].totpkeyname,
+          TOTP_DB_KEY: config[this.tenantId].totpdbkey,
+          TOTP_DB_NAME: config[this.tenantId].totpdbname,
         },
         timeout: Duration.minutes(5),
         // 👇 place lambda in the VPC
@@ -347,7 +349,10 @@ export class TenantApiGateway {
     const policyKms =
       new PolicyStatement({
         actions: ['secretsmanager:GetSecretValue'],
-        resources: [`arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpkeyname}`],
+        resources: [
+          `arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpkeyname}`,
+          `arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpdbkey}`,         
+        ],
       });
 
 

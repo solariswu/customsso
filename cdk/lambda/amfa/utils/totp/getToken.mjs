@@ -1,16 +1,7 @@
 
 import mysql from 'mysql2/promise';
 import * as crypto from 'crypto';
-import { getAsmSecret } from './getKms.mjs';
-
-const pool = mysql.createPool({
-	connectionLimit: 10,
-	host: "asm.cdxmlz2ujbyj.eu-west-1.rds.amazonaws.com",
-	user: "admin",
-	password: "KzYbHHdaNM4LuimM7aPp",
-	database: "asm_authenticators",
-	port: 3306
-});
+import { getAsmSecret, getDBSecret } from './getKms.mjs';
 
 const readFromDB = async (con, email, provider_id) => {
 	const [rows, fields] = await con.execute('SELECT * FROM tokens WHERE email = ? AND provider_id = ?', [email, provider_id]);
@@ -26,9 +17,16 @@ const aesDecrypt = ({ toDecrypt, aesKey }) => {
 };
 
 export const getTotp = async (email, provider_id) => {
-	console.log ('Trying to connect TOTP DB')
+	const secret = await getDBSecret();
+
+	const pool = mysql.createPool({
+		connectionLimit: 10,
+		...secret,
+	});
+
+	console.log('Trying to connect TOTP DB')
 	const con = await pool.getConnection();
-	console.log ('DB connection returned.')
+	console.log('DB connection returned.')
 	await con.ping();
 
 	console.log("DB Connected!");
@@ -56,6 +54,14 @@ export const getTotp = async (email, provider_id) => {
 }
 
 export const getSecretKey = async function (email, asm_token_salt, provider_id) {
+	const secret = await getDBSecret();
+
+	console.log('ygwu secret', secret);
+
+	const pool = mysql.createPool({
+		connectionLimit: 10,
+		...secret,
+	});
 
 	const con = await pool.getConnection();
 	await con.ping();
