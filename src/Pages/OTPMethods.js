@@ -96,8 +96,8 @@ const LOGIN = () => {
                     >
                         {updateType === 'Phone Number' ? 'Mobile/SMS' : updateType === 'Voice Number' ? 'Voice' : updateType}:
                     </div>
-                    <div class="row" style={{ color: '#C0C0C0' }}>
-                        {profile ? profile : '---'}
+                    <div class="row" style={{ color: '#4E95D9' }}>
+                        {profile ? profile : <div style={{ color: '#C0C0C0' }}>{'---'}</div>}
                     </div>
                 </div>
                 <div class="col-4" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
@@ -250,8 +250,8 @@ const LOGIN = () => {
                 >
                     Mobile Token:
                 </div>
-                <div class="row" style={{ color: '#C0C0C0' }}>
-                    {data?.mobileToken ? data.mobileToken : '---'}
+                <div class="row" style={{ color: '#4E95D9' }}>
+                    {data?.mobileToken ? data.mobileToken : <div style={{ color: '#C0C0C0' }}>{'---'}</div>}
                 </div>
             </div>
             <div class="col-4" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
@@ -290,6 +290,12 @@ const LOGIN = () => {
     return (
         <div>
             <span><h4>{config?.branding.update_provile_app_portal_header}</h4></span>
+            {
+                showOTP &&
+                <span className='idpDescription-customizable' style={{ color: '#4E95D9' }}>
+                    {data?.given_name + ' ' + data?.family_name}
+                </span>
+            }
             <hr className="hr-customizable" />
             {
                 showOTP ? <>

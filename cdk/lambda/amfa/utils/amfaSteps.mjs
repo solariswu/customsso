@@ -288,6 +288,8 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       const body = JSON.stringify({
         otpOptions,
         email: userAttributes.email,
+        given_name: userAttributes.given_name,
+        family_name: userAttributes.family_name,
         ...otpData,
       })
 
