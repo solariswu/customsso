@@ -1,4 +1,4 @@
-import { RestApi, IResource, LambdaIntegration, Cors, EndpointType, DomainName } from 'aws-cdk-lib/aws-apigateway';
+import { RestApi, IResource, LambdaIntegration, Cors, EndpointType, DomainName, CognitoUserPoolsAuthorizer, AuthorizationType } from 'aws-cdk-lib/aws-apigateway';
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { ManagedPolicy, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
@@ -33,9 +33,11 @@ export class TenantApiGateway {
   sessionIdTable: Table;
   configTable: Table;
   tenantTable: Table;
+  totpTokenTable: Table;
   userpool: UserPool;
   certificate: Certificate;
   hostedZone: PublicHostedZone;
+  cognitoAuthorizer: CognitoUserPoolsAuthorizer;
   vpc: Vpc;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
@@ -52,6 +54,7 @@ export class TenantApiGateway {
     this.configTable = this.createAmfaConfigTable();
     this.sessionIdTable = this.createSessionIdTable();
     this.tenantTable = this.createAmfaTenantTable();
+    this.totpTokenTable = this.createTotpTokenTable();
 
     this.createApiGateway();
     this.createVpc();
@@ -351,7 +354,7 @@ export class TenantApiGateway {
         actions: ['secretsmanager:GetSecretValue'],
         resources: [
           `arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpkeyname}`,
-          `arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpdbkey}`,         
+          `arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpdbkey}`,
         ],
       });
 
@@ -524,6 +527,102 @@ export class TenantApiGateway {
       billingMode: BillingMode.PAY_PER_REQUEST,
     });
     return table;
+  }
+
+  private createTotpTokenTable() {
+    const table = new Table(this.scope, `amfa-totptoken-${this.tenantId}`, {
+      partitionKey: { name: 'id', type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+    });
+    return table;
+  }
+
+  private createTotpTokenLambda(fnName: string, totpTokenTable: Table) {
+    const policyStatementDB =
+      new PolicyStatement({
+        actions: [
+          'dynamodb:GetItem',
+          'dynamodb:PutItem',
+          'dynamodb:DeleteItem',
+          'dynamodb:Scan',
+        ],
+        resources: [
+          totpTokenTable.tableArn,
+        ],
+      });
+
+    const policyStatementKms =
+      new PolicyStatement({
+        actions: ['secretsmanager:GetSecretValue'],
+        resources: [
+          `arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpkeyname}`,
+        ],
+      });
+
+    const myLambda = new Function(this.scope, `amfa-totptoken-${fnName}-${this.tenantId}`, {
+      runtime: Runtime.NODEJS_18_X,
+      handler: `${fnName}.handler`,
+      code: Code.fromAsset(path.join(__dirname, `/../lambda/${fnName}`)),
+      environment: {
+        TOTPTOKEN_TABLE: totpTokenTable.tableName,
+        TENANT_ID: this.tenantId,
+        TOTP_KEY_NAME: config[this.tenantId].totpkeyname,
+      },
+      timeout: Duration.minutes(5),
+    });
+
+    myLambda.role?.attachInlinePolicy(
+      new Policy(this.scope, `amfa-totptoken-${fnName}-lambda-policy-${this.tenantId}`, {
+        statements: [policyStatementDB, policyStatementKms],
+      })
+    );
+    return myLambda;
+  }
+
+  public createTotpTokenDBEndpoints(userPool: UserPool) {
+    const totpTokenLambdaFunctions = ['totptoken'];
+
+    this.cognitoAuthorizer = new CognitoUserPoolsAuthorizer(this.scope, "Authorizer", {
+      cognitoUserPools: [userPool],
+      identitySource: 'method.request.header.Authorization',
+      authorizerName: 'amfa-totp-authorizer',
+    });
+
+    totpTokenLambdaFunctions.map(fnName => {
+      const lambdaFn = this.createTotpTokenLambda(fnName, this.totpTokenTable);
+
+      // 👇 add /lambda path to API Service resource
+      const tokenApi = this.api.root.addResource(`${fnName}`, {
+        // 👇 enable CORS
+        defaultCorsPreflightOptions,
+      });
+
+      const lambdaApi = tokenApi.addResource('{id}', {
+        defaultCorsPreflightOptions,
+      });
+
+      lambdaApi.addMethod(
+        'POST',
+        new LambdaIntegration(lambdaFn, { proxy: true }),
+        {
+          authorizationType: AuthorizationType.COGNITO,
+          authorizer: this.cognitoAuthorizer,
+          authorizationScopes: ['amfa/totptoken'],
+        }
+      );
+
+      lambdaApi.addMethod(
+        'GET',
+        new LambdaIntegration(lambdaFn, { proxy: true }),
+        {
+          authorizationType: AuthorizationType.COGNITO,
+          authorizer: this.cognitoAuthorizer,
+          authorizationScopes: ['amfa/totptoken'],
+        }
+      );
+
+      return lambdaApi;
+    });
   }
 
   public createOAuthEndpoints(customAuthClient: UserPoolClient, userpool: UserPool) {

@@ -11,6 +11,7 @@ import { TenantUserPool } from './userpool';
 
 import { config } from './config';
 import { createPostDeploymentLambda } from './postdeployment';
+import api from 'sha1';
 
 
 export interface AmfaStackProps extends StackProps {
@@ -36,6 +37,7 @@ export class AmfaStack extends Stack {
       const tenantUserPool = new TenantUserPool(this, apigateway.configTable, props.env?.region, tenantId);
       apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool);
       apigateway.createAmfaApiEndpoints(tenantUserPool.userpool, tenantUserPool.customAuthClient, tenantUserPool.hostedUIClient.userPoolClientId);
+      apigateway.createTotpTokenDBEndpoints(tenantUserPool.userpool);
 
       createPostDeploymentLambda(this, apigateway.configTable, apigateway.tenantTable, tenantUserPool.userpool.userPoolId, tenantId);
 
