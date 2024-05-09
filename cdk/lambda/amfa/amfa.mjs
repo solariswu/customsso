@@ -3,6 +3,8 @@ import {
   ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+
 import { amfaSteps } from "./utils/amfaSteps.mjs";
 import { fetchConfig } from './utils/fetchConfig.mjs';
 
@@ -11,6 +13,8 @@ import { checkSessionId } from './utils/checkSessionId.mjs';
 import { deleteTotp, registotp } from './utils/totp/registOtp.mjs';
 import { amfaPolicies } from '../postdeployment/config.mjs';
 import { asmDeleteUser } from './utils/asmDeleteUser.mjs';
+
+const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 
 const validateInputParams = (payload) => {
   // check required params here
@@ -101,12 +105,12 @@ export const handler = async (event) => {
 
     if (payload && validateInputParams(payload)) {
       if (payload.phase === 'admindeletetotp') {
-        const amfaConfigs = await fetchConfig('amfaConfigs');
+        const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
         return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true);
       }
 
       if (payload.phase === 'admindeleteuser') {
-        const amfaConfigs = await fetchConfig('amfaConfigs');
+        const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
         console.log ('asm delete user payload', payload);
         await asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin);
         if (payload.hasTOTP) {
@@ -116,9 +120,9 @@ export const handler = async (event) => {
       }
 
       if (payload.phase === 'registotp') {
-        const isValidUuid = await checkSessionId(payload, payload.uuid);
+        const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
         if (isValidUuid) {
-          const amfaConfigs = await fetchConfig('amfaConfigs');
+          const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
           return await registotp(headers, payload, amfaConfigs, requestId, client);
         }
       }
@@ -126,10 +130,10 @@ export const handler = async (event) => {
       console.log('phase', payload.phase, ' otptype', payload.otptype);
       if (payload.phase === 'removeProfile' && payload.otptype === 't') {
         console.log('removeProfile check uuid');
-        const isValidUuid = await checkSessionId(payload, payload.uuid);
+        const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
         console.log('isValidUuid', isValidUuid);
         if (isValidUuid) {
-          const amfaConfigs = await fetchConfig('amfaConfigs');
+          const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
           return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true);
         }
       }
@@ -169,17 +173,17 @@ export const handler = async (event) => {
           }));
 
           console.log(res);
-          const amfaConfigs = await fetchConfig('amfaConfigs');
+          const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
 
           if (amfaConfigs.enable_passwordless && res && res.Users && res.Users.length > 0) {
-            const stepOneResponse = await amfaSteps(oneEvent, headers, client, payload.phase);
+            const stepOneResponse = await amfaSteps(oneEvent, headers, client, payload.phase, dynamodb);
             return stepOneResponse;
           }
           else {
             return response(202, 'Your identity requires password login.', requestId);
           }
         default:
-          const stepResponse = await amfaSteps(oneEvent, headers, client, payload.phase);
+          const stepResponse = await amfaSteps(oneEvent, headers, client, payload.phase, dynamodb);
           return stepResponse;
       }
     } else {

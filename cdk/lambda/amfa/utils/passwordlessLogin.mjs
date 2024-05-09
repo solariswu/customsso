@@ -5,7 +5,6 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import {
-	DynamoDBClient,
 	PutItemCommand,
 } from '@aws-sdk/client-dynamodb';
 
@@ -70,7 +69,7 @@ const getUser = async (username, cognito) => {
 
 }
 
-const storeTokens = async (user, payload, authCode) => {
+const storeTokens = async (user, payload, authCode, dynamodb) => {
   console.log('tokens write user:', user);
   console.log('payload:', payload);
   console.log('authCode:', authCode);
@@ -120,19 +119,18 @@ const storeTokens = async (user, payload, authCode) => {
 
   const putItemCommand = new PutItemCommand(params);
 
-  const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
   const results = await dynamodb.send(putItemCommand);
   console.log('tokens write result:', results);
 
 }
 
-export const passwordlessLogin = async (realUsername, payload, cognito) => {
+export const passwordlessLogin = async (realUsername, payload, cognito, dynamodb) => {
 
   const user = await getUser(realUsername, cognito);
 
   if (user.AuthenticationResult) {
     const authCode = makeId(32);
-    await storeTokens(user, payload, authCode);
+    await storeTokens(user, payload, authCode, dynamodb);
 
     return `${payload.redirectUri}/?code=${authCode}&state=${payload.state}`;
   }

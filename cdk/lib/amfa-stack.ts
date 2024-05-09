@@ -11,7 +11,6 @@ import { TenantUserPool } from './userpool';
 
 import { config } from './config';
 import { createPostDeploymentLambda } from './postdeployment';
-import api from 'sha1';
 
 
 export interface AmfaStackProps extends StackProps {

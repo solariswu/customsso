@@ -1,11 +1,8 @@
 import {
-	DynamoDBClient,
 	GetItemCommand,
 } from '@aws-sdk/client-dynamodb';
 
-export const fetchConfig = async (configType) => {
-
-	const dynamodb = new DynamoDBClient({region: process.env.AWS_REGION});
+export const fetchConfig = async (configType, dynamodb) => {
 
     const params = {
       TableName: process.env.AMFACONFIG_TABLE,

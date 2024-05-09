@@ -1,11 +1,8 @@
 import {
-	DynamoDBClient,
 	GetItemCommand,
 } from '@aws-sdk/client-dynamodb';
 
-const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
-
-export const checkSessionId = async (payload, step) => {
+export const checkSessionId = async (payload, step, dynamodb) => {
 
 	const params = {
 		TableName: process.env.SESSION_ID_TABLE,

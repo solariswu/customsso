@@ -1,12 +1,10 @@
 import {
-	DynamoDBClient,
 	PutItemCommand,
 } from '@aws-sdk/client-dynamodb';
 import * as crypto from 'crypto';
 
-const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 
-export const genSessionID = async (username, apti, otpaddr) => {
+export const genSessionID = async (username, apti, otpaddr, dynamodb) => {
 	console.log('generating session id for user:', username, ' apti:', apti, ' otpaddr:', otpaddr);
 
 	const uuid = crypto.randomUUID();

@@ -23,7 +23,8 @@ import { checkSessionId } from './checkSessionId.mjs';
 import { getTType } from './amfaUtils.mjs';
 import { getTotp } from './totp/getToken.mjs';
 
-export const amfaSteps = async (event, headers, cognito, step) => {
+
+export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
 
   const response = (statusCode, body, requestIdIn) => {
     const requestId = requestIdIn ? requestIdIn : '';
@@ -67,7 +68,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
       : aemail = null;
 
     const vPhoneNumber = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'].replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
-    const mobileToken = await getTotp(event.email, asm_provider_id);
+    const mobileToken = await getTotp(event.email, asm_provider_id, dynamodb);
 
     let tempOtpData = { phoneNumber, aemail, vPhoneNumber, mobileToken };
 
@@ -103,7 +104,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
   }
 
   if (step === 'updateProfile' || step === 'removeProfile' || step === 'checkSessionId' || step === 'updateProfileSendOTP') {
-    const isValidUuid = await checkSessionId(event, step);
+    const isValidUuid = await checkSessionId(event, step, dynamodb);
     if (!isValidUuid) {
       return response(400, 'Invalid UUID', event.requestId);
     }
@@ -114,8 +115,8 @@ export const amfaSteps = async (event, headers, cognito, step) => {
   }
 
   try {
-    const amfaConfigs = await fetchConfig('amfaConfigs');
-    const amfaPolicies = await fetchConfig('amfaPolicies');
+    const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
+    const amfaPolicies = await fetchConfig('amfaPolicies', dynamodb);
     // API vars saved in node.js property file in the back-end node.js
     const salt = amfaConfigs.salt; // Pull this from a property file. All MFA services will use this same salt to read and write the one_time_token-Cookie.
     const asmurl = amfaConfigs.asmurl;  // Url of the Adaptive MFA Server.
@@ -494,7 +495,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'password':
             case 'verifyotp':
               if (amfaResponseJSON.message === 'OK') {
-                const url = step === 'username' ? await passwordlessLogin(realUsername, event, cognito) :
+                const url = step === 'username' ? await passwordlessLogin(realUsername, event, cognito, dynamodb) :
                   await fetchCode(event.email, event.apti);
                 console.log('url:', url);
                 if (url) {
@@ -532,7 +533,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
             case 'selfserviceverify3':
               if (amfaResponseJSON.message === 'OK') {
                 const apti = step.startsWith('selfserviceverify') ? 'updateprofile' : event.apti;
-                const uuid = await genSessionID(event.email, apti);
+                const uuid = await genSessionID(event.email, apti, null, dynamodb);
                 return {
                   isBase64Encoded: false,
                   statusCode: 200,
@@ -546,9 +547,9 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               }
             case 'emailverificationverifyotp':
               if (amfaResponseJSON.message === 'OK') {
-                const user = await signUp(event.email, event.password, event.attributes, cognito);
+                const user = await signUp(event.email, event.password, event.attributes, cognito, dynamodb);
                 if (user?.User) {
-                  const uuid = await genSessionID(event.email, event.apti);
+                  const uuid = await genSessionID(event.email, event.apti, null, dynamodb);
                   return {
                     isBase64Encoded: false,
                     statusCode: 200,
@@ -612,7 +613,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               }
 
               if (OTPMethodsCount === 0) {
-                uuid = await genSessionID(event.email, event.apti, 'nonemfa');
+                uuid = await genSessionID(event.email, event.apti, 'nonemfa', dynamodb);
               }
 
               return {
@@ -630,7 +631,7 @@ export const amfaSteps = async (event, headers, cognito, step) => {
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
               return response(202, event.otpType === 't' ? 'Input Mobile Token' : amfaResponseJSON.message, event.requestId)
             case 'updateProfileSendOTP':
-              uuid = await genSessionID(event.email, event.apti, event.otpaddr);
+              uuid = await genSessionID(event.email, event.apti, event.otpaddr, dynamodb);
               return {
                 isBase64Encoded: false,
                 statusCode: 202,

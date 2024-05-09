@@ -16,7 +16,7 @@ const aesDecrypt = ({ toDecrypt, aesKey }) => {
 	return decrypted + decipher.final('utf8');
 };
 
-export const getTotp = async (email, provider_id) => {
+export const getTotp = async (email, provider_id, dynamodb) => {
 	const secret = await getDBSecret();
 
 	const pool = mysql.createPool({
@@ -53,7 +53,8 @@ export const getTotp = async (email, provider_id) => {
 
 }
 
-export const getSecretKey = async function (email, asm_token_salt, provider_id) {
+export const getSecretKey = async (payload, dynamodb) => {
+	const {email, salt : asm_token_salt, pid: provider_id} = payload;
 	const secret = await getDBSecret();
 
 	console.log('ygwu secret', secret);
