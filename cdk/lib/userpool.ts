@@ -116,8 +116,8 @@ export class TenantUserPool {
           authorizationCodeGrant: true,
         },
         scopes: [OAuthScope.OPENID, OAuthScope.PROFILE, OAuthScope.COGNITO_ADMIN],
-        callbackUrls: [config[this.tenantId].tenantAppUrl, 'http://localhost:3000'],
-        logoutUrls: [config[this.tenantId].tenantAppUrl, 'http://localhost:3000'],
+        callbackUrls: config[this.tenantId].callbackUrls,
+        logoutUrls: config[this.tenantId].logoutUrls,
       },
       userPoolClientName: 'hostedUIClient',
       supportedIdentityProviders: [UserPoolClientIdentityProvider.custom(AMFAIdPName)]

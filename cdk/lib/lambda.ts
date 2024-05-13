@@ -61,7 +61,7 @@ export const createCustomMessageLambda = (scope: Construct, configTable: Table, 
     code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
     environment: {
       CONFIG_TABLE: configTable.tableName,
-      APP_URL: config[tenantId].tenantAppUrl,
+      APP_URL: config[tenantId].spPortalUrl,
       SERVICE_NAME: config[tenantId].serviceName,
     },
     timeout: Duration.minutes(5)

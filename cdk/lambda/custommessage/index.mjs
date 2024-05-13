@@ -99,7 +99,7 @@ export const handler = async (event, context, callback) => {
               font-size: 12pt;
             "
           />
-              <a href="${process.env.APP_URL}?amfa=relogin" style="text-decoration: none"> Complete Registration </a>
+              <a href="${process.env.APP_URL}" style="text-decoration: none"> Complete Registration </a>
           </div>
       </div>
     </div>

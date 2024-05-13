@@ -3,7 +3,9 @@ export const config = {
 	{
 		'awsaccount': '531680862493', // Mar 27
 		'region': 'eu-west-1',
-		'tenantAppUrl': 'https://amfa.netlify.app/',
+		'spPortalUrl': 'https://amfa-awsdemo-userportal.netlify.app',
+		'callbackUrls': ['https://amfa-awsdemo-userportal.netlify.app/auth-callback', 'https://amfa.netlify.app/', 'http://localhost:3000'],
+		'logoutUrls': ['https://amfa-awsdemo-userportal.netlify.app', 'https://amfa.netlify.app/', 'http://localhost:3000'],
 		'tenantId': 'amfa-dev004', // lowercase only
 		'magicstring': 'youguesswhat',
 		'totpkeyname': 'amfa/totpsecrectkey-eEoRjE',
