@@ -26,13 +26,12 @@ import { getTotp } from './totp/getToken.mjs';
 
 export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
 
-  const response = (statusCode, body, requestIdIn) => {
-    const requestId = requestIdIn ? requestIdIn : '';
+  const response = (statusCode, body) => {
 
     return {
       isBase64Encoded: false,
       statusCode,
-      headers: { ...headers, requestId },
+      headers: { ...headers, requestId: event.requestId },
       body: JSON.stringify({ message: body }),
     };
   };
@@ -106,11 +105,11 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
   if (step === 'updateProfile' || step === 'removeProfile' || step === 'checkSessionId' || step === 'updateProfileSendOTP') {
     const isValidUuid = await checkSessionId(event, step, dynamodb);
     if (!isValidUuid) {
-      return response(400, 'Invalid UUID', event.requestId);
+      return response(400, 'Invalid UUID');
     }
 
     if (step === 'checkSessionId') {
-      return response(200, 'valid Session ID', event.requestId);
+      return response(200, 'valid Session ID');
     }
   }
 
@@ -142,7 +141,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
       otp_steps_under_master_control_config.includes(step) &&
       event.otptype !== 'e'
     ) {
-      return response(403, 'Master OTP methods restriction', event.requestId);
+      return response(403, 'Master OTP methods restriction');
     }
 
     let realUsername = event.email;
@@ -157,7 +156,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
 
       if (!listUsersRes || !listUsersRes.Users || listUsersRes.Users.length === 0) {
         console.log('Did not find valid user for email:', event.email);
-        return response(500, 'Did not find valid user for this email', event.requestId);
+        return response(500, 'Did not find valid user for this email');
       };
 
       const users = listUsersRes.Users.filter((user) => {
@@ -166,12 +165,12 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
 
       if (users.length === 0) {
         console.log('Did not find valid user for email:', event.email);
-        return response(500, 'Did not find valid user for this email, or user account has not been activated', event.requestId);
+        return response(500, 'Did not find valid user for this email, or user account has not been activated');
       };
 
       if (users[0].UserStatus === 'FORCE_CHANGE_PASSWORD' && step === 'username') {
         console.log('Admin Created User account needs to be actived:', event.email);
-        return response(202, 'User account has not been activated', event.requestId);
+        return response(202, 'User account has not been activated');
       }
 
       console.log('UserAttributes:', users[0].Attributes);
@@ -207,6 +206,10 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
     }
     console.log('ug:', ug);
 
+    if (step === 'username' && !(amfaPolicies[ug].enable_passwordless)) {
+      return response(202, 'Your identity requires password login.');
+    }
+
     switch (event.otptype) {
       case 'e':
         event.otpaddr = event.email;
@@ -230,12 +233,12 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
       // event.profile '' means legacy profile is not set
       if (event.profile !== '' && event.otpaddr !== event.profile?.toLowerCase()) {
         // legacy profile not correct
-        return response(400, 'Your entry was not valid, please try again.', event.requestId);
+        return response(400, 'Your entry was not valid, please try again.');
       }
 
       if (event.otptype === 'ae') {
         if (event.newProfile?.toLowerCase().trim() === event.email.toLowerCase().trim()) {
-          return response(400, "Your alt-email can't be same as your account email.", event.requestId);
+          return response(400, "Your alt-email can't be same as your account email.");
         }
       }
     }
@@ -261,11 +264,11 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
       }
 
       if (!equalCurrentProfile) {
-        return response(400, 'Your entry was not valid, please try again.', event.requestId);
+        return response(400, 'Your entry was not valid, please try again.');
       }
 
       await updateProfile(event.email, event.otptype, '', cognito, amfaConfigs.smtp);
-      return response(200, 'OK', event.requestId);
+      return response(200, 'OK');
 
     }
 
@@ -322,8 +325,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
       console.log('Did not find a valid ASM Policy for the user group:', ug);
       return response(
         500,
-        `Did not find a valid ASM Policy for the user group:${ug})`,
-        event.requestId
+        `Did not find a valid ASM Policy for the user group:${ug})`
       );
     }
 
@@ -424,7 +426,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
 
           // In otp page, the user enters mobile token.
           // You send it with otp verify.
-          return response(202, 'Awaiting Mobile Token code', event.requestId)
+          return response(202, 'Awaiting Mobile Token code')
         }
         otpm = event.otptype;
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
@@ -485,11 +487,11 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
               if (amfaResponseJSON.message === 'OK') {
                 // update profile
                 await updateProfile(event.email, event.otptype, event.otpaddr, cognito, amfaConfigs.smtp);
-                return response(200, 'OK', event.requestId);
+                return response(200, 'OK');
               }
               else {
                 // statusCode 200, but not 'OK' message
-                return response(506, 'The login service is not currently available. Contact the help desk.', event.requestId);
+                return response(506, 'The login service is not currently available. Contact the help desk.');
               }
             case 'username':
             case 'password':
@@ -520,12 +522,12 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
                   }
                 }
                 else {
-                  return response(505, 'Service error, please contact the help desk.', event.requestId)
+                  return response(505, 'Service error, please contact the help desk.')
                 }
               }
               else {
                 // statusCode 200, but not 'OK' message
-                return response(501, 'The login service is not currently available. Contact the help desk.', event.requestId);
+                return response(501, 'The login service is not currently available. Contact the help desk.');
               }
             case 'pwdresetverify2':
             case 'pwdresetverify3':
@@ -543,7 +545,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
               }
               else {
                 // statusCode 200, but not 'OK' message
-                return response(501, 'The login service is not currently available. Contact the help desk.', event.requestId);
+                return response(501, 'The login service is not currently available. Contact the help desk.');
               }
             case 'emailverificationverifyotp':
               if (amfaResponseJSON.message === 'OK') {
@@ -559,17 +561,17 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
                 }
               }
               // statusCode 200, but not 'OK' message
-              return response(501, 'The login service is not currently available. Contact the help desk.', event.requestId);
+              return response(501, 'The login service is not currently available. Contact the help desk.');
             default:
               // step 'sendotp', 'pwdreset2', 'pwdreset3', 'selfservice2', 'selfservice3' would not get 200, but 202 when the otp was sent.
-              return response(505, 'The login service is not currently available. Contact the help desk.', event.requestId);
+              return response(505, 'The login service is not currently available. Contact the help desk.');
           }
         case 202:
           let uuid = null;
           switch (step) {
             case 'username':
               // User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
-              return response(202, 'Your identity requires password login.', event.requestId)
+              return response(202, 'Your identity requires password login.')
             case 'password':
               // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
               const otpOptions = intersectOtpPolicies(
@@ -629,7 +631,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
             case 'selfservice3':
             case 'emailverificationSendOTP':
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
-              return response(202, event.otpType === 't' ? 'Input Mobile Token' : amfaResponseJSON.message, event.requestId)
+              return response(202, event.otpType === 't' ? 'Input Mobile Token' : amfaResponseJSON.message)
             case 'updateProfileSendOTP':
               uuid = await genSessionID(event.email, event.apti, event.otpaddr, dynamodb);
               return {
@@ -647,7 +649,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
             case 'emailverificationverifyotp':
               // The OTP entered was not correct. Push the user back to the OTP Challenge Page:
               // transform the statusCode to 403, as all 202 in frontend means redirect to another page.
-              return response(403, 'The identity code you entered was not correct. Please try again.', event.requestId)
+              return response(403, 'The identity code you entered was not correct. Please try again.')
             default:
               // no such case
               break;
@@ -657,28 +659,28 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
           // Country blocked or threat actor location detected.
           // Push the user back to the initial login page with this error:
           //    "Your location is not permitted. Contact the help desk."
-          return response(203, 'Your location is not permitted. Contact the help desk.', event.requestId);
+          return response(203, 'Your location is not permitted. Contact the help desk.');
         case 401:
           // The user took too long or entered the otp wrong too many times.
           // Send the user back to the login page with this error:
           //    "You took too long or entered your otp wrong too many times. Try your login again."
-          return response(401, 'You took too long or entered your otp wrong too many times. Try your login again.', event.requestId);
+          return response(401, 'You took too long or entered your otp wrong too many times. Try your login again.');
         default:
           // Anything else: Default - Push the user back to the initial login page with the error:
           //     "We ran into an issue. Please contact the help desk."
-          return response(502, 'We ran into an issue. Please contact the help desk.', event.requestId);
+          return response(502, 'We ran into an issue. Please contact the help desk.');
       }
     }
 
-    return response(503, 'amfa response error', event.requestId);
+    return response(503, 'amfa response error');
   }
   catch (error) {
     console.error('Error in step "' + step + '" :', error);
     if (error.message.indexOf('fetch failed') === -1) {
-      return response(504, error.message ? error.message : 'Unknown error in amfa steps', event.requestId);
+      return response(504, error.message ? error.message : 'Unknown error in amfa steps');
     }
     else {
-      return response(504, 'MFA Service is not responding. Contact the help desk.', event.requestId);
+      return response(504, 'MFA Service is not responding. Contact the help desk.');
     }
   }
 }

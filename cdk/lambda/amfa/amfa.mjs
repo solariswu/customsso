@@ -173,9 +173,10 @@ export const handler = async (event) => {
           }));
 
           console.log(res);
-          const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
+          // const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
 
-          if (amfaConfigs.enable_passwordless && res && res.Users && res.Users.length > 0) {
+          // if (amfaConfigs.enable_passwordless && res && res.Users && res.Users.length > 0) {
+          if (res && res.Users && res.Users.length > 0) {
             const stepOneResponse = await amfaSteps(oneEvent, headers, client, payload.phase, dynamodb);
             return stepOneResponse;
           }
