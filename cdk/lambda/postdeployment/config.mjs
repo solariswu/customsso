@@ -65,17 +65,24 @@ export const amfaPolicies = {
 }
 
 export const amfaConfigs = {
+    "COMMENT-File": "This file contains the available primary AWS aPersona Adaptive MFA login settings.",
     "asmurl": "https://asm-aws.apersonadev2.com:8443/asm",
     "enable_password_reset": true,
     "enable_self_service": true,
     "enable_user_registration": true,
     "enable_have_i_been_pwned": true,
     "enable_google_recaptcha": true,
-    "NOTE!!! Please Take care of using 'master_additional_otp_methods'": "'e' would be always available for update profile and password reset, even if 'e' is not set",
-    "master_additional_otp_methods": ["ae", "s", "v", "t"],
+    "COMMENT-NOTE!!! Please Take care of using 'master_additional_otp_methods'": " 'e' would be always available for update profile and password reset, even if 'e' is not set. Available options are: 'e' for primary email, 'ae' for alt-email, 's' for sms, 'v' for voice, 't' for mobile soft token. Be sure to use double quotes.",
+    "master_additional_otp_methods": [
+        "ae",
+        "s",
+        "v",
+        "t"
+    ],
     "user_registration_default_group": "user",
     "update_profile_force_mobile_token_first_if_registered": true,
     "salt": "a-random-string-here",
+    "COMMENT-smtp": "Enter your own SMTP settings to enable the services to send out invitations to users.",
     "smtp": {
         service: "gmail",
         host: "smtp.gmail.com",
@@ -84,6 +91,7 @@ export const amfaConfigs = {
         user: "niunaihemianbao012@gmail.com",
         pass: "jwcjehfafowrmtlk",
     },
+    "COMMENT-totp": "This totp information must match the aPersona Adaptive Security Manager Tenant/Client ID and associated salt.",
     "totp": {
         "asm_provider_id": 1,
         "asm_totp_salt": "**Salt-here!!!**"

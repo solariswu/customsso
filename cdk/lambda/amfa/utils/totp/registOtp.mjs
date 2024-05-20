@@ -16,7 +16,7 @@ const response = (headers, statusCode, body, requestIdIn) => {
     };
 };
 
-export const registotp = async (headers, payload, configs, requestId, cognito) => {
+export const registotp = async (headers, payload, configs, requestId, cognito, dynamodb) => {
 
     authenticator.options = { window: 10 };
 
@@ -30,11 +30,13 @@ export const registotp = async (headers, payload, configs, requestId, cognito) =
         try {
             if (configs.totp) {
                 await writeToken(
-                    payload.secretCode,
-                    payload.email,
-                    configs.totp.asm_totp_salt,
-                    configs.totp.asm_provider_id,
-                    payload.tokenLabel);
+                    {
+                        secret_key: payload.secretCode,
+                        email: payload.email,
+                        asm_token_salt: configs.totp.asm_totp_salt,
+                        provider_id: configs.totp.asm_provider_id,
+                        device_name: payload.tokenLabel
+                    }, dynamodb);
 
                 await cognito.send(new AdminUpdateUserAttributesCommand(
                     {
@@ -61,9 +63,9 @@ export const registotp = async (headers, payload, configs, requestId, cognito) =
     }
 }
 
-export const deleteTotp = async (headers, email, configs, requestId, cognito, needNotify) => {
+export const deleteTotp = async (headers, email, configs, requestId, cognito, needNotify, dynamodb) => {
     console.log('deleteTotp payload ', email, ' configs ', configs)
-    await deleteToken(email, configs.totp.asm_provider_id)
+    await deleteToken({ email, pid: configs.totp.asm_provider_id }, dynamodb)
 
     try {
         await cognito.send(new AdminUpdateUserAttributesCommand({

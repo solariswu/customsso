@@ -9,5 +9,7 @@ export const validateTotp = async (payload, configs, dynamodb) => {
         pid: configs.totp.asm_provider_id
     }, dynamodb);
     authenticator.options = { window: 10 };
-    return payload.otpcode === authenticator.generate(secret);
+    const otpCode = authenticator.generate(secret);
+    console.log ('validateTotp otpcode', otpCode)
+    return payload.otpcode === otpCode;
 }

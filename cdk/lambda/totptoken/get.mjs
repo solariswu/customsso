@@ -13,7 +13,7 @@ const readFromDB = async (email, provider_id, dynamodb) => {
     const params = {
         TableName: process.env.TOTPTOKEN_TABLE,
         Key: {
-            id: { S: email.trim() + '#' + provider_id.trim() },
+            id: { S: email.trim() + '#' + provider_id?.trim() },
         },
     };
 
@@ -28,6 +28,7 @@ const readFromDB = async (email, provider_id, dynamodb) => {
         return {
             token: item.token.S,
             device_name: item.device_name.S,
+            email,
         };
     }
 
@@ -36,7 +37,7 @@ const readFromDB = async (email, provider_id, dynamodb) => {
 
 
 export const getSecretKey = async (payload, dynamodb) => {
-    const { email, pid, salt } = payload;
+    const { email, pid, salt} = payload;
 
     const readResult = await readFromDB(email, pid, dynamodb);
 
@@ -69,9 +70,11 @@ export const getResData = async (payload, dynamodb, getType) => {
 
     switch (getType) {
         case 'n':
+            //device name only
             return await getTotp(payload.email, payload.pid, dynamodb);
         case 'c':
-            return await getSecretKey(payload, dynamodb);
+            return await readFromDB(payload.email, payload.pid, dynamodb)
+            // return await getSecretKey(payload, dynamodb);
         default:
             break;
     }

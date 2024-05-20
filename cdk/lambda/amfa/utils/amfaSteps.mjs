@@ -22,6 +22,7 @@ import { updateProfile } from './updateProfile.mjs';
 import { checkSessionId } from './checkSessionId.mjs';
 import { getTType } from './amfaUtils.mjs';
 import { getTotp } from './totp/getToken.mjs';
+import { validateTotp } from './totp/verifyOtp.mjs';
 
 
 export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
@@ -442,6 +443,10 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
       case 'selfserviceverify3':
       case 'updateProfile':
       case 'emailverificationverifyotp':
+        if (event.otptype === 't') {
+          validateTotp({ email: event.email }, amfaConfigs, dynamodb);
+          console.log('step', step, 'input otptype', event.otptype, ' code', event.otpcode);
+        }
         otpm = event.otptype;
         let o = event.otpcode;  // This is the otp entered by the end user and provided to the nodejs backend via post.
         postURL = `${asmurl}/extVerifyOtp.kv?l=${l}&u=${u}&uIp=${uIp}&c=${c}&apti=${apti}&wr=${wr}&igd=${igd}&nsf=${nsf}&otpm=${otpm}&p=${p}&otpp=${otpp}&tType=${tType}&o=${o}&af1=${af1}&a=${a}`;
@@ -496,6 +501,12 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
             case 'username':
             case 'password':
             case 'verifyotp':
+            case 'pwdreset2':
+            case 'pwdreset3':
+            case 'selfservice2':
+            case 'selfservice3':
+            case 'updateProfileSendOTP':
+            case 'emailverificationSendOTP':
               if (amfaResponseJSON.message === 'OK') {
                 const url = step === 'username' ? await passwordlessLogin(realUsername, event, cognito, dynamodb) :
                   await fetchCode(event.email, event.apti);
@@ -527,6 +538,12 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
               }
               else {
                 // statusCode 200, but not 'OK' message
+                // if ((step === 'username' || step === 'password') &&
+                if (amfaResponseJSON?.message &&
+                  amfaResponseJSON.message.includes('Exceeds Allowed Users')
+                ) {
+                  return response(501, 'Your account has not been licensed for access. Please contact the help desk.');
+                }
                 return response(501, 'The login service is not currently available. Contact the help desk.');
               }
             case 'pwdresetverify2':

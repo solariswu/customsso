@@ -14,7 +14,7 @@ export const handler = async (event) => {
 	const headers = {
 		'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,X-Requested-With',
 		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Methods': 'OPTIONS,GET,PUT,DELETE',
+		'Access-Control-Allow-Methods': 'OPTIONS,GET,DELETE',
 	};
 
 	const response = (statusCode = 200, body) => {
@@ -36,17 +36,17 @@ export const handler = async (event) => {
 				const getResult = await getResData({
 					email: event.pathParameters?.id,
 					pid: event.queryStringParameters?.p,
-					salt: event.queryStringParameters?.s
+					// salt: event.queryStringParameters?.s
 				}, dynamodb, event.queryStringParameters?.t ? event.queryStringParameters.t : 'c');
 				return response(200, JSON.stringify({ data: getResult }));
-			case 'POST':
+			// case 'POST':
 				// const payload = JSON.parse(event.body);
 				// const postResult = await putResData(payload.data, dynamodb);
 				// return response(200, JSON.stringify({ data: postResult }));
 			case 'DELETE':
 				const deleteResult = await deleteResData({
 					email: event.pathParameters?.id,
-					pid: event.queryParameters?.pid,
+					pid: event.queryStringParameters?.p,
 				}, dynamodb);
 				return response(200, JSON.stringify({ data: deleteResult }));
 			case 'OPTIONS':

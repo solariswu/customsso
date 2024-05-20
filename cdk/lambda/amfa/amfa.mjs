@@ -106,7 +106,7 @@ export const handler = async (event) => {
     if (payload && validateInputParams(payload)) {
       if (payload.phase === 'admindeletetotp') {
         const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
-        return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true);
+        return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true, dynamodb);
       }
 
       if (payload.phase === 'admindeleteuser') {
@@ -114,7 +114,7 @@ export const handler = async (event) => {
         console.log ('asm delete user payload', payload);
         await asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin);
         if (payload.hasTOTP) {
-          await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, false);
+          await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, false, dynamodb);
         }
         return;
       }
@@ -123,7 +123,7 @@ export const handler = async (event) => {
         const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
         if (isValidUuid) {
           const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
-          return await registotp(headers, payload, amfaConfigs, requestId, client);
+          return await registotp(headers, payload, amfaConfigs, requestId, client, dynamodb);
         }
       }
 
@@ -134,7 +134,7 @@ export const handler = async (event) => {
         console.log('isValidUuid', isValidUuid);
         if (isValidUuid) {
           const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
-          return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true);
+          return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true, dynamodb);
         }
       }
 

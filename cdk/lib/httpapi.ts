@@ -279,7 +279,8 @@ export class TenantApiGateway {
     authCodeTable: Table,
     hostedClientId: string,
     sessionIdTable: Table,
-    configTable: Table) {
+    configTable: Table,
+    totpTokenTable: Table) {
 
     const myLambda = new Function(
       this.scope,
@@ -300,8 +301,7 @@ export class TenantApiGateway {
           SESSION_ID_TABLE: sessionIdTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
           TOTP_KEY_NAME: config[this.tenantId].totpkeyname,
-          TOTP_DB_KEY: config[this.tenantId].totpdbkey,
-          TOTP_DB_NAME: config[this.tenantId].totpdbname,
+          TOTPTOKEN_TABLE: totpTokenTable.tableName,
         },
         timeout: Duration.minutes(5),
         // 👇 place lambda in the VPC
@@ -346,6 +346,7 @@ export class TenantApiGateway {
           authCodeTable.tableArn,
           sessionIdTable.tableArn,
           configTable.tableArn,
+          totpTokenTable.tableArn,
         ],
       });
 
@@ -354,7 +355,6 @@ export class TenantApiGateway {
         actions: ['secretsmanager:GetSecretValue'],
         resources: [
           `arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpkeyname}`,
-          `arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpdbkey}`,
         ],
       });
 
@@ -429,7 +429,7 @@ export class TenantApiGateway {
     amfaLambdaFunctions.map(fnName => {
       const lambdaFn = this.createAmfaLambda(fnName, userpool,
         userPoolClient, this.authCodeTable, hostedClientId,
-        this.sessionIdTable, this.configTable);
+        this.sessionIdTable, this.configTable, this.totpTokenTable);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
       return fnName;
     });
@@ -602,7 +602,7 @@ export class TenantApiGateway {
       });
 
       lambdaApi.addMethod(
-        'POST',
+        'DELETE',
         new LambdaIntegration(lambdaFn, { proxy: true }),
         {
           authorizationType: AuthorizationType.COGNITO,

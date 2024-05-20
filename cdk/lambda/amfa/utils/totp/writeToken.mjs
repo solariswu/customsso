@@ -1,8 +1,6 @@
-
-
-import mysql from 'mysql2/promise';
 import * as crypto from 'crypto';
-import { getAsmSecret, getDBSecret } from './getKms.mjs';
+import { getAsmSecret } from './getKms.mjs';
+import { DeleteItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
 
 const aesEncrypt = ({ toEncrypt, aesKey }) => {
 	const cipher = crypto.createCipheriv('aes-128-ecb', aesKey, '');
@@ -24,70 +22,58 @@ const genTotpToken = async (secret_key, email, asm_token_salt) => {
 
 }
 
-const writeToDB = async (con, email, token, provider_id, device_name) => {
+const writeToDB = async (payload, dynamodb) => {
 
-	console.log('starting to write token to db')
-
-	console.log('delete all old token from db');
-	const deleteSql = 'DELETE FROM tokens WHERE email = ? AND provider_id = ?';
-	const deleteValues = [email, provider_id];
-	const deleteResult = await con.query(deleteSql, deleteValues);
-	console.log('delete result', deleteResult);
+	console.log('starting to write token to db', payload)
 
 	const last_update = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
 
-	const sql = `INSERT INTO tokens (email, token, last_update, provider_id, device_name) VALUES (?, ?, ?, ?, ?)`;
-	const values = [email, token, last_update, provider_id, device_name];
+	const params = {
+		Item: {
+			id: {
+				S: payload.email.trim().toLowerCase() + '#' + payload.provider_id,
+			},
+			token: {
+				S: payload.token.trim(),
+			},
+			last_update: {
+				S: last_update,
+			},
+			device_name: {
+				S: payload.device_name,
+			}
+		},
+		ReturnConsumedCapacity: 'TOTAL',
+		TableName: process.env.TOTPTOKEN_TABLE,
+	};
 
-	const restult = await con.query(sql, values);
-
-	console.log('token db write result', restult);
+	const putItemCommand = new PutItemCommand(params);
+	const result = await dynamodb.send(putItemCommand);
+	console.log('token db write result', result);
 }
 
 
-export const deleteToken = async (email, provider_id) => {
-	const secret = await getDBSecret();
+export const deleteToken = async (payload, dynamodb) => {
+	console.log('delete old token from db', payload);
 
-	const pool = mysql.createPool({
-		connectionLimit: 10,
-		...secret,
-	});
-	const con = await pool.getConnection();
-	await con.ping();
-	console.log("deleteToken DB Connected!");
+	const params = {
+		TableName: process.env.TOTPTOKEN_TABLE,
+		Key: {
+			id: { S: payload.email.trim() + '#' + payload.pid },
+		},
+	};
 
-	console.log('delete all old token from db');
-	const deleteSql = 'DELETE FROM tokens WHERE email = ? AND provider_id = ?';
-	const deleteValues = [email, provider_id];
+	await dynamodb.send(new DeleteItemCommand(params));
 
-	const deleteResult = await con.execute(deleteSql, deleteValues);
-	console.log('delete result', deleteResult);
-
-	con.release();
-
-	console.log("DB Disconnected!");
+	return 'OK';
 }
 
 
-export default async function writeToken(secret_key, email, asm_token_salt, provider_id, device_name) {
-	const secret = await getDBSecret();
-
-	const pool = mysql.createPool({
-		connectionLimit: 10,
-		...secret,
-	});
-
-	const con = await pool.getConnection();
-	await con.ping();
-
-	console.log("DB Connected!");
+export default async function writeToken(payload, dynamodb) {
+	const { secret_key, email, asm_token_salt, provider_id, device_name } = payload
 
 	const encryptedToken = await genTotpToken(secret_key, email, asm_token_salt);
 
-	await writeToDB(con, email, encryptedToken, provider_id, device_name);
-
-	con.release();
-
-	console.log("DB Disconnected!");
+	await writeToDB({ email, token: encryptedToken, provider_id, device_name }, dynamodb);
 
 }
