@@ -112,7 +112,7 @@ const LOGIN = () => {
 					<Button name="back" type="submit" className="btn btn-primary submitButton-customizable-back"
 						variant="success"
 						disabled={isLoading}
-						onClick={() => window.location.assign(`${applicationUrl}?amfa=relogin`)}
+						onClick={() => window.location.assign(applicationUrl)}
 						style={{ marginTop: '10px' }}
 					>
 						Back to Login

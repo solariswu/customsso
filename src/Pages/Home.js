@@ -39,7 +39,8 @@ const LOGIN = () => {
     const previousState = sessionStorage.getItem('amfa-state');
 
     if (state === null || state === '' || state === previousState) {
-      window.location.assign(`${applicationUrl}?amfa=relogin`);
+      // window.history.go(-3);
+      window.location.assign(`${applicationUrl}`);
     }
     else {
       sessionStorage.setItem('amfa-state', state);

@@ -8,7 +8,7 @@ import { apiUrl, applicationUrl } from '../const';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 import { getApti } from '../Components/utils';
 
-const LOGIN = () => {
+const OTPMethods = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const config = useFeConfigs();
@@ -346,7 +346,8 @@ const LOGIN = () => {
                             setLoading(false);
                         }
                         if (applicationUrl) {
-                            window.location.assign(`${applicationUrl}?amfa=relogin`)
+                            // window.history.go(-4);
+                            window.location.assign(applicationUrl)
                         }
                         else { window.close() }
                     }
@@ -360,10 +361,5 @@ const LOGIN = () => {
     );
 }
 
-const OTPMethods = () => {
 
-    return (
-        <LOGIN />
-    )
-}
 export default OTPMethods;

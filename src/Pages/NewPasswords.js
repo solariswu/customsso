@@ -166,7 +166,8 @@ const LOGIN = () => {
                 setLoading(false);
               }
               if (applicationUrl) {
-                window.location.assign(`${applicationUrl}?amfa=relogin`)
+                // window.history.go(-3);
+                window.location.assign(applicationUrl)
               }
               else { window.close() }
             }

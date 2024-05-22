@@ -60,7 +60,8 @@ const MFAContent = () => {
   }
 
   const setOTPCode = (e) => {
-    setOtp({ ...otp, code: e.target.value });
+    e === '' ? setOtp({ ...otp, code: '' }) :
+      setOtp({ ...otp, code: e?.target?.value });
   }
 
   const confirmLogin = (e) => {
@@ -110,7 +111,8 @@ const MFAContent = () => {
           const resultMsg401 = await result.json();
           if (resultMsg401.message) {
             localStorage.setItem('OTPErrorMsg', resultMsg401.message);
-            window.location.assign(`${applicationUrl}?amfa=relogin`);
+            // window.history.go(-4);
+            window.location.assign(`${applicationUrl}?err=${resultMsg401.message}`);
             return;
           }
           else {
@@ -130,7 +132,7 @@ const MFAContent = () => {
       setLoading(false);
     }
     catch (err) {
-      console.error('error in OTP login', err);
+      // console.error('error in OTP login', err);
       setErrorMsg('OTP login error, please contact help desk.');
       setLoading(false);
     }
@@ -155,7 +157,7 @@ const MFAContent = () => {
       phase: 'verifyotp'
     };
 
-    console.log('verify otp params:', verifyOtpParams);
+    // console.log('verify otp params:', verifyOtpParams);
 
     setLoading(true);
     setOtp({ ...otp, code: '', addr: '' });
@@ -170,7 +172,7 @@ const MFAContent = () => {
       switch (result.status) {
         case 200:
           const response = await result.json();
-          console.log('MFA login response', response);
+          // console.log('MFA login response', response);
           if (response.location) {
             window.location.assign(response.location);
             return;
@@ -187,7 +189,8 @@ const MFAContent = () => {
           const resultMsg = await result.json();
           if (resultMsg.message) {
             localStorage.setItem('OTPErrorMsg', resultMsg.message);
-            window.location.assign(`${applicationUrl}?amfa=relogin`);
+            // window.history.go(-4);
+            window.location.assign(`${applicationUrl}?err=${resultMsg.message}`);
             return;
           }
           else {
@@ -249,27 +252,6 @@ const MFAContent = () => {
   }
 
   const OTPElement = ({ otptype }) => {
-
-    // if (otptype === 't') {
-    //   if (mobileToken) {
-    //     setOtpInFly('t');
-    //     setOtp({ ...otp, type: 't' });
-
-    //     return (
-    //       <div className='row align-items-end'>
-    //         <div className='col-4'>TOTP:</div>
-    //         <div className='col'>
-    //           <span className='link-customizable'>
-    //             mobile app token
-    //           </span>
-    //         </div>
-    //       </div>
-    //     )
-    //   }
-    //   else {
-    //     return null
-    //   }
-    // }
 
     const table = {
       e: {

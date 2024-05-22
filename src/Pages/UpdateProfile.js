@@ -219,7 +219,8 @@ const CONTENT = () => {
 						const resultMsg401 = await res.json();
 						if (resultMsg401.message) {
 							localStorage.setItem('OTPErrorMsg', resultMsg401.message);
-							window.location.assign(`${applicationUrl}?amfa=relogin`);
+							// window.history.go(-3);
+							window.location.assign(`${applicationUrl}?err=${resultMsg401.message}`);
 							return;
 						}
 						else {
@@ -276,7 +277,8 @@ const CONTENT = () => {
 								setLoading(false);
 							}
 							if (applicationUrl) {
-								window.location.assign(`${applicationUrl}?amfa=relogin`)
+								// window.history.go(-3);
+								window.location.assign(applicationUrl)
 							}
 							else { window.close() }
 						}

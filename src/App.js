@@ -53,7 +53,7 @@ const App = () => {
          timer.current && clearTimeout(timer.current);
 
          if (cd.current <= 0) {
-            const errorMsg = "You took too long or entered your otp wrong too many times. Try your login again.";
+            const errorMsg = "You took too long or entered your otp wrong too many times.\nTry your login again.";
             setTime('');
             localStorage.setItem('OTPErrorMsg', errorMsg);
             switch (timerType) {
@@ -66,7 +66,8 @@ const App = () => {
                   return;
                case 'login':
                default:
-                  window.location.assign(`${applicationUrl}?amfa=relogin`)
+                  // window.history.go(-3)
+                  window.location.assign(`${applicationUrl}?err=${errorMsg}`)
                   return;
             }
          }

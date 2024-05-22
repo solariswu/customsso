@@ -72,7 +72,8 @@ export const OTP = () => {
 
         if (!response.ok) {
           localStorage.setItem('OTPErrorMsg', json.message);
-          window.location.assign(`${applicationUrl}?amfa=relogin`);
+          // window.history.go(-4);
+          window.location.assign(`${applicationUrl}?err=${json.message}`);
           return;
         }
 
@@ -302,6 +303,7 @@ export const OTP = () => {
               else {
                 // could not find the verified OTP method in the array, unexpected
                 localStorage.setItem('OTPErrorMsg', 'Dual OTP verification error, please contact help desk.');
+                // window.history.go(-4);
                 window.location.assign(`${applicationUrl}?amfa=relogin`);
               }
             }

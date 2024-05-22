@@ -106,8 +106,10 @@ const LOGIN = () => {
             });
             return;
           case 505:
-            localStorage.setItem('OTPErrorMsg', "The login service is not currently available. Please contact the help desk.");
-            window.location.assign(`${applicationUrl}?amfa=relogin`);
+            const msg = "The login service is not currently available.\nPlease contact the help desk.";
+            localStorage.setItem('OTPErrorMsg', msg);
+            // window.history.go(-3);
+            window.location.assign(`${applicationUrl}?err=${msg}`);
             break;
           default:
             const res = await result.json();
@@ -119,7 +121,8 @@ const LOGIN = () => {
               errMsg = 'Invalid credentials.';
             }
             localStorage.setItem('OTPErrorMsg', errMsg);
-            window.location.assign(`${applicationUrl}?amfa=relogin`);
+            // window.history.go(-3);
+            window.location.assign(`${applicationUrl}?err=${errMsg}`);
             break;
         }
       }
@@ -147,7 +150,8 @@ const LOGIN = () => {
             errMsg = 'Invalid credentials.';
           }
           localStorage.setItem('OTPErrorMsg', errMsg);
-          window.location.assign(`${applicationUrl}?amfa=relogin`);
+          // window.history.go(-3);
+          window.location.assign(`${applicationUrl}?err=${errMsg}`);
         }
       }
     }
