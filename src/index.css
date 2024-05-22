@@ -19,7 +19,7 @@ body {
     width: 700px;
   }
   .banner-customizable {
-    padding: 25px 0px 25px 0px;
+    padding: 10px 0px 10px 0px;
     background-color: white;
   }
   .logo-customizable {
@@ -138,8 +138,8 @@ body {
 }
 
 .idpDescription-customizable {
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
   display: block;
   font-size: 18px;
 }

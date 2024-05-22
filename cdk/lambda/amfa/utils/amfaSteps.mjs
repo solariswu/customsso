@@ -7,26 +7,72 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { createHash } from 'node:crypto';
-
 import { fetchCode } from './fetchCode.mjs';
 import { passwordlessLogin } from './passwordlessLogin.mjs';
-
 import { signUp } from './signUp.mjs';
-
 import { cookie2NamePrefix } from '../const.mjs';
-
 import { genSessionID } from './genSessionID.mjs';
 import { fetchConfig } from './fetchConfig.mjs';
-
 import { updateProfile } from './updateProfile.mjs';
 import { checkSessionId } from './checkSessionId.mjs';
 import { getTType } from './amfaUtils.mjs';
 import { getTotp } from './totp/getToken.mjs';
 import { validateTotp } from './totp/verifyOtp.mjs';
 
+const cookieEnabledHeaders = {
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
+  'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+  'Access-Control-Expose-Headers': 'Set-Cookie',
+  'Access-Control-Allow-Credentials': 'true',
+};
+
+const intersectOtpPolicies = (usergroupPolicies, amfaConfigsMasterPolicies) => amfaConfigsMasterPolicies ?
+  usergroupPolicies.filter(policy => amfaConfigsMasterPolicies.includes(policy)) :
+  usergroupPolicies;
+
+const hash = (content) => createHash('md5').update(content).digest('hex');
+
+const transUAttr = async (email, userAttributes, allowed_otp_methods, asm_provider_id, dynamodb) => {
+  const phoneNumber = userAttributes.phone_number ? userAttributes.phone_number.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
+  let aemail = userAttributes['custom:alter-email'] ? userAttributes['custom:alter-email'] : null;
+  (aemail && aemail.indexOf('@') > 0) ?
+    aemail = `${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}`
+    : aemail = null;
+
+  const vPhoneNumber = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'].replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
+  const mobileToken = await getTotp(email, asm_provider_id, dynamodb);
+
+  let tempOtpData = { phoneNumber, aemail, vPhoneNumber, mobileToken };
+
+  let otpData = { aemail: null, phoneNumber: null, vPhoneNumber: null, mobileToken: null };
+
+  if (allowed_otp_methods) {
+    allowed_otp_methods.forEach(method => {
+      switch (method) {
+        case 'ae':
+          otpData.aemail = tempOtpData.aemail;
+          break;
+        case 's':
+          otpData.phoneNumber = tempOtpData.phoneNumber;
+          break;
+        case 'v':
+          otpData.vPhoneNumber = tempOtpData.vPhoneNumber;
+          break;
+        case 't':
+          otpData.mobileToken = mobileToken;
+          break;
+        default:
+          break;
+      }
+    });
+    return otpData;
+  }
+
+  return otpData;
+}
 
 export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
-
   const response = (statusCode, body) => {
 
     return {
@@ -36,72 +82,6 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
       body: JSON.stringify({ message: body }),
     };
   };
-
-  const cookieEnabledHeaders = {
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
-    'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
-    'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-    'Access-Control-Expose-Headers': 'Set-Cookie',
-    'Access-Control-Allow-Credentials': 'true',
-  };
-  const intersectOtpPolicies = (usergroupPolicies, amfaConfigsMasterPolicies) => {
-    console.log('usergroup policies', usergroupPolicies)
-    console.log('amfaConfigsMasterPolicies', amfaConfigsMasterPolicies)
-
-    if (!amfaConfigsMasterPolicies) {
-      return usergroupPolicies;
-    }
-
-    console.log('master policies', amfaConfigsMasterPolicies)
-    console.log('usergroup policies', usergroupPolicies)
-    const intersectionPolicies = usergroupPolicies.filter(policy => amfaConfigsMasterPolicies.includes(policy));
-    console.log('intersection:', intersectionPolicies)
-
-    return intersectionPolicies;
-  }
-
-  const transUAttr = async (userAttributes, allowed_otp_methods, asm_provider_id) => {
-    const phoneNumber = userAttributes.phone_number ? userAttributes.phone_number.replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
-    let aemail = userAttributes['custom:alter-email'] ? userAttributes['custom:alter-email'] : null;
-    (aemail && aemail.indexOf('@') > 0) ?
-      aemail = `${aemail[0]}xxx@${aemail[aemail.lastIndexOf('@') + 1]}xx.${aemail.substring((aemail.lastIndexOf('.') + 1))}`
-      : aemail = null;
-
-    const vPhoneNumber = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'].replace(/(\d{3})(\d{5})(\d{1})/, '$1xxx$3') : null;
-    const mobileToken = await getTotp(event.email, asm_provider_id, dynamodb);
-
-    let tempOtpData = { phoneNumber, aemail, vPhoneNumber, mobileToken };
-
-    let otpData = { aemail: null, phoneNumber: null, vPhoneNumber: null, mobileToken: null };
-
-    if (allowed_otp_methods) {
-      allowed_otp_methods.forEach(method => {
-        switch (method) {
-          case 'ae':
-            otpData.aemail = tempOtpData.aemail;
-            break;
-          case 's':
-            otpData.phoneNumber = tempOtpData.phoneNumber;
-            break;
-          case 'v':
-            otpData.vPhoneNumber = tempOtpData.vPhoneNumber;
-            break;
-          case 't':
-            otpData.mobileToken = mobileToken;
-            break;
-          default:
-            break;
-        }
-      });
-      return otpData;
-    }
-
-    return otpData;
-  }
-
-  function hash(content) {
-    return createHash('md5').update(content).digest('hex');
-  }
 
   if (step === 'updateProfile' || step === 'removeProfile' || step === 'checkSessionId' || step === 'updateProfileSendOTP') {
     const isValidUuid = await checkSessionId(event, step, dynamodb);
@@ -280,9 +260,11 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
       let otpOptions = amfaConfigs.master_additional_otp_methods;
 
       const otpData = await transUAttr(
+        event.email,
         userAttributes,
         otpOptions,
-        amfaConfigs.totp?.asm_provider_id
+        amfaConfigs.totp?.asm_provider_id,
+        dynamodb
       );
 
       if ((!otpOptions || !otpOptions.includes('e')) &&
@@ -597,9 +579,12 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
               );
 
               const otpData = await transUAttr(
+                event.email,
                 userAttributes,
                 otpOptions,
-                amfaConfigs.totp?.asm_provider_id);
+                amfaConfigs.totp?.asm_provider_id,
+                dynamodb
+              );
 
               let OTPMethodsCount = 0;
               if (otpOptions) {
@@ -681,7 +666,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
           // The user took too long or entered the otp wrong too many times.
           // Send the user back to the login page with this error:
           //    "You took too long or entered your otp wrong too many times. Try your login again."
-          return response(401, 'You took too long or entered your otp wrong too many times. Try your login again.');
+          return response(401, 'You took too long or entered your otp wrong too many times.\nTry your login again.');
         default:
           // Anything else: Default - Push the user back to the initial login page with the error:
           //     "We ran into an issue. Please contact the help desk."

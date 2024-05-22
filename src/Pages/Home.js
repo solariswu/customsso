@@ -48,7 +48,8 @@ const LOGIN = () => {
 
     const otpErrorMsg = localStorage.getItem('OTPErrorMsg');
     if (otpErrorMsg) {
-      setErrorMsg(otpErrorMsg);
+      // setErrorMsg(otpErrorMsg);
+      console.log ('Last time error: ', otpErrorMsg);
       localStorage.removeItem('OTPErrorMsg');
     }
 
@@ -160,9 +161,10 @@ const LOGIN = () => {
 
   return (
     <div>
-      <span>
+      <span style={{padding: "5px 0 5px 0"}}>
         <h4>{config?.branding.login_app_main_page_header}</h4>
       </span>
+      <div style={{height: "0.2em"}} />
       <hr className="hr-customizable" />
       <span className='idpDescription-customizable'> {config?.branding.login_app_main_page_message} </span>
       <hr className="hr-customizable" />
@@ -173,10 +175,11 @@ const LOGIN = () => {
           disabled={isLoading}
           onChange={handleRememberDevice}
         />
-        <span style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey' }}>
+        <span style={{ fontSize: '1rem', marginLeft: '0.5em', color: 'grey', marginBottom: '0.5em' }}>
           This is my device, remember it.
         </span>
         <br />
+        <div style={{height: "0.5em"}} />
       </div>
 
       <div>
