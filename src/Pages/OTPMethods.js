@@ -120,25 +120,27 @@ const OTPMethods = () => {
                         Update
                     </Button>
                 </div>
-                <div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
-                    {profile && <Button
-                        name={`Remove${updateType}`}
-                        type='submit'
-                        className='btn btn-sm btn-danger'
-                        disabled={isLoading}
-                        onClick={() => navigate('/removeprofile', {
-                            state: {
-                                email,
-                                uuid,
-                                validated: true,
-                                updateType,
-                                otpData: data,
-                            }
-                        })}
-                    >
-                        Remove
-                    </Button>}
-                </div>
+                {config?.enable_self_service_remove_buttons &&
+                    <div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
+                        {profile && <Button
+                            name={`Remove${updateType}`}
+                            type='submit'
+                            className='btn btn-sm btn-danger'
+                            disabled={isLoading}
+                            onClick={() => navigate('/removeprofile', {
+                                state: {
+                                    email,
+                                    uuid,
+                                    validated: true,
+                                    updateType,
+                                    otpData: data,
+                                }
+                            })}
+                        >
+                            Remove
+                        </Button>}
+                    </div>
+                }
             </div>
         )
     }
@@ -178,8 +180,9 @@ const OTPMethods = () => {
                     Update
                 </Button>
             </div>
-            <div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
-            </div>
+            {config?.enable_self_service_remove_buttons &&
+                <div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }} />
+            }
         </div>)
 
     const removeTOTP = async () => {
@@ -273,17 +276,19 @@ const OTPMethods = () => {
                     Update
                 </Button>
             </div>
-            <div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
-                {data?.mobileToken && <Button
-                    name={`RemoveMobileToken`}
-                    type='submit'
-                    className='btn btn-sm btn-danger'
-                    disabled={isLoading}
-                    onClick={removeTOTP}
-                >
-                    Remove
-                </Button>}
-            </div>
+            {config?.enable_self_service_remove_buttons &&
+                <div class="col-3" style={{ margin: '15px auto', padding: '1px', display: 'inline' }}>
+                    {data?.mobileToken && <Button
+                        name={`RemoveMobileToken`}
+                        type='submit'
+                        className='btn btn-sm btn-danger'
+                        disabled={isLoading}
+                        onClick={removeTOTP}
+                    >
+                        Remove
+                    </Button>}
+                </div>
+            }
         </div>
     )
 

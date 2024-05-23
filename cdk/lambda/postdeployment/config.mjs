@@ -69,6 +69,7 @@ export const amfaConfigs = {
     "asmurl": "https://asm-aws.apersonadev2.com:8443/asm",
     "enable_password_reset": true,
     "enable_self_service": true,
+    "enable_self_service_remove_buttons": false,
     "enable_user_registration": true,
     "enable_have_i_been_pwned": true,
     "enable_google_recaptcha": true,
