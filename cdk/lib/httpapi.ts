@@ -500,6 +500,7 @@ export class TenantApiGateway {
       sortKey: { name: 'apti', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY,
+      timeToLiveAttribute: 'ttl',
     });
     return table;
   }
@@ -516,6 +517,7 @@ export class TenantApiGateway {
       partitionKey: { name: 'uuid', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY,
+      timeToLiveAttribute: 'ttl',
     });
     return table;
   }
