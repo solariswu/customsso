@@ -8,36 +8,32 @@ const client = new SecretsManagerClient({
 	region: process.env.AWS_REGION,
 });
 
-export const getDBSecret = async () => {
-	const secret_name = process.env.TOTP_DB_KEY.substring(0, process.env.TOTP_DB_KEY.lastIndexOf('-'));
-
+export const getSecret = async () => {
 	const response = await client.send(
 		new GetSecretValueCommand({
-			SecretId: secret_name,
-		})
-	);
-
-	let secret = JSON.parse(response.SecretString);
-	secret.user = secret.username;
-	delete secret.username;
-	delete secret.engine;
-	delete secret.dbInstanceIdentifier;
-	secret.database = process.env.TOTP_DB_NAME;
-	return secret
-}
-
-export const getAsmSecret = async () => {
-
-	const secret_name = process.env.TOTP_KEY_NAME.substring(0, process.env.TOTP_KEY_NAME.lastIndexOf('-'));
-
-	const response = await client.send(
-		new GetSecretValueCommand({
-			SecretId: secret_name,
+			SecretId: `amfa/${process.env.TENANT_ID}/secret`,
 			VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
 		})
 	);
 	const secret = JSON.parse(response.SecretString);
 
-	return secret.totpSecret;
-
+	return secret;
 }
+
+export const getAsmSalt = async () => {
+	const secret = await getSecret ();
+	return secret?.asmSalt;
+}
+
+export const getSMTP = async () => {
+	const response = await client.send(
+		new GetSecretValueCommand({
+			SecretId: `amfa/${process.env.TENANT_ID}/smtp`,
+			VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
+		})
+	);
+	const secret = JSON.parse(response.SecretString);
+
+	return secret;
+}
+

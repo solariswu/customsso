@@ -18,6 +18,7 @@ import { checkSessionId } from './checkSessionId.mjs';
 import { getTType } from './amfaUtils.mjs';
 import { getTotp } from './totp/getToken.mjs';
 import { validateTotp } from './totp/verifyOtp.mjs';
+import { getAsmSalt } from './totp/getKms.mjs';
 
 const cookieEnabledHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
@@ -98,7 +99,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
     const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
     const amfaPolicies = await fetchConfig('amfaPolicies', dynamodb);
     // API vars saved in node.js property file in the back-end node.js
-    const salt = amfaConfigs.salt; // Pull this from a property file. All MFA services will use this same salt to read and write the one_time_token-Cookie.
+    const salt = await getAsmSalt(); // Pull this from a property file. All MFA services will use this same salt to read and write the one_time_token-Cookie.
     const asmurl = amfaConfigs.asmurl;  // Url of the Adaptive MFA Server.
     let user = null;
     let userAttributes = null;
@@ -248,7 +249,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
         return response(400, 'Your entry was not valid, please try again.');
       }
 
-      await updateProfile(event.email, event.otptype, '', cognito, amfaConfigs.smtp);
+      await updateProfile(event.email, event.otptype, '', cognito);
       return response(200, 'OK');
 
     }
@@ -473,7 +474,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
             case 'updateProfile':
               if (amfaResponseJSON.message === 'OK') {
                 // update profile
-                await updateProfile(event.email, event.otptype, event.otpaddr, cognito, amfaConfigs.smtp);
+                await updateProfile(event.email, event.otptype, event.otpaddr, cognito);
                 return response(200, 'OK');
               }
               else {

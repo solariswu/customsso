@@ -36,13 +36,8 @@ export const handler = async (event) => {
 				const getResult = await getResData({
 					email: event.pathParameters?.id,
 					pid: event.queryStringParameters?.p,
-					// salt: event.queryStringParameters?.s
 				}, dynamodb, event.queryStringParameters?.t ? event.queryStringParameters.t : 'c');
 				return response(200, JSON.stringify({ data: getResult }));
-			// case 'POST':
-				// const payload = JSON.parse(event.body);
-				// const postResult = await putResData(payload.data, dynamodb);
-				// return response(200, JSON.stringify({ data: postResult }));
 			case 'DELETE':
 				const deleteResult = await deleteResData({
 					email: event.pathParameters?.id,

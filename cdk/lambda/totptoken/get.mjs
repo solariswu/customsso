@@ -1,5 +1,5 @@
 import { GetItemCommand } from '@aws-sdk/client-dynamodb';
-import { getAsmSecret } from './getKms.mjs';
+import { getSecret } from './getKms.mjs';
 import * as crypto from 'crypto';
 
 const aesDecrypt = ({ toDecrypt, aesKey }) => {
@@ -37,7 +37,7 @@ const readFromDB = async (email, provider_id, dynamodb) => {
 
 
 export const getSecretKey = async (payload, dynamodb) => {
-    const { email, pid, salt} = payload;
+    const { email, pid} = payload;
 
     const readResult = await readFromDB(email, pid, dynamodb);
 
@@ -46,9 +46,11 @@ export const getSecretKey = async (payload, dynamodb) => {
     if (readResult) {
         const result = readResult.token;
 
-        const asm_secret = await getAsmSecret();
+        const secret = await getSecret();
+        const totp_secret = secret?.totpSecret;
+        const totp_salt = secret?.totpSalt;
 
-        const key_and_salt = `${asm_secret}${salt}`;
+        const key_and_salt = `${totp_secret}${totp_salt}`;
         const key_salt_and_email = key_and_salt + email.substring(0, email.length / 2);
         const encoded_key = Buffer.from(key_salt_and_email, 'utf8').toString('base64');
         const final_encrypt_key = encoded_key.substring(0, 16);

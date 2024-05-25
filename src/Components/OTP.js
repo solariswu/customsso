@@ -476,6 +476,7 @@ export const OTP = () => {
   return (
     <div>
       <span> <h4>{location.state?.type === 'passwordreset' ? pwdResetPageTitle : config?.branding.update_profile_app_main_page_header}</h4> </span>
+      <div style={{height: "0.2em"}} />
       <hr className='hr-customizable' />
       <div>
         <span

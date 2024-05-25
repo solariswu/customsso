@@ -33,7 +33,6 @@ export const registotp = async (headers, payload, configs, requestId, cognito, d
                     {
                         secret_key: payload.secretCode,
                         email: payload.email,
-                        asm_token_salt: configs.totp.asm_totp_salt,
                         provider_id: configs.totp.asm_provider_id,
                         device_name: payload.tokenLabel
                     }, dynamodb);
@@ -48,7 +47,7 @@ export const registotp = async (headers, payload, configs, requestId, cognito, d
                         }]
                     }));
 
-                await notifyProfileChange(payload.email, 'TOTP', payload.tokenLabel, configs.smtp);
+                await notifyProfileChange(payload.email, 'TOTP', payload.tokenLabel);
                 return response(headers, 200, 'TOTP configured', requestId);
             }
             else {
@@ -79,7 +78,7 @@ export const deleteTotp = async (headers, email, configs, requestId, cognito, ne
 
         if (needNotify) {
             // user may deleted
-            await notifyProfileChange(email, 'Mobile Token', null, configs.smtp);
+            await notifyProfileChange(email, 'Mobile Token', null);
         }
 
     } catch (error) {

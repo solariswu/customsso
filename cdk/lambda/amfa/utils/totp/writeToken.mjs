@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { getAsmSecret } from './getKms.mjs';
+import { getSecret } from './getKms.mjs';
 import { DeleteItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
 
 const aesEncrypt = ({ toEncrypt, aesKey }) => {
@@ -8,11 +8,13 @@ const aesEncrypt = ({ toEncrypt, aesKey }) => {
 	return encrypted + cipher.final('base64');
 };
 
-const genTotpToken = async (secret_key, email, asm_token_salt) => {
+const genTotpToken = async (secret_key, email) => {
 
-	const asm_secret = await getAsmSecret();
+	const secret = await getSecret();
+	const totp_secret = secret?.totpSecret;
+	const totp_salt = secret?.totpSalt;
 
-	const key_and_salt = `${asm_secret}${asm_token_salt}`;
+	const key_and_salt = `${totp_secret}${totp_salt}`;
 	const key_salt_and_email = key_and_salt + email.substring(0, email.length / 2);
 	const encoded_key = Buffer.from(key_salt_and_email, 'utf8').toString('base64');
 	const final_encrypt_key = encoded_key.substring(0, 16);
@@ -70,9 +72,9 @@ export const deleteToken = async (payload, dynamodb) => {
 
 
 export default async function writeToken(payload, dynamodb) {
-	const { secret_key, email, asm_token_salt, provider_id, device_name } = payload
+	const { secret_key, email, provider_id, device_name } = payload
 
-	const encryptedToken = await genTotpToken(secret_key, email, asm_token_salt);
+	const encryptedToken = await genTotpToken(secret_key, email);
 
 	await writeToDB({ email, token: encryptedToken, provider_id, device_name }, dynamodb);
 

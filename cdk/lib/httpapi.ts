@@ -15,6 +15,7 @@ import { config } from './config';
 import { DNS } from "./const";
 
 import * as path from 'path';
+import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
 
 const defaultCorsPreflightOptions = {
   allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization'],
@@ -39,6 +40,8 @@ export class TenantApiGateway {
   hostedZone: PublicHostedZone;
   cognitoAuthorizer: CognitoUserPoolsAuthorizer;
   vpc: Vpc;
+  secret: ISecret;
+  smtpSecret: ISecret;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
     account: string | undefined, region: string | undefined, tenantId: string) {
@@ -48,6 +51,9 @@ export class TenantApiGateway {
     this.account = account;
     this.region = region;
     this.tenantId = tenantId;
+
+    this.secret = Secret.fromSecretNameV2 (scope, `${tenantId}-secret`, `amfa/${tenantId}/secret`);
+    this.smtpSecret = Secret.fromSecretNameV2 (scope, `${tenantId}-smtpsecret`, `amfa/${tenantId}/smtp`);
 
     // DB for storing custom auth session data
     this.authCodeTable = this.createAuthCodeTable();
@@ -300,7 +306,6 @@ export class TenantApiGateway {
           HOSTED_CLIENT_ID: hostedClientId,
           SESSION_ID_TABLE: sessionIdTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
-          TOTP_KEY_NAME: config[this.tenantId].totpkeyname,
           TOTPTOKEN_TABLE: totpTokenTable.tableName,
         },
         timeout: Duration.minutes(5),
@@ -354,7 +359,8 @@ export class TenantApiGateway {
       new PolicyStatement({
         actions: ['secretsmanager:GetSecretValue'],
         resources: [
-          `arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpkeyname}`,
+          this.secret.secretArn+'*',
+          this.smtpSecret.secretArn+'*',
         ],
       });
 
@@ -557,7 +563,7 @@ export class TenantApiGateway {
       new PolicyStatement({
         actions: ['secretsmanager:GetSecretValue'],
         resources: [
-          `arn:aws:secretsmanager:${this.region}:*:secret:${config[this.tenantId].totpkeyname}`,
+          this.secret.secretArn+'*',
         ],
       });
 
@@ -568,7 +574,6 @@ export class TenantApiGateway {
       environment: {
         TOTPTOKEN_TABLE: totpTokenTable.tableName,
         TENANT_ID: this.tenantId,
-        TOTP_KEY_NAME: config[this.tenantId].totpkeyname,
       },
       timeout: Duration.minutes(5),
     });

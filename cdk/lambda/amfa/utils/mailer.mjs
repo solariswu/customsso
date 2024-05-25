@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import HTML_TEMPLATE from "./htmlTemplate.mjs";
+import { getSMTP } from "./totp/getKms.mjs";
 
 
 const sendEmail = async (transporter, mailDetails, callback) => {
@@ -18,7 +19,7 @@ const mailer = async (mailDetails, smtpConfig) => {
 
 }
 
-export const notifyProfileChange = async (email, type, newProfileValue, smtpConfigs) => {
+export const notifyProfileChange = async (email, type, newProfileValue) => {
     const change = newProfileValue && newProfileValue !== ''? `changed to \n${newProfileValue}` : `removed`;
 
     const message = `Hi ${email},\n\n Your ${type} MFA has been ${change}.\nIf this is not your desired change, please login check or contact help desk.`;
@@ -29,6 +30,8 @@ export const notifyProfileChange = async (email, type, newProfileValue, smtpConf
         text: message,
         html: HTML_TEMPLATE(email, type, newProfileValue),
     }
+
+	const smtpConfigs = await getSMTP();
 
 	const smtp = {
 		service: smtpConfigs.service,

@@ -53,7 +53,7 @@ const HTML_TEMPLATE = (user, type, value) => {
 		<p>If you did not make this change, please contact the help desk.</p>
 			  </div>
 			  <div class="email-footer">
-				<p>EMAIL FOOTER</p>
+				<p>APERSONA amfa</p>
 			  </div>
 			</div>
 		  </div>

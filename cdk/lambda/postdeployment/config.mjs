@@ -69,7 +69,7 @@ export const amfaConfigs = {
     "asmurl": "https://asm-aws.apersonadev2.com:8443/asm",
     "enable_password_reset": true,
     "enable_self_service": true,
-    "enable_self_service_remove_buttons": false,
+    "enable_self_service_remove_buttons": true,
     "enable_user_registration": true,
     "enable_have_i_been_pwned": true,
     "enable_google_recaptcha": true,
@@ -82,20 +82,9 @@ export const amfaConfigs = {
     ],
     "user_registration_default_group": "user",
     "update_profile_force_mobile_token_first_if_registered": true,
-    "salt": "a-random-string-here",
-    "COMMENT-smtp": "Enter your own SMTP settings to enable the services to send out invitations to users.",
-    "smtp": {
-        service: "gmail",
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
-        user: "niunaihemianbao012@gmail.com",
-        pass: "jwcjehfafowrmtlk",
-    },
-    "COMMENT-totp": "This totp information must match the aPersona Adaptive Security Manager Tenant/Client ID and associated salt.",
+    "COMMENT-totp": "This totp information must match the aPersona Adaptive Security Manager Tenant/Client ID and associated salt. salt now is saving in secret manager",
     "totp": {
         "asm_provider_id": 1,
-        "asm_totp_salt": "**Salt-here!!!**"
     }
 }
 

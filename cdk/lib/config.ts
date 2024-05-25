@@ -8,9 +8,6 @@ export const config = {
 		'logoutUrls': ['https://amfa-awsdemo-userportal.netlify.app', 'https://amfa.netlify.app/', 'https://apersona.netlify.app', 'http://localhost:3000'],
 		'tenantId': 'amfa-dev004', // lowercase only
 		'magicstring': 'youguesswhat',
-		'totpkeyname': 'amfa/totpsecrectkey-eEoRjE',
-		'totpdbkey': 'amfa/rdsdev-6Qh4BV',
-		'totpdbname': 'asm_authenticators',
 		'serviceName': 'apersona',
 		'samlproxyinstanceid': 'i-028b38d91c41d660c',
 	}
