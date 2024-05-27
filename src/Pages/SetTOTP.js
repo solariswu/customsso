@@ -14,6 +14,8 @@ const CONTENT = () => {
 
 	const [errorMsg, setErrorMsg] = useState(null);
 	const [isLoading, setLoading] = useState(false);
+	const [hasQr, setHasQr] = useState(false);
+	const [isQrLoading, setQrLoading] = useState(true);
 	const [isUpdateDone, setUpdateDone] = useState(false);
 
 	const [sixDigits, setSixDigits] = useState('');
@@ -112,30 +114,36 @@ const CONTENT = () => {
 	}
 
 	const genQRCode = (secretCode) => {
-		if (canvasRef.current && secretCode !== '') {
-			// const totpUri = "otpauth://totp/MFA:" +  + "?secret=" + secretCode + "&issuer=amfa";
-			const totpUri = window.otplib.authenticator.keyuri(location.state.email, 'amfa', secretCode);
+		// const totpUri = "otpauth://totp/MFA:" +  + "?secret=" + secretCode + "&issuer=amfa";
+		const totpUri = window.otplib.authenticator.keyuri(location.state.email, 'amfa', secretCode);
 
-			const current = canvasRef.current;
-			const size = 128;
-			const errorCorrectionLevel = "M";
+		const current = canvasRef.current;
+		const size = 128;
+		const errorCorrectionLevel = "M";
 
-			QRCode.toCanvas(
-				current,
-				totpUri || " ",
-				{
-					width: `${size}px`,
-					margin: 0,
-					errorCorrectionLevel,
-				},
-				() => {
-					// fix again the CSS because lib changes it –_–
-					current.style.width = `${size}px`
-					current.style.height = `${size}px`
-				},
-				// (error) => error && console.error(error)
-			);
-		}
+		QRCode.toCanvas(
+			current,
+			totpUri || " ",
+			{
+				width: `${size}px`,
+				margin: 0,
+				errorCorrectionLevel,
+			},
+			() => {
+				// fix again the CSS because lib changes it –_–
+				current.style.width = `${size}px`
+				current.style.height = `${size}px`
+				console.log('ygwu displayed')
+				if (!hasQr) {
+					setHasQr(true)
+					setTimeout(() => {
+						setQrLoading(false)
+					}, 500);
+				}
+			},
+			// (error) => error && console.error(error)
+		);
+
 	}
 
 	const UpdateDone = () => {
@@ -176,7 +184,9 @@ const CONTENT = () => {
 		</div>
 	}
 
-	genQRCode(secretCode);
+	if (canvasRef.current && secretCode !== '' && !hasQr) {
+		genQRCode(secretCode);
+	}
 
 	return (
 		<div>
@@ -192,8 +202,14 @@ const CONTENT = () => {
 								{' '}{secretCode.slice(0, 4)} {secretCode.slice(4, 8)} {secretCode.slice(8, 12)} {secretCode.slice(12, 16)}
 							</span>
 						</div>
+						{/* used the following one to enforce screen update */}
 						<div style={{ textAlign: "center", marginTop: '10px' }}>
-							<canvas ref={canvasRef} />
+							<canvas ref={canvasRef} style={{ display: isQrLoading ? "none" : "block", margin: '0 auto' }} />
+							{isQrLoading &&
+								// <div className="modal-body" style={{ textAlign: 'center' }}>
+								<Spinner color="primary" style={{ margin: '1em auto' }}>{''}</Spinner>
+								// </div>
+							}
 						</div>
 						<div>2. Token Label. ex. iPhone X</div>
 						<div className="input-group">
@@ -204,7 +220,7 @@ const CONTENT = () => {
 								autoFocus
 							/>
 						</div>
-						<div style={{marginTop: '15px'}}>3. Enter 6 digit result...</div>
+						<div style={{ marginTop: '15px' }}>3. Enter 6 digit result...</div>
 						<div className="input-group">
 							<input id="totpResult" name="totpresult" type="text" className="form-control inputField-customizable"
 								style={{ height: '40px' }}

@@ -11,7 +11,7 @@ import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 const LOGIN = () => {
 
 	const [msg, setMsg] = useState({ msg: '', type: '' });
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [state, setState] = useState(null);
   const [redirectUri, setRedirectUri] = useState(null);
   const [isLoading, setLoading] = useState(false);
@@ -59,7 +59,7 @@ const LOGIN = () => {
       setState(null);
     }
 
-  }, []);
+  }, [searchParams]);
 
   const navigate = useNavigate();
 
