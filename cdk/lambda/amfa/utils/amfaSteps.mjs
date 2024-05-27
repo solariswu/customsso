@@ -450,7 +450,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
           // On the second verification, the auth api call is sending otpp=1, but it should be otpp=0 becuase we want ASM to push the otp immediately to the selected channel.
           otpp = event.otptype === 't' && ['pwdreset2', 'selfservice2'].includes(step) ? 1 : 0;
           sfl = 7;
-          postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp + '&nsf=' + nsf + '&igd=' + igd;
+          postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp + '&nsf=' + nsf + '&igd=' + igd + '&a=' + a;
         }
         break;
       default:
