@@ -1,4 +1,4 @@
-import { SSMClient, SendCommandCommand } from "@aws-sdk/client-ssm"; 
+import { SSMClient, SendCommandCommand } from "@aws-sdk/client-ssm";
 
 const headers = {
 	'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,X-Requested-With',
@@ -20,7 +20,7 @@ export const handler = async (event) => {
 		TimeoutSeconds: Number(60),
 		Parameters: { // Parameters
 			"commands": [ // ParameterValueList
-				"/usr/bin/sudo /usr/bin/systemctl restart project.service",
+				"/usr/bin/sudo /usr/bin/systemctl restart samlproxy.service",
 			],
 		},
 	};
