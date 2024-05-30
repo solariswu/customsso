@@ -47,6 +47,6 @@ export const updateProfile = async (email, otptype, profile, cognitoClient) => {
 
 	await cognitoClient.send(param);
 
-	await notifyProfileChange(email, profileTypes[otptype], profile);
+	await notifyProfileChange(email, [profileTypes[otptype]], [profile], false);
 
 }

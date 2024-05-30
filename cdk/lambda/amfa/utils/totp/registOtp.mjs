@@ -47,7 +47,7 @@ export const registotp = async (headers, payload, configs, requestId, cognito, d
                         }]
                     }));
 
-                await notifyProfileChange(payload.email, 'TOTP', payload.tokenLabel);
+                await notifyProfileChange(payload.email, ['Mobile Token'], [payload.tokenLabel], false);
                 return response(headers, 200, 'TOTP configured', requestId);
             }
             else {
@@ -62,7 +62,7 @@ export const registotp = async (headers, payload, configs, requestId, cognito, d
     }
 }
 
-export const deleteTotp = async (headers, email, configs, requestId, cognito, needNotify, dynamodb) => {
+export const deleteTotp = async (headers, email, configs, requestId, cognito, needNotify, dynamodb, isByAdmin) => {
     console.log('deleteTotp payload ', email, ' configs ', configs)
     await deleteToken({ email, pid: configs.totp.asm_provider_id }, dynamodb)
 
@@ -78,7 +78,7 @@ export const deleteTotp = async (headers, email, configs, requestId, cognito, ne
 
         if (needNotify) {
             // user may deleted
-            await notifyProfileChange(email, 'Mobile Token', null);
+            await notifyProfileChange(email, ['Mobile Token'], [null], isByAdmin);
         }
 
     } catch (error) {

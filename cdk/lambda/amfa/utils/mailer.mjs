@@ -19,17 +19,26 @@ const mailer = async (mailDetails, smtpConfig) => {
 
 }
 
-export const notifyProfileChange = async (email, type, newProfileValue) => {
-    const change = newProfileValue && newProfileValue !== ''? `changed to \n${newProfileValue}` : `removed`;
+export const notifyProfileChange = async (email, types, newProfileValues, isByAdmin = false) => {
+	if (types.length === 0) {
+		console.log('error, mailer, No changed OTP type found, input type:', types);
+		return;
+	}
 
-    const message = `Hi ${email},\n\n Your ${type} MFA has been ${change}.\nIf this is not your desired change, please login check or contact help desk.`;
-    const options = {
-        from: "Admin <admin@amfasolution.com>", // sender address
-        to: email, // receiver email
-        subject: "Your profile has been updated", // Subject line
-        text: message,
-        html: HTML_TEMPLATE(email, type, newProfileValue),
-    }
+	const message = `Hi ${email},\n\n Your following MFA has been changed${isByAdmin ? ' by Admin' : ''}.\nIf this is not your desired change, please login check or contact help desk.\n`;
+	let messageMfaList = '';
+
+	for (let index = 0; index < types.length; index++) {
+		messageMfaList += `    ${types[index]} has been `;
+		messageMfaList += newProfileValues[index] && newProfileValues !== '' ? `changed to \n${newProfileValues[index]}\n` : `removed\n`;
+	}
+	const options = {
+		from: "Admin <admin@noreply.com>", // sender address
+		to: email, // receiver email
+		subject: "Your profile has been updated", // Subject line
+		text: message+messageMfaList,
+		html: HTML_TEMPLATE(email, types, newProfileValues, isByAdmin),
+	}
 
 	const smtpConfigs = await getSMTP();
 
@@ -39,15 +48,15 @@ export const notifyProfileChange = async (email, type, newProfileValue) => {
 		port: smtpConfigs.port,
 		secure: smtpConfigs.secure,
 		auth: {
-		  user: smtpConfigs.user,
-		  pass: smtpConfigs.pass,
+			user: smtpConfigs.user,
+			pass: smtpConfigs.pass,
 		}
-	  }
+	}
 
-    console.log('mailer options', options, ' smtp config:', smtp);
-    try {
-        return await mailer(options, smtp);
-    } catch (error) {
-        console.error('send email for token change error', error);
-    }
+	console.log('mailer options', options, ' smtp config:', smtp);
+	try {
+		return await mailer(options, smtp);
+	} catch (error) {
+		console.error('send email for token change error', error);
+	}
 }

@@ -13,6 +13,7 @@ import { checkSessionId } from './utils/checkSessionId.mjs';
 import { deleteTotp, registotp } from './utils/totp/registOtp.mjs';
 import { amfaPolicies } from '../postdeployment/config.mjs';
 import { asmDeleteUser } from './utils/asmDeleteUser.mjs';
+import { notifyProfileChange } from './utils/mailer.mjs';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 
@@ -21,6 +22,7 @@ const validateInputParams = (payload) => {
   switch (payload.phase) {
     case 'admindeletetotp':
     case 'admindeleteuser':
+    case 'adminupdateuser':
       return (payload.email);
     case 'username':
       return (payload.email &&
@@ -104,87 +106,78 @@ export const handler = async (event) => {
     console.log('payload', payload);
 
     if (payload && validateInputParams(payload)) {
-      if (payload.phase === 'admindeletetotp') {
-        const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
-        return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true, dynamodb);
-      }
-
-      if (payload.phase === 'admindeleteuser') {
-        const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
-        console.log ('asm delete user payload', payload);
-        await asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin);
-        if (payload.hasTOTP) {
-          await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, false, dynamodb);
-        }
-        return;
-      }
-
-      if (payload.phase === 'registotp') {
-        const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
-        if (isValidUuid) {
+      switch (payload.phase) {
+        case 'admindeletetotp':
           const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
-          return await registotp(headers, payload, amfaConfigs, requestId, client, dynamodb);
-        }
+          return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true, dynamodb, true);
+        case 'admindeleteuser':
+          {
+            const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
+            console.log('asm delete user payload', payload);
+            await asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin);
+            if (payload.hasTOTP) {
+              await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, false, dynamodb, true);
+            }
+          }
+          return;
+        case 'adminupdateuser':
+          console.log ('admin update user - otptypes', payload.otptype, ' newProfileValue')
+          await notifyProfileChange(payload.email, payload.otptype, payload.newProfileValue, true);
+          return;
+        case 'registotp':
+          const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
+          if (isValidUuid) {
+            const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
+            return await registotp(headers, payload, amfaConfigs, requestId, client, dynamodb);
+          }
+          break;
+        case 'removeProfile':
+          if (payload.otptype === 't') {
+            console.log('removeProfile check uuid');
+            const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
+            console.log('isValidUuid', isValidUuid);
+            if (isValidUuid) {
+              const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
+              return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true, dynamodb, false);
+            }
+          }
+          break;
+        default:
+          break;
       }
 
-      console.log('phase', payload.phase, ' otptype', payload.otptype);
-      if (payload.phase === 'removeProfile' && payload.otptype === 't') {
-        console.log('removeProfile check uuid');
-        const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
-        console.log('isValidUuid', isValidUuid);
-        if (isValidUuid) {
-          const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
-          return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true, dynamodb);
-        }
-      }
+      // santise and format the input data 
+      payload.uIP = getIPFromHeader(event.headers['X-Forwarded-For'].trim());;
+      payload.email = payload.email?.trim()?.toLowerCase();
+      payload.origin = `${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`;
+      payload.otptype = payload.otptype?.toLowerCase();
+      payload.requestTimeEpoch = event.requestContext.requestTimeEpoch;
+      payload.newProfile = payload.newProfile ? payload.newProfile.toLowerCase() : '';
+      payload.profile = payload.profile ? payload.profile.toLowerCase() : '';
+      payload.cookies = event.headers['Cookie'];
 
-      const ipAddress = getIPFromHeader(
-        event.headers['X-Forwarded-For'].trim()
-      );
-
-      let oneEvent = {};
-      oneEvent.uIP = ipAddress;
-      oneEvent.email = payload.email?.trim()?.toLowerCase();
-      oneEvent.apti = payload.apti;
-      oneEvent.rememberDevice = payload.rememberDevice;
-      oneEvent.authParam = payload.authParam;
-      oneEvent.origin = `${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`;
-      oneEvent.otptype = payload.otptype?.toLowerCase();
-      oneEvent.otpcode = payload.otpcode;
-      oneEvent.redirectUri = payload.redirectUri;
-      oneEvent.state = payload.state;
-      oneEvent.requestTimeEpoch = event.requestContext.requestTimeEpoch;
-      oneEvent.uuid = payload.uuid;
-      oneEvent.newProfile = payload.newProfile ? payload.newProfile.toLowerCase() : '';
-      oneEvent.profile = payload.profile ? payload.profile.toLowerCase() : '';
-      oneEvent.requestId = requestId;
-      oneEvent.attributes = payload.attributes;
-      oneEvent.password = payload.password;
-      oneEvent.isResend = payload.isResend;
-
-      oneEvent.cookies = event.headers['Cookie'];
-      console.log('oneEvent', oneEvent);
+      console.log('oneEvent', payload);
 
       switch (payload.phase) {
         case 'username':
           const res = await client.send(new ListUsersCommand({
             UserPoolId: process.env.USERPOOL_ID,
-            Filter: `email = "${oneEvent.email}"`,
+            Filter: `email = "${payload.email}"`,
           }));
 
-          console.log(res);
-          // const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
+          console.log('phase username ListUser Result ', res);
 
-          // if (amfaConfigs.enable_passwordless && res && res.Users && res.Users.length > 0) {
           if (res && res.Users && res.Users.length > 0) {
-            const stepOneResponse = await amfaSteps(oneEvent, headers, client, payload.phase, dynamodb);
+            const stepOneResponse = await amfaSteps(payload, headers, client, payload.phase, dynamodb);
             return stepOneResponse;
           }
           else {
+            // login request, but no such user found
+            // allow the UI proceed further to avoid username enumeration attack.
             return response(202, 'Your identity requires password login.', requestId);
           }
         default:
-          const stepResponse = await amfaSteps(oneEvent, headers, client, payload.phase, dynamodb);
+          const stepResponse = await amfaSteps(payload, headers, client, payload.phase, dynamodb);
           return stepResponse;
       }
     } else {
