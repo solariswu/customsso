@@ -138,7 +138,7 @@ const CONTENT = () => {
 					setHasQr(true)
 					setTimeout(() => {
 						setQrLoading(false)
-					}, 500);
+					}, 10);
 				}
 			},
 			// (error) => error && console.error(error)
@@ -203,7 +203,7 @@ const CONTENT = () => {
 							</span>
 						</div>
 						{/* used the following one to enforce screen update */}
-						<div style={{ textAlign: "center", marginTop: '10px' }}>
+						<div style={{ textAlign: "center", margin: '10px auto' }}>
 							<canvas ref={canvasRef} style={{ display: isQrLoading ? "none" : "block", margin: '0 auto' }} />
 							{isQrLoading &&
 								// <div className="modal-body" style={{ textAlign: 'center' }}>
