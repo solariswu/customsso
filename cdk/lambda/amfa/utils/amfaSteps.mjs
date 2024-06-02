@@ -19,6 +19,7 @@ import { getTType } from './amfaUtils.mjs';
 import { getTotp } from './totp/getToken.mjs';
 import { validateTotp } from './totp/verifyOtp.mjs';
 import { getAsmSalt } from './totp/getKms.mjs';
+import { amfaBrandings } from '../../postdeployment/config.mjs';
 
 const cookieEnabledHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
@@ -249,7 +250,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
         return response(400, 'Your entry was not valid, please try again.');
       }
 
-      await updateProfile(event.email, event.otptype, '', cognito);
+      await updateProfile(event.email, event.otptype, '', amfaBrandings.email_logo_url, cognito);
       return response(200, 'OK');
 
     }
@@ -474,7 +475,9 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
             case 'updateProfile':
               if (amfaResponseJSON.message === 'OK') {
                 // update profile
-                await updateProfile(event.email, event.otptype, event.otpaddr, cognito);
+                await updateProfile(event.email,
+                  event.otptype, event.otpaddr,
+                  amfaBrandings.email_logo_url, cognito);
                 return response(200, 'OK');
               }
               else {

@@ -11,7 +11,7 @@ import { fetchConfig } from './utils/fetchConfig.mjs';
 import { checkSessionId } from './utils/checkSessionId.mjs';
 
 import { deleteTotp, registotp } from './utils/totp/registOtp.mjs';
-import { amfaPolicies } from '../postdeployment/config.mjs';
+import { amfaBrandings, amfaPolicies } from '../postdeployment/config.mjs';
 import { asmDeleteUser } from './utils/asmDeleteUser.mjs';
 import { notifyProfileChange } from './utils/mailer.mjs';
 
@@ -109,26 +109,31 @@ export const handler = async (event) => {
       switch (payload.phase) {
         case 'admindeletetotp':
           const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
-          return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true, dynamodb, true);
+          return await deleteTotp(headers, payload.email, amfaConfigs,
+            requestId, client, true, dynamodb, amfaBrandings.email_logo_url, true);
         case 'admindeleteuser':
           {
             const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
             console.log('asm delete user payload', payload);
             await asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin);
             if (payload.hasTOTP) {
-              await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, false, dynamodb, true);
+              await deleteTotp(headers, payload.email, amfaConfigs,
+                requestId, client, false, dynamodb, amfaBrandings.email_logo_url, true);
             }
           }
           return;
         case 'adminupdateuser':
-          console.log ('admin update user - otptypes', payload.otptype, ' newProfileValue')
-          await notifyProfileChange(payload.email, payload.otptype, payload.newProfileValue, true);
+          console.log('admin update user - otptypes', payload.otptype, ' newProfileValue')
+          await notifyProfileChange(payload.email,
+            payload.otptype, payload.newProfileValue,
+            amfaBrandings.email_logo_url, true);
           return;
         case 'registotp':
           const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
           if (isValidUuid) {
             const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
-            return await registotp(headers, payload, amfaConfigs, requestId, client, dynamodb);
+            return await registotp(headers, payload, amfaConfigs,
+              requestId, amfaBrandings.email_logo_url, client, dynamodb);
           }
           break;
         case 'removeProfile':
@@ -138,7 +143,8 @@ export const handler = async (event) => {
             console.log('isValidUuid', isValidUuid);
             if (isValidUuid) {
               const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
-              return await deleteTotp(headers, payload.email, amfaConfigs, requestId, client, true, dynamodb, false);
+              return await deleteTotp(headers, payload.email, amfaConfigs,
+                requestId, client, true, dynamodb, amfaBrandings.email_logo_url, false);
             }
           }
           break;
