@@ -11,6 +11,7 @@ import { TenantUserPool } from './userpool';
 
 import { config } from './config';
 import { createPostDeploymentLambda } from './postdeployment';
+import { AmfaServcieDDB } from './dynamodb';
 
 
 export interface AmfaStackProps extends StackProps {
@@ -30,9 +31,10 @@ export class AmfaStack extends Stack {
     // amfa apis
     for (var tenantId in config) {
       const webapp = new WebApplication(this, props.siteCertificate, props.hostedZone, tenantId);
+      const ddb = new AmfaServcieDDB(this, props.env?.account, props.env?.region, tenantId);
 
       const apigateway = new TenantApiGateway(this, props.apiCertificate,
-        props.hostedZone, props.env?.account, props.env?.region, tenantId);
+        props.hostedZone, props.env?.account, props.env?.region, tenantId, ddb);
       const tenantUserPool = new TenantUserPool(this, apigateway.configTable, props.env?.region, tenantId);
       apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool);
       apigateway.createAmfaApiEndpoints(tenantUserPool.userpool, tenantUserPool.customAuthClient, tenantUserPool.hostedUIClient.userPoolClientId);

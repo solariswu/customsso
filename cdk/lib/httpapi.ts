@@ -2,13 +2,13 @@ import { RestApi, IResource, LambdaIntegration, Cors, EndpointType, DomainName, 
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { ManagedPolicy, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
-import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
+import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, PublicHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGatewayDomain } from "aws-cdk-lib/aws-route53-targets";
 import { Vpc, SubnetType, IpAddresses } from 'aws-cdk-lib/aws-ec2';
 
-import { Duration, RemovalPolicy } from 'aws-cdk-lib';
+import { Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import { config } from './config';
@@ -16,6 +16,7 @@ import { DNS } from "./const";
 
 import * as path from 'path';
 import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
+import { AmfaServcieDDB } from './dynamodb';
 
 const defaultCorsPreflightOptions = {
   allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization'],
@@ -35,6 +36,7 @@ export class TenantApiGateway {
   configTable: Table;
   tenantTable: Table;
   totpTokenTable: Table;
+  pwdHashTable: Table;
   userpool: UserPool;
   certificate: Certificate;
   hostedZone: PublicHostedZone;
@@ -44,7 +46,7 @@ export class TenantApiGateway {
   smtpSecret: ISecret;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
-    account: string | undefined, region: string | undefined, tenantId: string) {
+    account: string | undefined, region: string | undefined, tenantId: string, ddb: AmfaServcieDDB) {
     this.scope = scope;
     this.certificate = certificate;
     this.hostedZone = hostedZone;
@@ -52,15 +54,16 @@ export class TenantApiGateway {
     this.region = region;
     this.tenantId = tenantId;
 
-    this.secret = Secret.fromSecretNameV2 (scope, `${tenantId}-secret`, `amfa/${tenantId}/secret`);
-    this.smtpSecret = Secret.fromSecretNameV2 (scope, `${tenantId}-smtpsecret`, `amfa/${tenantId}/smtp`);
+    this.secret = Secret.fromSecretNameV2(scope, `${tenantId}-secret`, `amfa/${tenantId}/secret`);
+    this.smtpSecret = Secret.fromSecretNameV2(scope, `${tenantId}-smtpsecret`, `amfa/${tenantId}/smtp`);
 
     // DB for storing custom auth session data
-    this.authCodeTable = this.createAuthCodeTable();
-    this.configTable = this.createAmfaConfigTable();
-    this.sessionIdTable = this.createSessionIdTable();
-    this.tenantTable = this.createAmfaTenantTable();
-    this.totpTokenTable = this.createTotpTokenTable();
+    this.authCodeTable = ddb.authCodeTable;
+    this.configTable = ddb.configTable;
+    this.sessionIdTable = ddb.sessionIdTable;
+    this.tenantTable = ddb.tenantTable;
+    this.totpTokenTable = ddb.totpTokenTable;
+    this.pwdHashTable = ddb.pwdHashTable;
 
     this.createApiGateway();
     this.createVpc();
@@ -111,7 +114,7 @@ export class TenantApiGateway {
     });
   }
 
-  private createPwdResetLambda(tenantId: string, userpool: UserPool, sessionIdTable: Table) {
+  private createPwdResetLambda(tenantId: string, userpool: UserPool, sessionIdTable: Table, pwdHashTable: Table, configTable: Table) {
     const lambdaName = 'passwordreset';
     const myLambda = new Function(
       this.scope,
@@ -123,6 +126,8 @@ export class TenantApiGateway {
         environment: {
           USERPOOL_ID: userpool.userPoolId,
           SESSION_ID_TABLE: sessionIdTable.tableName,
+          PWD_HISTORY_TABLE: pwdHashTable.tableName,
+          AMFACONFIG_TABLE: configTable.tableName,
         },
         timeout: Duration.minutes(5),
       }
@@ -150,6 +155,26 @@ export class TenantApiGateway {
               'dynamodb:DeleteItem',
             ],
           }),
+          new PolicyStatement({
+            resources: [
+              pwdHashTable.tableArn,
+            ],
+            actions: [
+              'dynamodb:Scan',
+              'dynamodb:Query',
+              'dynamodb:PutItem',
+              'dynamodb:DeleteItem',
+            ],
+          }),
+          new PolicyStatement({
+            resources: [
+              configTable.tableArn,
+            ],
+            actions: [
+              'dynamodb:Scan',
+              'dynamodb:GetItem',
+            ],
+          })
         ],
       })
     );
@@ -359,8 +384,8 @@ export class TenantApiGateway {
       new PolicyStatement({
         actions: ['secretsmanager:GetSecretValue'],
         resources: [
-          this.secret.secretArn+'*',
-          this.smtpSecret.secretArn+'*',
+          this.secret.secretArn + '*',
+          this.smtpSecret.secretArn + '*',
         ],
       });
 
@@ -500,52 +525,7 @@ export class TenantApiGateway {
     return myLambda;
   };
 
-  private createAuthCodeTable() {
-    const table = new Table(this.scope, `amfa-authcode-${this.tenantId}`, {
-      partitionKey: { name: 'username', type: AttributeType.STRING },
-      sortKey: { name: 'apti', type: AttributeType.STRING },
-      billingMode: BillingMode.PAY_PER_REQUEST,
-      removalPolicy: RemovalPolicy.DESTROY,
-      timeToLiveAttribute: 'ttl',
-    });
-    return table;
-  }
-  private createAmfaConfigTable() {
-    const table = new Table(this.scope, `amfa-config-${this.tenantId}`, {
-      partitionKey: { name: 'configtype', type: AttributeType.STRING },
-      billingMode: BillingMode.PAY_PER_REQUEST,
-    });
-    return table;
-  }
-
-  private createSessionIdTable() {
-    const table = new Table(this.scope, `amfa-sessionid-${this.tenantId}`, {
-      partitionKey: { name: 'uuid', type: AttributeType.STRING },
-      billingMode: BillingMode.PAY_PER_REQUEST,
-      removalPolicy: RemovalPolicy.DESTROY,
-      timeToLiveAttribute: 'ttl',
-    });
-    return table;
-  }
-
-  private createAmfaTenantTable() {
-    const table = new Table(this.scope, 'amfa-tenant', {
-      tableName: `amfa-${this.account}-${this.region}-tenanttable`,
-      partitionKey: { name: 'id', type: AttributeType.STRING },
-      billingMode: BillingMode.PAY_PER_REQUEST,
-    });
-    return table;
-  }
-
-  private createTotpTokenTable() {
-    const table = new Table(this.scope, `amfa-totptoken-${this.tenantId}`, {
-      partitionKey: { name: 'id', type: AttributeType.STRING },
-      billingMode: BillingMode.PAY_PER_REQUEST,
-    });
-    return table;
-  }
-
-  private createTotpTokenLambda(fnName: string, totpTokenTable: Table) {
+  private createTotpTokenLambda(fnName: string, totpTokenTable: Table, userpool: UserPool) {
     const policyStatementDB =
       new PolicyStatement({
         actions: [
@@ -563,9 +543,19 @@ export class TenantApiGateway {
       new PolicyStatement({
         actions: ['secretsmanager:GetSecretValue'],
         resources: [
-          this.secret.secretArn+'*',
+          this.secret.secretArn + '*',
         ],
       });
+
+    const policyCognito =
+      new PolicyStatement({
+        actions: [
+          'cognito-idp:AdminUpdateUserAttributes',
+        ],
+        resources: [
+          userpool.userPoolArn,
+        ]
+      })
 
     const myLambda = new Function(this.scope, `amfa-totptoken-${fnName}-${this.tenantId}`, {
       runtime: Runtime.NODEJS_18_X,
@@ -574,13 +564,14 @@ export class TenantApiGateway {
       environment: {
         TOTPTOKEN_TABLE: totpTokenTable.tableName,
         TENANT_ID: this.tenantId,
+        USERPOOL_ID: userpool.userPoolId
       },
       timeout: Duration.minutes(5),
     });
 
     myLambda.role?.attachInlinePolicy(
       new Policy(this.scope, `amfa-totptoken-${fnName}-lambda-policy-${this.tenantId}`, {
-        statements: [policyStatementDB, policyStatementKms],
+        statements: [policyStatementDB, policyStatementKms, policyCognito],
       })
     );
     return myLambda;
@@ -596,7 +587,7 @@ export class TenantApiGateway {
     });
 
     totpTokenLambdaFunctions.map(fnName => {
-      const lambdaFn = this.createTotpTokenLambda(fnName, this.totpTokenTable);
+      const lambdaFn = this.createTotpTokenLambda(fnName, this.totpTokenTable, userPool);
 
       // 👇 add /lambda path to API Service resource
       const tokenApi = this.api.root.addResource(`${fnName}`, {
@@ -654,7 +645,7 @@ export class TenantApiGateway {
     });
 
     // create password reset endpoint
-    const mylambdaFunction = this.createPwdResetLambda(this.tenantId, userpool, this.sessionIdTable);
+    const mylambdaFunction = this.createPwdResetLambda(this.tenantId, userpool, this.sessionIdTable, this.pwdHashTable, this.configTable);
     this.attachLambdaToApiGWService(rootPathAPI, mylambdaFunction, 'passwordreset');
 
     this.attachLambdaToApiGWService(rootPathAPI, this.createFeConfigLambda(this.configTable), 'feconfig', false);

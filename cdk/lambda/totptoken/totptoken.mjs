@@ -3,8 +3,10 @@ import { deleteResData } from './delete.mjs';
 import { getResData } from './get.mjs';
 
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
+const cognito = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
 export const handler = async (event) => {
 
@@ -42,8 +44,8 @@ export const handler = async (event) => {
 				const deleteResult = await deleteResData({
 					email: event.pathParameters?.id,
 					pid: event.queryStringParameters?.p,
-				}, dynamodb);
-				return response(200, JSON.stringify({ data: deleteResult }));
+				}, dynamodb, cognito);
+				return response(200, JSON.stringify({ data: 'OK', deletedRecsCount: deleteResult }));
 			case 'OPTIONS':
 				return response(200, JSON.stringify({ data: 'ok' }));
 			default:
