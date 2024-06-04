@@ -23,3 +23,15 @@ export const getAsmSalt = async () => {
 	const secret = await getSecret ();
 	return secret?.asmSalt;
 }
+
+export const getSMTP = async () => {
+	const response = await client.send(
+		new GetSecretValueCommand({
+			SecretId: `amfa/${process.env.TENANT_ID}/smtp`,
+			VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
+		})
+	);
+	const secret = JSON.parse(response.SecretString);
+
+	return secret;
+}

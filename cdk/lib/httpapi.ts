@@ -311,7 +311,8 @@ export class TenantApiGateway {
     hostedClientId: string,
     sessionIdTable: Table,
     configTable: Table,
-    totpTokenTable: Table) {
+    totpTokenTable: Table,
+    pwdhashTable: Table) {
 
     const myLambda = new Function(
       this.scope,
@@ -332,6 +333,7 @@ export class TenantApiGateway {
           SESSION_ID_TABLE: sessionIdTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
           TOTPTOKEN_TABLE: totpTokenTable.tableName,
+          PWD_HISTORY_TABLE: pwdhashTable.tableName,
         },
         timeout: Duration.minutes(5),
         // 👇 place lambda in the VPC
@@ -460,7 +462,7 @@ export class TenantApiGateway {
     amfaLambdaFunctions.map(fnName => {
       const lambdaFn = this.createAmfaLambda(fnName, userpool,
         userPoolClient, this.authCodeTable, hostedClientId,
-        this.sessionIdTable, this.configTable, this.totpTokenTable);
+        this.sessionIdTable, this.configTable, this.totpTokenTable, this.pwdHashTable);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
       return fnName;
     });
@@ -539,11 +541,22 @@ export class TenantApiGateway {
         ],
       });
 
+    const policyStatementDB2 =
+      new PolicyStatement({
+        actions: [
+          'dynamodb:GetItem',
+        ],
+        resources: [
+          this.configTable.tableArn,
+        ],
+      });
+
     const policyStatementKms =
       new PolicyStatement({
         actions: ['secretsmanager:GetSecretValue'],
         resources: [
           this.secret.secretArn + '*',
+          this.smtpSecret.secretArn + '*',
         ],
       });
 
@@ -560,18 +573,19 @@ export class TenantApiGateway {
     const myLambda = new Function(this.scope, `amfa-totptoken-${fnName}-${this.tenantId}`, {
       runtime: Runtime.NODEJS_18_X,
       handler: `${fnName}.handler`,
-      code: Code.fromAsset(path.join(__dirname, `/../lambda/${fnName}`)),
+      code: Code.fromAsset(path.join(__dirname, `/../lambda/${fnName}/dist`)),
       environment: {
         TOTPTOKEN_TABLE: totpTokenTable.tableName,
         TENANT_ID: this.tenantId,
-        USERPOOL_ID: userpool.userPoolId
+        USERPOOL_ID: userpool.userPoolId,
+        AMFACONFIG_TABLE: this.configTable.tableName
       },
       timeout: Duration.minutes(5),
     });
 
     myLambda.role?.attachInlinePolicy(
       new Policy(this.scope, `amfa-totptoken-${fnName}-lambda-policy-${this.tenantId}`, {
-        statements: [policyStatementDB, policyStatementKms, policyCognito],
+        statements: [policyStatementDB, policyStatementDB2, policyStatementKms, policyCognito],
       })
     );
     return myLambda;

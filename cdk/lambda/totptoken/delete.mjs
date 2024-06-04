@@ -1,5 +1,29 @@
 import { DeleteItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { AdminUpdateUserAttributesCommand } from '@aws-sdk/client-cognito-identity-provider';
+import { notifyProfileChange } from './mailer.mjs';
+
+
+const fetchConfig = async (configType, dynamodb) => {
+
+    const params = {
+      TableName: process.env.AMFACONFIG_TABLE,
+      Key: {
+        configtype: {S: configType},
+      },
+    };
+	const getItemCommand = new GetItemCommand(params);
+	const results = await dynamodb.send(getItemCommand);
+
+	if (results.Item === undefined) {
+		throw new Error(`No ${configType} found`);
+	}
+
+	const result = JSON.parse(results.Item.value.S);
+
+	console.log (`get ${configType}:`, result);
+	return result;
+
+}
 
 export const deleteResData = async (payload, dynamodb, cognito) => {
 
@@ -38,10 +62,9 @@ export const deleteResData = async (payload, dynamodb, cognito) => {
 			console.log('error', error);
 		}
 
-		// if (needNotify) {
-		//     // user may deleted
-		//     await notifyProfileChange(email, ['Mobile Token'], [null], logoUrl, isByAdmin);
-		// }
+		const amfaBrandings = await fetchConfig ('amfaBrandings', dynamodb);
+
+		await notifyProfileChange(email, ['Mobile Token'], [null], amfaBrandings.email_logo_url, true)
 
 		return 1
 	}
