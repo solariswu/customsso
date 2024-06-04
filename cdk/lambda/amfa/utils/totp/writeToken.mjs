@@ -65,9 +65,10 @@ export const deleteToken = async (payload, dynamodb) => {
 		},
 	};
 
-	await dynamodb.send(new DeleteItemCommand(params));
+	const result = await dynamodb.send(new DeleteItemCommand(params));
+	console.log ('deletetotp result:', result)
 
-	return 'OK';
+	return result.Count;
 }
 
 

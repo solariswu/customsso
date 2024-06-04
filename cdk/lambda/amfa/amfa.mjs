@@ -11,9 +11,9 @@ import { fetchConfig } from './utils/fetchConfig.mjs';
 import { checkSessionId } from './utils/checkSessionId.mjs';
 
 import { deleteTotp, registotp } from './utils/totp/registOtp.mjs';
-import { amfaBrandings, amfaPolicies } from '../postdeployment/config.mjs';
 import { asmDeleteUser } from './utils/asmDeleteUser.mjs';
 import { notifyProfileChange } from './utils/mailer.mjs';
+import { deletePwdHashByUser} from './utils/passwordhash.mjs';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 
@@ -106,6 +106,9 @@ export const handler = async (event) => {
     console.log('payload', payload);
 
     if (payload && validateInputParams(payload)) {
+      const amfaBrandings = await fetchConfig ('amfaBrandings', dynamodb);
+      const amfaPolicies = await fetchConfig ('amfaPolicies', dynamodb);
+
       switch (payload.phase) {
         case 'admindeletetotp':
           const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
@@ -120,6 +123,7 @@ export const handler = async (event) => {
               await deleteTotp(headers, payload.email, amfaConfigs,
                 requestId, client, false, dynamodb, amfaBrandings.email_logo_url, true);
             }
+            await deletePwdHashByUser(payload.email, dynamodb, amfaConfigs);
           }
           return;
         case 'adminupdateuser':

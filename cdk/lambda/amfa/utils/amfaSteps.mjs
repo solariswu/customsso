@@ -20,6 +20,7 @@ import { getTotp } from './totp/getToken.mjs';
 import { validateTotp } from './totp/verifyOtp.mjs';
 import { getAsmSalt } from './totp/getKms.mjs';
 import { amfaBrandings } from '../../postdeployment/config.mjs';
+import { createPWDHashHistory } from './passwordhash.mjs';
 
 const cookieEnabledHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
@@ -555,6 +556,8 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
                 const user = await signUp(event.email, event.password, event.attributes, cognito, dynamodb);
                 if (user?.User) {
                   const uuid = await genSessionID(event.email, event.apti, null, dynamodb);
+                  // register password hash
+                  await createPWDHashHistory(event.email, event.password, dynamodb, amfaConfigs);
                   return {
                     isBase64Encoded: false,
                     statusCode: 200,

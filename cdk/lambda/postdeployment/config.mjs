@@ -85,7 +85,11 @@ export const amfaConfigs = {
     "COMMENT-totp": "This totp information must match the aPersona Adaptive Security Manager Tenant/Client ID and associated salt. salt now is saving in secret manager",
     "totp": {
         "asm_provider_id": 1,
-    }
+    },
+    "enable_password_expire": true,
+    "passwords_expire_days": 90,
+    "enable_prevent_password_reuse": true,
+    "prevent_password_reuse_count": 5,
 }
 
 export const amfaBrandings =

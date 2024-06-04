@@ -118,6 +118,11 @@ const LOGIN = () => {
             localStorage.setItem('OTPErrorMsg', '');
             setResetDone(true);
             break;
+          case 521:
+            const result = await res.json();
+            console.log ('result', result)
+            setErrorMsg(result.message);
+            break;
           default:
             const data = await res.json();
             let errMsg = 'Something went wrong, please try your login again.';

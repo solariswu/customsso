@@ -67,9 +67,11 @@ export const deleteTotp = async (
     needNotify, dynamodb, logoUrl, isByAdmin
 ) => {
     console.log('deleteTotp payload ', email, ' configs ', configs)
-    await deleteToken({ email, pid: configs.totp.asm_provider_id }, dynamodb)
+    let totpCount = 0;
 
     try {
+        totpCount = await deleteToken({ email, pid: configs.totp.asm_provider_id }, dynamodb)
+
         await cognito.send(new AdminUpdateUserAttributesCommand({
             UserPoolId: process.env.USERPOOL_ID,
             Username: email,
@@ -89,5 +91,11 @@ export const deleteTotp = async (
         console.log('Function[deleteTotp] remove User custom attributes error ', error)
     }
 
-    return response(headers, 200, 'Mobile Token deleted', requestId);
+    return {
+        isBase64Encoded: false,
+        statusCode: 200,
+        headers: { ...headers, requestId },
+        body: JSON.stringify({ data: 'OK', deletedRecsCount : totpCount}),
+    };
+
 }
