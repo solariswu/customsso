@@ -122,19 +122,20 @@ export class TenantApiGateway {
       {
         runtime: Runtime.NODEJS_18_X,
         handler: `${lambdaName}.handler`,
-        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
+        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}/dist`)),
         environment: {
           USERPOOL_ID: userpool.userPoolId,
           SESSION_ID_TABLE: sessionIdTable.tableName,
           PWD_HISTORY_TABLE: pwdHashTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
+          TENANT_ID: this.tenantId,
         },
         timeout: Duration.minutes(5),
       }
     );
 
     myLambda.role?.attachInlinePolicy(
-      new Policy(this.scope, `${lambdaName}-policy`, {
+      new Policy(this.scope, `${lambdaName}-iampolicy`, {
         statements: [
           new PolicyStatement({
             resources: [
@@ -147,21 +148,13 @@ export class TenantApiGateway {
           }),
           new PolicyStatement({
             resources: [
+              pwdHashTable.tableArn,
               sessionIdTable.tableArn,
             ],
             actions: [
               'dynamodb:Scan',
-              'dynamodb:GetItem',
-              'dynamodb:DeleteItem',
-            ],
-          }),
-          new PolicyStatement({
-            resources: [
-              pwdHashTable.tableArn,
-            ],
-            actions: [
-              'dynamodb:Scan',
               'dynamodb:Query',
+              'dynamodb:GetItem',
               'dynamodb:PutItem',
               'dynamodb:DeleteItem',
             ],
@@ -174,7 +167,13 @@ export class TenantApiGateway {
               'dynamodb:Scan',
               'dynamodb:GetItem',
             ],
-          })
+          }),
+          new PolicyStatement({
+            actions: ['secretsmanager:GetSecretValue'],
+            resources: [
+              this.smtpSecret.secretArn + '*',
+            ],
+          }),
         ],
       })
     );

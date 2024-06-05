@@ -13,6 +13,7 @@ import {
 } from '@aws-sdk/client-dynamodb';
 
 import { createHash } from 'node:crypto';
+import { notifyPasswordChange, notifyProfileChange } from './mailer.mjs';
 
 const headers = {
     'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,X-Requested-With',
@@ -23,23 +24,23 @@ const headers = {
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 const cognito = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
-const fetchConfig = async () => {
+const fetchConfig = async (type) => {
     const params = {
         TableName: process.env.AMFACONFIG_TABLE,
         Key: {
-            configtype: { S: "amfaConfigs" },
+            configtype: { S: type },
         },
     };
     const getItemCommand = new GetItemCommand(params);
     const results = await dynamodb.send(getItemCommand);
 
     if (results.Item === undefined) {
-        throw new Error(`No amfaConfigs found`);
+        throw new Error(`No ${type} found`);
     }
 
     const result = JSON.parse(results.Item.value.S);
 
-    console.log(`get amfaConfigs:`, result);
+    console.log(`get ${type}:`, result);
     return result;
 }
 
@@ -169,7 +170,7 @@ export const handler = async (event) => {
         if (email.trim().toLowerCase() === payload.email.trim().toLowerCase() && !expired &&
             (apti === payload.apti || apti === 'updateprofile')) {
 
-            const config = await fetchConfig();
+            const config = await fetchConfig("amfaConfigs");
 
             if (config.enable_prevent_password_reuse) {
 
@@ -201,6 +202,9 @@ export const handler = async (event) => {
                     // await dynamodb.send(deleteItemCommand);
 
                     await updatePWDHistory(email.trim().toLowerCase(), newHash, records, config.prevent_password_reuse_count);
+
+                    const amfaBrandings = await fetchConfig ('amfaBrandings');
+                    await notifyPasswordChange(email, amfaBrandings.email_logo_url, false)
 
                     return {
                         statusCode: 200,
