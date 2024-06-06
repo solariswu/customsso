@@ -152,9 +152,10 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
         return response(500, 'Did not find valid user for this email, or user account has not been activated');
       };
 
-      if (users[0].UserStatus === 'FORCE_CHANGE_PASSWORD' && step === 'username') {
-        console.log('Admin Created User account needs to be actived:', event.email);
-        return response(202, 'User account has not been activated');
+      if (step === 'username' &&
+        ['FORCE_CHANGE_PASSWORD', 'RESET_REQUIRED'].includes (users[0].UserStatus)) {
+        console.log('User ', event.email, ' is in ', users[0].UserStatus);
+        return response(202, users[0].UserStatus);
       }
 
       console.log('UserAttributes:', users[0].Attributes);

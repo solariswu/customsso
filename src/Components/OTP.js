@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 
-import { apiUrl, applicationUrl, pwdResetPageTitle } from '../const';
+import { apiUrl, applicationUrl } from '../const';
 import InfoMsg from './InfoMsg';
 import { getApti } from './utils';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
@@ -475,8 +475,16 @@ export const OTP = () => {
 
   return (
     <div>
-      <span> <h4>{location.state?.type === 'passwordreset' ? pwdResetPageTitle : config?.branding.update_profile_app_main_page_header}</h4> </span>
-      <div style={{height: "0.2em"}} />
+      <span><h4>
+        {
+          location.state?.typeExtra === 'RESET_REQUIRED' ?
+            config?.branding.force_password_reset_page_header :
+            location.state?.type === 'passwordreset' ?
+              config?.branding.password_reset_page_header :
+              config?.branding.update_profile_app_main_page_header
+        }
+      </h4> </span>
+      <div style={{ height: "0.2em" }} />
       <hr className='hr-customizable' />
       <div>
         <span

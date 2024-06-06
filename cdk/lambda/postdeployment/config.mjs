@@ -110,6 +110,8 @@ export const amfaBrandings =
     update_profile_app_verify2_message: "Access requires 2 verifications. Verification Step 2. Choose contact method:",
     update_profile_app_verify_retreive_message: "A verification code has been sent to you. Please retrieve it, enter it below and click Verify.",
     update_provile_app_portal_header: "Update Profile: Verify Methods",
+    password_reset_page_header: "Password Reset",
+    force_password_reset_page_header: "Password Reset Required",
     consent_content: 'By signing up, I accept the <a href="https://example.com" target="_blank">privacy policy</a> and the <a href="https://example2.com" target="_blank"> terms &amp; conditions</a>',
 }
 

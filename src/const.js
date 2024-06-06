@@ -6,5 +6,4 @@ export const apiUrl = `https://api.${clientName}.${rootDomain}`;
 
 // UI STRINGS
 export const mfaPageTitle = 'Your login requires an additional verification';
-export const pwdResetPageTitle = 'Password Reset';
 export const selfServicePageTitle = 'Update Profile';

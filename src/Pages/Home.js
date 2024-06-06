@@ -10,7 +10,7 @@ import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
 const LOGIN = () => {
 
-	const [msg, setMsg] = useState({ msg: '', type: '' });
+  const [msg, setMsg] = useState({ msg: '', type: '' });
   const [searchParams] = useSearchParams();
   const [state, setState] = useState(null);
   const [redirectUri, setRedirectUri] = useState(null);
@@ -21,9 +21,9 @@ const LOGIN = () => {
 
   const config = useFeConfigs();
 
-	const setErrorMsg = (msg) => {
-		setMsg({ msg, type: 'error' });
-	}
+  const setErrorMsg = (msg) => {
+    setMsg({ msg, type: 'error' });
+  }
 
   useEffect(() => {
     document.title = 'Login';
@@ -49,11 +49,11 @@ const LOGIN = () => {
     const otpErrorMsg = localStorage.getItem('OTPErrorMsg');
     if (otpErrorMsg) {
       // setErrorMsg(otpErrorMsg);
-      console.log ('Last time error: ', otpErrorMsg);
+      console.log('Last time error: ', otpErrorMsg);
       localStorage.removeItem('OTPErrorMsg');
     }
 
-    setIniting (false);
+    setIniting(false);
 
     return () => {
       setState(null);
@@ -125,16 +125,32 @@ const LOGIN = () => {
           }
           break;
         case 202:
-          // const result = await res.json();
-          navigate('/password', {
-            state: {
-              email,
-              rememberDevice,
-              apti,
-              state,
-              redirectUri
-            }
-          });
+          const resJson = await res.json();
+          console.log('login 202 details', resJson);
+          switch (resJson?.message) {
+            case 'FORCE_CHANGE_PASSWORD':
+            case 'RESET_REQUIRED':
+              navigate('/dualotp', {
+                state: {
+                  email,
+                  apti,
+                  type: 'passwordreset',
+                  typeExtra: resJson.message,
+                }
+              });
+              break;
+            default:
+              navigate('/password', {
+                state: {
+                  email,
+                  rememberDevice,
+                  apti,
+                  state,
+                  redirectUri,
+                }
+              });
+              break;
+          }
           break;
         default:
           const data = await res.json();
@@ -161,10 +177,10 @@ const LOGIN = () => {
 
   return (
     <div>
-      <span style={{padding: "5px 0 5px 0"}}>
+      <span style={{ padding: "5px 0 5px 0" }}>
         <h4>{config?.branding.login_app_main_page_header}</h4>
       </span>
-      <div style={{height: "0.2em"}} />
+      <div style={{ height: "0.2em" }} />
       <hr className="hr-customizable" />
       <span className='idpDescription-customizable'> {config?.branding.login_app_main_page_message} </span>
       <hr className="hr-customizable" />
@@ -179,7 +195,7 @@ const LOGIN = () => {
           This is my device, remember it.
         </span>
         <br />
-        <div style={{height: "0.5em"}} />
+        <div style={{ height: "0.5em" }} />
       </div>
 
       <div>
@@ -206,7 +222,7 @@ const LOGIN = () => {
         <span className='textDescription-customizable'>
           <a href='/selfservice' className='textLink-customizable'> Update your profile</a></span>
       </div>}
-     <InfoMsg isLoading={isLoading || !config} msg={msg} />
+      <InfoMsg isLoading={isLoading || !config} msg={msg} />
     </div>
   );
 }
