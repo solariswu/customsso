@@ -157,6 +157,7 @@ export class TenantApiGateway {
               'dynamodb:GetItem',
               'dynamodb:PutItem',
               'dynamodb:DeleteItem',
+              'dynamodb:BatchWriteItem',
             ],
           }),
           new PolicyStatement({
@@ -372,12 +373,15 @@ export class TenantApiGateway {
           'dynamodb:GetItem',
           'dynamodb:PutItem',
           'dynamodb:DeleteItem',
+          'dynamodb:Query',
+          'dynamodb:BatchWriteItem',
         ],
         resources: [
           authCodeTable.tableArn,
           sessionIdTable.tableArn,
           configTable.tableArn,
           totpTokenTable.tableArn,
+          pwdhashTable.tableArn,
         ],
       });
 
