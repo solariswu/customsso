@@ -15,9 +15,32 @@ const tTypeList = {
 	'updateProfile': 'Update profile OTP verify',
 	'emailverificationSendOTP': 'Register New Account Request OTP',
 	'emailverificationverifyotp': 'Register New Account OTP verify',
-  }
+}
 
 
 export const getTType = (step) => {
 	return encodeURI(tTypeList[step] ? tTypeList[step] : 'Unknown');
 }
+
+export const headers = {
+	'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
+	'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+	'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+	'Access-Control-Expose-Headers': 'Set-Cookie',
+	'Access-Control-Allow-Credentials': 'true',
+};
+
+export const responseWithRequestId = (statusCode = 200, body, requestId) => {
+	console.log ('amfa lambda responseWithRequestId', {
+		isBase64Encoded: false,
+		statusCode,
+		headers: { ...headers, requestId },
+		body: JSON.stringify({ message: body }),
+	})
+	return {
+		isBase64Encoded: false,
+		statusCode,
+		headers: { ...headers, requestId },
+		body: JSON.stringify({ message: body }),
+	};
+};

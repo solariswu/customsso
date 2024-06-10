@@ -84,6 +84,8 @@ const LOGIN = () => {
           credentials: 'include',
         });
 
+        console.log ('password amfa result', result.status)
+
         switch (result.status) {
           case 200:
             const response = await result.json();
@@ -102,6 +104,19 @@ const LOGIN = () => {
                 state,
                 redirectUri,
                 ...response2,
+              }
+            });
+            return;
+          case 203:
+            console.log('getting 203 result json')
+            const response203 = await result.json();
+            console.log('response back with 203 in password check', response203);
+            navigate('/dualotp', {
+              state: {
+                email,
+                apti,
+                type: 'passwordreset',
+                typeExtra: response203.message,
               }
             });
             return;

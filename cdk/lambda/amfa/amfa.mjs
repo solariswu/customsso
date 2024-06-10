@@ -1,21 +1,17 @@
-import {
-  CognitoIdentityProviderClient,
-  ListUsersCommand,
-} from '@aws-sdk/client-cognito-identity-provider';
-
+import { CognitoIdentityProviderClient, ListUsersCommand } from '@aws-sdk/client-cognito-identity-provider';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 import { amfaSteps } from "./utils/amfaSteps.mjs";
 import { fetchConfig } from './utils/fetchConfig.mjs';
-
 import { checkSessionId } from './utils/checkSessionId.mjs';
-
 import { deleteTotp, registotp } from './utils/totp/registOtp.mjs';
 import { asmDeleteUser } from './utils/asmDeleteUser.mjs';
 import { notifyProfileChange } from './utils/mailer.mjs';
-import { deletePwdHashByUser} from './utils/passwordhash.mjs';
+import { deletePwdHashByUser } from './utils/passwordhash.mjs';
+import { headers, responseWithRequestId } from './utils/amfaUtils.mjs';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
+const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION, });
 
 const validateInputParams = (payload) => {
   // check required params here
@@ -68,24 +64,6 @@ const validateInputParams = (payload) => {
   return false;
 };
 
-const headers = {
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
-  'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
-  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
-  'Access-Control-Expose-Headers': 'Set-Cookie',
-  'Access-Control-Allow-Credentials': 'true',
-};
-
-const response = (statusCode = 200, body, requestId) => {
-  return {
-    statusCode,
-    headers: { ...headers, requestId },
-    body,
-  };
-};
-
-const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION, });
-
 const getIPFromHeader = (fwdfor) => {
   const IPs = fwdfor.split(',');
   return IPs[0];
@@ -106,8 +84,8 @@ export const handler = async (event) => {
     console.log('payload', payload);
 
     if (payload && validateInputParams(payload)) {
-      const amfaBrandings = await fetchConfig ('amfaBrandings', dynamodb);
-      const amfaPolicies = await fetchConfig ('amfaPolicies', dynamodb);
+      const amfaBrandings = await fetchConfig('amfaBrandings', dynamodb);
+      const amfaPolicies = await fetchConfig('amfaPolicies', dynamodb);
 
       switch (payload.phase) {
         case 'admindeletetotp':
@@ -184,7 +162,7 @@ export const handler = async (event) => {
           else {
             // login request, but no such user found
             // allow the UI proceed further to avoid username enumeration attack.
-            return response(202, 'Your identity requires password login.', requestId);
+            return responseWithRequestId(202, 'Your identity requires password login.', requestId);
           }
         default:
           const stepResponse = await amfaSteps(payload, headers, client, payload.phase, dynamodb);
@@ -195,14 +173,12 @@ export const handler = async (event) => {
     }
   } catch (err) {
     console.error('error details:', err);
-    return response(
+    return responseWithRequestId(
       err.statusCode ? err.statusCode : 511,
-      JSON.stringify({
-        message: 'input param parse error',
-      }),
+      'input param parse error',
       requestId
     );
   }
 
-  return response(500, JSON.stringify({ message: error }), requestId);
+  return responseWithRequestId(500, error,  requestId);
 };

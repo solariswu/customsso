@@ -6,6 +6,14 @@ import {
 
 import { createHash } from 'node:crypto';
 
+const chunks = (inputArray, perChunk) => {
+	return inputArray.reduce((all, one, i) => {
+		const ch = Math.floor(i / perChunk);
+		all[ch] = [].concat((all[ch] || []), one);
+		return all
+	}, [])
+}
+
 const calculateHash = (content) => {
 	console.log('hash content', content);
 
@@ -20,7 +28,6 @@ const calculateHash = (content) => {
 	return res;
 
 }
-
 
 export const createPWDHashHistory = async (username, password, dynamodb, config) => {
 
@@ -57,28 +64,28 @@ export const createPWDHashHistory = async (username, password, dynamodb, config)
 	}
 }
 
+const getPwdHashesByUser = async (username, dynamodb) => {
+
+	const queryParams = {
+		TableName: process.env.PWD_HISTORY_TABLE,
+		KeyConditionExpression: "username = :username",
+		ExpressionAttributeValues: {
+			":username": { S: username },
+		},
+		ConsistentRead: true,
+	};
+
+	const queryResults = await dynamodb.send(new QueryCommand(queryParams));
+	console.log ('pwdhash queryResults:', queryResults)
+	return queryResults;
+}
+
 export const deletePwdHashByUser = async (username, dynamodb, config) => {
-	function chunks(inputArray, perChunk) {
-		return inputArray.reduce((all, one, i) => {
-			const ch = Math.floor(i / perChunk);
-			all[ch] = [].concat((all[ch] || []), one);
-			return all
-		}, [])
-	}
 
 	if (config.enable_prevent_password_reuse) {
-		const tableName = process.env.PWD_HISTORY_TABLE;
 
-		const queryParams = {
-			TableName: process.env.PWD_HISTORY_TABLE,
-			KeyConditionExpression: "username = :username",
-			ExpressionAttributeValues: {
-				":username": { S: username },
-			},
-			ConsistentRead: true,
-		};
+		const queryResults = await getPwdHashesByUser(username, dynamodb);
 
-		const queryResults = await dynamodb.send(new QueryCommand(queryParams))
 		if (queryResults.Items && queryResults.Items.length > 0) {
 
 			const batchCalls = chunks(queryResults.Items, 25).map(async (chunk) => {
@@ -95,7 +102,7 @@ export const deletePwdHashByUser = async (username, dynamodb, config) => {
 
 				const batchWriteParams = {
 					RequestItems: {
-						[tableName]: deleteRequests
+						[process.env.PWD_HISTORY_TABLE]: deleteRequests
 					}
 				}
 				await dynamodb.send(new BatchWriteItemCommand(batchWriteParams))
@@ -104,4 +111,22 @@ export const deletePwdHashByUser = async (username, dynamodb, config) => {
 			await Promise.all(batchCalls)
 		}
 	}
+}
+
+export const checkPasswordExpiration = async (username, dynamodb, config) => {
+
+	if (config.enable_password_expire) {
+		console.log('check latest password hash timestamp')
+		const queryResults = await getPwdHashesByUser(username, dynamodb);
+
+		if (queryResults.Items && queryResults.Items.length > 0) {
+			const setupTime = queryResults.Items[queryResults.Items.length-1].timestamp.N;
+			const timeNow = Date.now()/1000;
+			console.log ('setupTime is', setupTime/1000, 'now is', timeNow)
+
+			return ((setupTime/1000 + config.passwords_expire_days * 24 * 60 * 60) <= timeNow)
+		}
+		return true;
+	}
+	return false;
 }

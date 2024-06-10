@@ -472,18 +472,18 @@ export const OTP = () => {
   }
 
 
-
   return (
     <div>
       <span><h4>
         {
-          location.state?.typeExtra === 'RESET_REQUIRED' ?
+          location.state?.typeExtra === 'RESET_REQUIRED' || location.state?.typeExtra === 'PASSWORD_EXPIRED' ?
             config?.branding.force_password_reset_page_header :
             location.state?.type === 'passwordreset' ?
               config?.branding.password_reset_page_header :
               config?.branding.update_profile_app_main_page_header
         }
       </h4> </span>
+      {location.state?.typeExtra === 'PASSWORD_EXPIRED' && 'Your password is expired'}
       <div style={{ height: "0.2em" }} />
       <hr className='hr-customizable' />
       <div>

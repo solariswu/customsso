@@ -20,7 +20,7 @@ import { getTotp } from './totp/getToken.mjs';
 import { validateTotp } from './totp/verifyOtp.mjs';
 import { getAsmSalt } from './totp/getKms.mjs';
 import { amfaBrandings } from '../../postdeployment/config.mjs';
-import { createPWDHashHistory } from './passwordhash.mjs';
+import { checkPasswordExpiration, createPWDHashHistory } from './passwordhash.mjs';
 
 const cookieEnabledHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
@@ -153,7 +153,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
       };
 
       if (step === 'username' &&
-        ['FORCE_CHANGE_PASSWORD', 'RESET_REQUIRED'].includes (users[0].UserStatus)) {
+        ['FORCE_CHANGE_PASSWORD', 'RESET_REQUIRED'].includes(users[0].UserStatus)) {
         console.log('User ', event.email, ' is in ', users[0].UserStatus);
         return response(202, users[0].UserStatus);
       }
@@ -514,7 +514,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
                     statusCode: 200,
                     isBase64Encoded: false,
                     multiValueHeaders: {
-                      'Set-Cookie': [cookieValue, cookie2Value/*, cookie3Value*/],
+                      'Set-Cookie': [cookieValue, cookie2Value],
                     },
                     headers: cookieEnabledHeaders,
                     body: JSON.stringify({ 'location': url })
@@ -580,6 +580,10 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
               // User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
               return response(202, 'Your identity requires password login.')
             case 'password':
+              const isPasswordExpired = await checkPasswordExpiration(event.email, dynamodb, amfaConfigs);
+              if (isPasswordExpired) {
+                return response(203, 'PASSWORD_EXPIRED')
+              }
               // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
               const otpOptions = intersectOtpPolicies(
                 amfaPolicies[ug].permissions,
