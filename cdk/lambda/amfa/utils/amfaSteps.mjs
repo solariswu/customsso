@@ -166,6 +166,31 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
         return acc;
       });
 
+      if (step === 'confirmOTPAddress') {
+        let result = false;
+        switch (event.otptype) {
+          case 'ae':
+            result = event.otpaddr.toLowerCase().trim() === userAttributes['custom:alter-email']?.toLowerCase().trim();
+            break;
+          case 's':
+            result = event.otpaddr.trim() === userAttributes?.phone_number.trim();
+            break;
+          case 'v':
+            const value = userAttributes['custom:voice-number'] ? userAttributes['custom:voice-number'] : userAttributes.phone_number;
+            result = event.otpaddr.trim() === value.trim();
+            break;
+          default:
+            break;
+        }
+
+        if (result) {
+          return response(200, 'Valid')
+        }
+        else {
+          return response(202, 'Invalid');
+        }
+      }
+
       const param = {
         UserPoolId: process.env.USERPOOL_ID,
         Username: users[0].Username,

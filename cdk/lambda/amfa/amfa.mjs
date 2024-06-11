@@ -55,6 +55,8 @@ const validateInputParams = (payload) => {
       return (payload.email && payload.authParam && payload.profile);
     case 'registotp':
       return (payload.email && payload.uuid && payload.secretCode && payload.tokenLabel);
+    case 'confirmOTPAddress':
+      return (payload.email && payload.authParam && payload.otptype && payload.otpaddr && ['ae', 's', 'v'].includes(payload.otptype))
     default:
       break;
   }
@@ -180,5 +182,5 @@ export const handler = async (event) => {
     );
   }
 
-  return responseWithRequestId(500, error,  requestId);
+  return responseWithRequestId(500, error, requestId);
 };

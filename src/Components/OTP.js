@@ -7,6 +7,7 @@ import { apiUrl, applicationUrl } from '../const';
 import InfoMsg from './InfoMsg';
 import { getApti } from './utils';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
+import { OTPDialog } from './OTPDialog';
 
 export const OTP = () => {
   const navigate = useNavigate();
@@ -20,6 +21,10 @@ export const OTP = () => {
   const [data, setData] = useState(null);
   const [showOTP, setShowOTP] = useState(false);
   const [otpInFly, setOtpInFly] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOtp, setDialogOtp] = useState('');
+  const toggle = () => setDialogOpen(!dialogOpen)
+
 
   const [apti, setApti] = useState(null);
 
@@ -148,7 +153,18 @@ export const OTP = () => {
   }
 
   const sendOtp = async (otptype) => {
+    if (otptype === 't' || otptype === 'e') {
+      sendOtpConfirmed(otptype)
+    }
+    else {
+      setDialogOtp(otptype);
+      setDialogOpen(true);
+    }
+  }
+
+  const sendOtpConfirmed = async (otptype) => {
     setOtp({ ...otp, type: otptype });
+    setDialogOtp('');
 
     let otpApti = apti;
 
@@ -414,7 +430,7 @@ export const OTP = () => {
     const table = {
       e: {
         title: 'Email',
-        content: `${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))}`,
+        content: email,//`${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))}`,
       },
       ae: {
         title: 'Alt-Email',
@@ -443,7 +459,10 @@ export const OTP = () => {
               {table[otptype].content}
             </span>
             :
-            <span className='link-customizable' onClick={() => sendOtp(otptype)}>
+            <span
+              className='link-customizable'
+              onClick={() => otpInFly === otptype ? sendOtpConfirmed(otptype) : sendOtp(otptype)}
+            >
               {table[otptype].content}
             </span>
           }
@@ -454,6 +473,20 @@ export const OTP = () => {
       </div>
     )
   }
+
+  const OTPPageTitle = ({ type, typeExtra, branding }) =>
+    <>
+      <span><h4>
+        {
+          typeExtra === 'RESET_REQUIRED' || typeExtra === 'PASSWORD_EXPIRED' ?
+            branding.force_password_reset_page_header :
+            type === 'passwordreset' ?
+              branding.password_reset_page_header :
+              branding.update_profile_app_main_page_header
+        }
+      </h4> </span>
+      {typeExtra === 'PASSWORD_EXPIRED' && 'Your password is expired'}
+    </>
 
   const SubjectMessage = ({ otpInFly, OTPMethodsCount, currentStage }) => {
     if (otpInFly === '') {
@@ -473,26 +506,24 @@ export const OTP = () => {
 
 
   return (
-    <div>
-      <span><h4>
-        {
-          location.state?.typeExtra === 'RESET_REQUIRED' || location.state?.typeExtra === 'PASSWORD_EXPIRED' ?
-            config?.branding.force_password_reset_page_header :
-            location.state?.type === 'passwordreset' ?
-              config?.branding.password_reset_page_header :
-              config?.branding.update_profile_app_main_page_header
-        }
-      </h4> </span>
-      {location.state?.typeExtra === 'PASSWORD_EXPIRED' && 'Your password is expired'}
+    <>
+      <OTPDialog
+        username={location.state?.email}
+        otptype={dialogOtp}
+        sendOtpConfirmed={sendOtpConfirmed}
+        open={dialogOpen}
+        toggle={toggle}
+      />
+      <OTPPageTitle type={location.state?.type} typeExtra={location.state?.typeExtra} branding={config?.branding} />
       <div style={{ height: "0.2em" }} />
       <hr className='hr-customizable' />
       <div>
-        <span
-          style={{ lineHeight: '1rem', color: 'grey' }}
-        >
-          {showOTP ?
-            <SubjectMessage OTPMethodsCount={OTPMethodsCount} otpInFly={otpInFly} currentStage={otp.stage} /> :
-            <Spinner color="primary" >{''}</Spinner>}
+        <span style={{ lineHeight: '1rem', color: 'grey' }} >
+          {
+            showOTP ?
+              <SubjectMessage OTPMethodsCount={OTPMethodsCount} otpInFly={otpInFly} currentStage={otp.stage} /> :
+              <Spinner color="primary" >{''}</Spinner>
+          }
         </span>
       </div>
       <hr className='hr-customizable' />
@@ -545,6 +576,6 @@ export const OTP = () => {
       </div>
       <br />
       {showOTP && <InfoMsg isLoading={isLoading} msg={msg} />}
-    </div>
+    </>
   );
 }
