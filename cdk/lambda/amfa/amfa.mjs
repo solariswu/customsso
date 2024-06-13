@@ -9,6 +9,7 @@ import { asmDeleteUser } from './utils/asmDeleteUser.mjs';
 import { notifyProfileChange } from './utils/mailer.mjs';
 import { deletePwdHashByUser } from './utils/passwordhash.mjs';
 import { headers, responseWithRequestId } from './utils/amfaUtils.mjs';
+import { adminGetSecrets } from './utils/admingetsecrets.mjs';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION, });
@@ -20,6 +21,8 @@ const validateInputParams = (payload) => {
     case 'admindeleteuser':
     case 'adminupdateuser':
       return (payload.email);
+    case 'admingetsecretinfo':
+      return (payload.tenantid);
     case 'username':
       return (payload.email &&
         payload.apti && payload.authParam);
@@ -112,6 +115,13 @@ export const handler = async (event) => {
             payload.otptype, payload.newProfileValue,
             amfaBrandings.email_logo_url, true);
           return;
+        case 'admingetsecretinfo':
+          console.log ('admin get secret of tenants', payload.tenantid);
+          const result = await adminGetSecrets(payload.tenantid);
+          if (result) {
+            return responseWithRequestId (200, result, requestId)
+          }
+          return responseWithRequestId(404, payload.tenantid, requestId);
         case 'registotp':
           const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
           if (isValidUuid) {

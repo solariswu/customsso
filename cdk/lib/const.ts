@@ -8,3 +8,6 @@ export enum DNS {
 	RootHostedZoneDelegationRoleArn = `arn:aws:iam::531680862493:role/CrossAccountDnsDelegationRole-DO-NOT-DELETE`,
 }
 export const AMFAIdPName = 'apersona';
+
+export const resourceName = 'amfa';
+export const totpScopeName = 'totptoken';

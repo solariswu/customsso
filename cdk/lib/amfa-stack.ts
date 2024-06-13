@@ -37,7 +37,9 @@ export class AmfaStack extends Stack {
         props.hostedZone, props.env?.account, props.env?.region, tenantId, ddb);
       const tenantUserPool = new TenantUserPool(this, apigateway.configTable, props.env?.region, tenantId);
       apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool);
-      apigateway.createAmfaApiEndpoints(tenantUserPool.userpool, tenantUserPool.customAuthClient, tenantUserPool.hostedUIClient.userPoolClientId);
+      apigateway.createAmfaApiEndpoints(tenantUserPool.userpool, tenantUserPool.customAuthClient,
+        tenantUserPool.clientCredentialsClient, tenantUserPool.hostedUIClient.userPoolClientId,
+        tenantUserPool.userpoolDomain);
       apigateway.createTotpTokenDBEndpoints(tenantUserPool.userpool);
 
       createPostDeploymentLambda(this, apigateway.configTable, apigateway.tenantTable, tenantUserPool.userpool.userPoolId, tenantId);

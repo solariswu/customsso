@@ -1,7 +1,7 @@
 import { RestApi, IResource, LambdaIntegration, Cors, EndpointType, DomainName, CognitoUserPoolsAuthorizer, AuthorizationType } from 'aws-cdk-lib/aws-apigateway';
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { ManagedPolicy, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { UserPool, UserPoolClient, UserPoolDomain } from 'aws-cdk-lib/aws-cognito';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, PublicHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
@@ -12,7 +12,7 @@ import { Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import { config } from './config';
-import { DNS } from "./const";
+import { DNS, resourceName, totpScopeName } from "./const";
 
 import * as path from 'path';
 import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
@@ -307,6 +307,8 @@ export class TenantApiGateway {
     lambdaName: string,
     userpool: UserPool,
     userPoolClient: UserPoolClient,
+    clientCredentialsClient: UserPoolClient,
+    userpoolDomain: UserPoolDomain,
     authCodeTable: Table,
     hostedClientId: string,
     sessionIdTable: Table,
@@ -328,12 +330,15 @@ export class TenantApiGateway {
           AUTHCODE_TABLE: authCodeTable.tableName,
           APPCLIENT_ID: userPoolClient.userPoolClientId,
           APP_SECRET: userPoolClient.userPoolClientSecret.unsafeUnwrap(),
+          CLIENTCREDENTIALS_ID: clientCredentialsClient.userPoolClientId,
+          CLIENTCREDENTIALS_SECRET: clientCredentialsClient.userPoolClientSecret.unsafeUnwrap(),
           MAGIC_STRING: config[this.tenantId].magicstring,
           HOSTED_CLIENT_ID: hostedClientId,
           SESSION_ID_TABLE: sessionIdTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
           TOTPTOKEN_TABLE: totpTokenTable.tableName,
           PWD_HISTORY_TABLE: pwdhashTable.tableName,
+          USERPOOL_DOMAIN: userpoolDomain.domainName,
         },
         timeout: Duration.minutes(5),
         // 👇 place lambda in the VPC
@@ -459,12 +464,13 @@ export class TenantApiGateway {
     );
   };
 
-  public createAmfaApiEndpoints = (userpool: UserPool, userPoolClient: UserPoolClient, hostedClientId: string) => {
+  public createAmfaApiEndpoints = (userpool: UserPool, userPoolClient: UserPoolClient,
+    clientCredentialsClient: UserPoolClient, hostedClientId: string, userpoolDomain: UserPoolDomain) => {
     const amfaLambdaFunctions = ['amfa'];
 
     amfaLambdaFunctions.map(fnName => {
       const lambdaFn = this.createAmfaLambda(fnName, userpool,
-        userPoolClient, this.authCodeTable, hostedClientId,
+        userPoolClient, clientCredentialsClient, userpoolDomain, this.authCodeTable, hostedClientId,
         this.sessionIdTable, this.configTable, this.totpTokenTable, this.pwdHashTable);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
       return fnName;
@@ -622,7 +628,7 @@ export class TenantApiGateway {
         {
           authorizationType: AuthorizationType.COGNITO,
           authorizer: this.cognitoAuthorizer,
-          authorizationScopes: ['amfa/totptoken'],
+          authorizationScopes: [resourceName + '/' + totpScopeName],
         }
       );
 
@@ -632,7 +638,7 @@ export class TenantApiGateway {
         {
           authorizationType: AuthorizationType.COGNITO,
           authorizer: this.cognitoAuthorizer,
-          authorizationScopes: ['amfa/totptoken'],
+          authorizationScopes: [resourceName + '/' + totpScopeName],
         }
       );
 

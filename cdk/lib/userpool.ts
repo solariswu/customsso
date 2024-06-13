@@ -11,6 +11,9 @@ import {
   Mfa,
   UserPoolClientIdentityProvider,
   StringAttribute,
+  ResourceServerScope,
+  UserPoolResourceServer,
+  UserPoolDomain,
 } from 'aws-cdk-lib/aws-cognito';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { RestApi } from 'aws-cdk-lib/aws-apigateway';
@@ -18,7 +21,7 @@ import { Duration } from 'aws-cdk-lib';
 
 
 import { config } from './config';
-import { DNS, AMFAIdPName } from './const';
+import { DNS, AMFAIdPName, resourceName, totpScopeName } from './const';
 import { createAuthChallengeFn, createCustomMessageLambda } from './lambda';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 
@@ -29,11 +32,16 @@ export class TenantUserPool {
   hostedUIClient: UserPoolClient;
   customAuthClient: UserPoolClient;
   secretClient: UserPoolClient;
+  clientCredentialsClient: UserPoolClient;
   oidcProvider: UserPoolIdentityProviderOidc;
   api: RestApi;
   tenantId: string;
+  totpScope: ResourceServerScope;
+  resouceServer: UserPoolResourceServer;
+  userpoolDomain: UserPoolDomain;
 
-  constructor(scope: Construct, configTable: Table, region:string | undefined, tenantId: string) {
+
+  constructor(scope: Construct, configTable: Table, region: string | undefined, tenantId: string) {
     this.scope = scope;
     this.region = region;
     this.tenantId = tenantId;
@@ -44,12 +52,16 @@ export class TenantUserPool {
     this.oidcProvider = this.createOIDCProvider();
     this.hostedUIClient = this.addHostedUIAppClient();
     this.hostedUIClient.node.addDependency(this.oidcProvider);
-    this.addHostedUIDomain();
+    this.userpoolDomain = this.addHostedUIDomain();
     this.addCustomMessageLambdaTrigger(configTable);
+
+    this.clientCredentialsClient = this.addClientCredentialClient();
   }
 
   private createUserPool = () => {
-    return new UserPool(this.scope, `amfa-userpool}`, {
+    this.totpScope = new ResourceServerScope({ scopeName: totpScopeName, scopeDescription: totpScopeName });
+
+    const myuserpool = new UserPool(this.scope, `amfa-userpool}`, {
       userPoolName: `amfaUserPool`,
       // use self sign-in is disable by default
       selfSignUpEnabled: true,
@@ -87,6 +99,13 @@ export class TenantUserPool {
       // forgotPassword recovery method, phone by default
       accountRecovery: AccountRecovery.EMAIL_ONLY,
     });
+
+    this.resouceServer = myuserpool.addResourceServer('AMFAResourceServer', {
+      identifier: resourceName,
+      scopes: [this.totpScope],
+    });
+
+    return myuserpool;
   }
 
   private addCustomAuthClient() {
@@ -123,6 +142,27 @@ export class TenantUserPool {
       supportedIdentityProviders: [UserPoolClientIdentityProvider.custom(AMFAIdPName)]
     });
   };
+
+  private addClientCredentialClient() {
+    return new UserPoolClient(this.scope, 'clientcredentialsClient', {
+      userPool: this.userpool,
+      generateSecret: true,
+      authFlows: {
+        userSrp: true,
+      },
+      oAuth: {
+        flows: {
+          authorizationCodeGrant: false,
+          clientCredentials: true
+        },
+        scopes: [ OAuthScope.resourceServer(this.resouceServer, this.totpScope) ],
+        callbackUrls: ["https://example.com"],
+      },
+      userPoolClientName: 'amfasys_clientcredentials',
+      supportedIdentityProviders: [UserPoolClientIdentityProvider.COGNITO],
+    });
+  };
+
 
   private createOIDCProvider() {
     const issuerUrl = `https://cognito-idp.${this.region}.amazonaws.com/${this.userpool.userPoolId}`;
