@@ -56,7 +56,7 @@ const validateInputParams = (payload) => {
     case 'registotp':
       return (payload.email && payload.uuid && payload.secretCode && payload.tokenLabel);
     case 'confirmOTPAddress':
-      return (payload.email && payload.authParam && payload.otptype && payload.otpaddr && ['ae', 's', 'v'].includes(payload.otptype))
+      return (payload.email && payload.authParam && payload.otptype && payload.otpaddr && ['e', 'ae', 's', 'v'].includes(payload.otptype))
     default:
       break;
   }

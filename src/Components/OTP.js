@@ -153,7 +153,7 @@ export const OTP = () => {
   }
 
   const sendOtp = async (otptype) => {
-    if (otptype === 't' || otptype === 'e') {
+    if (otptype === 't') {
       sendOtpConfirmed(otptype)
     }
     else {
@@ -427,10 +427,11 @@ export const OTP = () => {
   }
 
   const OTPElement = ({ otptype }) => {
+    const maskedEmail = `${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))}`;
     const table = {
       e: {
         title: 'Email',
-        content: email,//`${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))}`,
+        content: maskedEmail,
       },
       ae: {
         title: 'Alt-Email',
@@ -446,7 +447,7 @@ export const OTP = () => {
       },
       t: {
         title: 'Mobile Token',
-        content: data?.mobileToken ? `amfa: ${email}` : null,
+        content: data?.mobileToken ? `amfa: ${maskedEmail}` : null,
       },
     };
 

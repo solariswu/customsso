@@ -169,6 +169,9 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
       if (step === 'confirmOTPAddress') {
         let result = false;
         switch (event.otptype) {
+          case 'e':
+            result = event.optaddr.toLowerCase().trim() === userAttributes['email']?.toLowerCase().trim();
+            break;
           case 'ae':
             result = event.otpaddr.toLowerCase().trim() === userAttributes['custom:alter-email']?.toLowerCase().trim();
             break;

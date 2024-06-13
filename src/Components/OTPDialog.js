@@ -43,6 +43,7 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
                     default:
                         if (count > 4) {
                             setCount(0);
+                            setContent('');
                             const errMsg = "otp address not correct";
                             window.location.assign(`${applicationUrl}?err=${errMsg}`);
                             toggle();
@@ -69,7 +70,7 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
             </ModalHeader>
             <ModalBody>
                 {
-                    otptype === 'ae' ?
+                    otptype === 'ae' || otptype === 'e' ?
                         <div className="input-group">
                             <input id="profile" name="profile" type="email" className="form-control inputField-customizable"
                                 style={{ height: '40px' }}
@@ -77,6 +78,7 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                                 autoFocus
+                                autoComplete='off'
                                 disabled={isLoading}
                             />
                         </div> :
@@ -87,10 +89,11 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
                             placeholder="phone number"
                             value={content}
                             onChange={setContent}
+                            autoComplete='off'
                             disabled={isLoading}
                         />
                 }
-                <div style={{paddingLeft: '4px'}}>
+                <div style={{ paddingLeft: '4px' }}>
                     <span className="errorMessage-customizable">
                         {5 - count} attemps left
                     </span>
@@ -115,7 +118,7 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
                     type='submit'
                     className='btn btn-secondary submitButton-customizable-back'
                     style={{ width: '80px', margin: 'auto 10px', display: 'inline', height: '40px' }}
-                    onClick={() => { setCount(0); toggle() }}
+                    onClick={() => { setCount(0); setContent(''); toggle() }}
                     disabled={isLoading}
                 >
                     Cancel
