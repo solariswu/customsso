@@ -38,7 +38,7 @@ const App = () => {
    const config = useFeConfigs();
 
    const selfserviceTimeOut = () => {
-      cd.current = 600;
+      cd.current = 60* 10;
       setTimerType('selfservice');
    }
 

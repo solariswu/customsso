@@ -9,7 +9,6 @@ export const genSessionID = async (username, apti, otpaddr, dynamodb) => {
 
     const uuid = crypto.randomUUID();
     const timestamp = Date.now();
-    const ttl = parseInt(timestamp / 1000 + 3600);
 
     const myotpaddr = otpaddr ? otpaddr : '';
 

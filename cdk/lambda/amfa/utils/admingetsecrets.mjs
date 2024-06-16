@@ -6,6 +6,6 @@ export const adminGetSecrets = async (tenantId) => {
 		...amfaSecrets,
 		clientId: process.env.CLIENTCREDENTIALS_ID,
 		clientSecret: process.env.CLIENTCREDENTIALS_SECRET,
-		domain: process.env.USERPOOL_DOMAIN,
+		domain: `https://${process.env.USERPOOL_DOMAIN}.auth.${process.env.AWS_REGION}.amazoncognito.com/oauth2/token`,
 	}
 }

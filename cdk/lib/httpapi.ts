@@ -601,7 +601,7 @@ export class TenantApiGateway {
   }
 
   public createTotpTokenDBEndpoints(userPool: UserPool) {
-    const totpTokenLambdaFunctions = ['totptoken'];
+    const totpTokenLambdaFunctions = [totpScopeName];
 
     this.cognitoAuthorizer = new CognitoUserPoolsAuthorizer(this.scope, "Authorizer", {
       cognitoUserPools: [userPool],
