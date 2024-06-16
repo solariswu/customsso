@@ -1,7 +1,7 @@
 import { OTP } from "../Components/OTP";
 
 const DualOTP = ({ stoptimer }) => {
-	// stoptimer();
+	stoptimer();
 	return (
 		<OTP />
 	)
