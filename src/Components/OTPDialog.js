@@ -66,7 +66,7 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
     return (
         <Modal isOpen={open} toggle={toggle} backdrop="static">
             <ModalHeader>
-                Confirm {otptype === 'ae' ? 'email address' : 'phone number'}
+                Confirm {otptype === 'ae' || 'e' ? 'email address' : 'phone number'}
             </ModalHeader>
             <ModalBody>
                 {
