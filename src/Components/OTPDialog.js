@@ -38,6 +38,7 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
                 switch (result.status) {
                     case 200:
                         sendOtpConfirmed(otptype);
+                        setContent('');
                         toggle();
                         break;
                     default:
@@ -62,6 +63,11 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
         }
 
     }
+    const confirm = (e) => {
+        if (e.key === "Enter") {
+            handleSubmit(e);
+        }
+    }
 
     return (
         <Modal isOpen={open} toggle={toggle} backdrop="static">
@@ -77,6 +83,7 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
                                 placeholder={"user@email.com"}
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
+                                onKeyUp={e => confirm(e)}
                                 autoFocus
                                 autoComplete='off'
                                 disabled={isLoading}
@@ -89,6 +96,7 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
                             placeholder="phone number"
                             value={content}
                             onChange={setContent}
+                            onKeyUp={e => confirm(e)}
                             autoComplete='off'
                             disabled={isLoading}
                         />
