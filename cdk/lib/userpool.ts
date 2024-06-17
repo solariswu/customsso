@@ -14,6 +14,7 @@ import {
   ResourceServerScope,
   UserPoolResourceServer,
   UserPoolDomain,
+  ClientAttributes,
 } from 'aws-cdk-lib/aws-cognito';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { RestApi } from 'aws-cdk-lib/aws-apigateway';
@@ -124,21 +125,36 @@ export class TenantUserPool {
   };
 
   private addHostedUIAppClient() {
+    const writeAttributes = new ClientAttributes()
+      .withStandardAttributes({
+        email: true,
+        profilePicture: true,
+      });
+
+    const readAttributes = (new ClientAttributes()).withStandardAttributes({
+      address: true, email: true, emailVerified: true,
+      phoneNumber: true, phoneNumberVerified: true,
+      birthdate: true, givenName: true, familyName: true, gender: true, 
+      middleName: true, profilePicture: true, profilePage: true
+    });
+
     return new UserPoolClient(this.scope, 'hostedUIClient', {
       userPool: this.userpool,
       generateSecret: false,
       authFlows: {
         userSrp: true,
       },
+      readAttributes,
+      writeAttributes,
       oAuth: {
         flows: {
           authorizationCodeGrant: true,
         },
-        scopes: [OAuthScope.OPENID, OAuthScope.PROFILE, OAuthScope.COGNITO_ADMIN],
+        scopes: [OAuthScope.OPENID, OAuthScope.PROFILE/*, OAuthScope.COGNITO_ADMIN*/],
         callbackUrls: config[this.tenantId].callbackUrls,
         logoutUrls: config[this.tenantId].logoutUrls,
       },
-      userPoolClientName: 'hostedUIClient',
+      userPoolClientName: 'amfasys_hostedUIClient',
       supportedIdentityProviders: [UserPoolClientIdentityProvider.custom(AMFAIdPName)]
     });
   };
@@ -155,7 +171,7 @@ export class TenantUserPool {
           authorizationCodeGrant: false,
           clientCredentials: true
         },
-        scopes: [ OAuthScope.resourceServer(this.resouceServer, this.totpScope) ],
+        scopes: [OAuthScope.resourceServer(this.resouceServer, this.totpScope)],
         callbackUrls: ["https://example.com"],
       },
       userPoolClientName: 'amfasys_clientcredentials',
