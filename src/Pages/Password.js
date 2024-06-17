@@ -165,7 +165,6 @@ const LOGIN = () => {
             errMsg = 'Invalid credentials.';
           }
           localStorage.setItem('OTPErrorMsg', errMsg);
-          // window.history.go(-3);
           window.location.assign(`${applicationUrl}?err=${errMsg}`);
         }
       }

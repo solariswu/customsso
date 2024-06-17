@@ -5,9 +5,13 @@ import {
 } from '@aws-sdk/client-dynamodb';
 
 const headers = {
-	'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,X-Requested-With',
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,X-Requested-With',
+    'Access-Control-Allow-Origin': `https://${process.env.ALLOW_ORIGIN}`,
+	'Vary': 'Origin',
+    'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+	'Access-Control-Allow-Credentials': 'true',
+	'Cache-Control': 'no-cache',
+	'X-Content-Type-Options': 'nosniff',
 };
 
 export const handler = async (event) => {

@@ -13,12 +13,17 @@ import {
 } from '@aws-sdk/client-dynamodb';
 
 import { createHash } from 'node:crypto';
-import { notifyPasswordChange, notifyProfileChange } from './mailer.mjs';
+import { notifyPasswordChange } from './mailer.mjs';
 
 const headers = {
     'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,X-Requested-With',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': `https://${process.env.ALLOW_ORIGIN}`,
+    'Vary': 'Origin',
+    'Access-Control-Expose-Headers': 'Set-Cookie',
     'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+    'Access-Control-Allow-Credentials': 'true',
+    'Cache-Control': 'no-cache',
+	'X-Content-Type-Options': 'nosniff',
 };
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
@@ -203,7 +208,7 @@ export const handler = async (event) => {
 
                     await updatePWDHistory(email.trim().toLowerCase(), newHash, records, config.prevent_password_reuse_count);
 
-                    const amfaBrandings = await fetchConfig ('amfaBrandings');
+                    const amfaBrandings = await fetchConfig('amfaBrandings');
                     await notifyPasswordChange(email, amfaBrandings.email_logo_url, false)
 
                     return {

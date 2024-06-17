@@ -1,4 +1,4 @@
-import { RestApi, IResource, LambdaIntegration, Cors, EndpointType, DomainName, CognitoUserPoolsAuthorizer, AuthorizationType } from 'aws-cdk-lib/aws-apigateway';
+import { RestApi, IResource, LambdaIntegration, Cors, EndpointType, DomainName, CognitoUserPoolsAuthorizer, AuthorizationType, CorsOptions } from 'aws-cdk-lib/aws-apigateway';
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { ManagedPolicy, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { UserPool, UserPoolClient, UserPoolDomain } from 'aws-cdk-lib/aws-cognito';
@@ -17,13 +17,6 @@ import { DNS, resourceName, totpScopeName } from "./const";
 import * as path from 'path';
 import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { AmfaServcieDDB } from './dynamodb';
-
-const defaultCorsPreflightOptions = {
-  allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization'],
-  allowMethods: Cors.ALL_METHODS,
-  allowCredentials: true,
-  allowOrigins: Cors.ALL_ORIGINS,
-};
 
 export class TenantApiGateway {
   scope: Construct;
@@ -44,6 +37,7 @@ export class TenantApiGateway {
   vpc: Vpc;
   secret: ISecret;
   smtpSecret: ISecret;
+  CorsPreflightOptions: CorsOptions;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
     account: string | undefined, region: string | undefined, tenantId: string, ddb: AmfaServcieDDB) {
@@ -53,6 +47,13 @@ export class TenantApiGateway {
     this.account = account;
     this.region = region;
     this.tenantId = tenantId;
+
+    this.CorsPreflightOptions = {
+      allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization'],
+      allowMethods: Cors.ALL_METHODS,
+      allowCredentials: true,
+      allowOrigins: [`https://${this.tenantId}.${DNS.RootDomainName}`, `https://*.${this.tenantId}.${DNS.RootDomainName}`],
+    };
 
     this.secret = Secret.fromSecretNameV2(scope, `${tenantId}-secret`, `amfa/${tenantId}/secret`);
     this.smtpSecret = Secret.fromSecretNameV2(scope, `${tenantId}-smtpsecret`, `amfa/${tenantId}/smtp`);
@@ -80,7 +81,7 @@ export class TenantApiGateway {
     this.api = new RestApi(this.scope, 'TenantApiGateway', {
       description: 'api gateway for serverless',
       // 👇 enable CORS
-      defaultCorsPreflightOptions,
+      defaultCorsPreflightOptions: this.CorsPreflightOptions,
     });
 
     apiDomainName.addBasePathMapping(this.api);
@@ -129,6 +130,7 @@ export class TenantApiGateway {
           PWD_HISTORY_TABLE: pwdHashTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
           TENANT_ID: this.tenantId,
+          ALLOW_ORIGIN: `${this.tenantId}.${DNS.RootDomainName}`,
         },
         timeout: Duration.minutes(5),
       }
@@ -420,6 +422,7 @@ export class TenantApiGateway {
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
         environment: {
           SESSION_ID_TABLE: sessionIdTable.tableName,
+          ALLOW_ORIGIN: `${this.tenantId}.${DNS.RootDomainName}`,
         },
         timeout: Duration.minutes(5),
       }
@@ -455,7 +458,7 @@ export class TenantApiGateway {
     // 👇 add /lambda path to API Service resource
     const lambdaApi = api.addResource(path, {
       // 👇 enable CORS
-      defaultCorsPreflightOptions,
+      defaultCorsPreflightOptions: this.CorsPreflightOptions,
     });
 
     lambdaApi.addMethod(
@@ -615,11 +618,11 @@ export class TenantApiGateway {
       // 👇 add /lambda path to API Service resource
       const tokenApi = this.api.root.addResource(`${fnName}`, {
         // 👇 enable CORS
-        defaultCorsPreflightOptions,
+        defaultCorsPreflightOptions: this.CorsPreflightOptions,
       });
 
       const lambdaApi = tokenApi.addResource('{id}', {
-        defaultCorsPreflightOptions,
+        defaultCorsPreflightOptions: this.CorsPreflightOptions,
       });
 
       lambdaApi.addMethod(
@@ -651,7 +654,7 @@ export class TenantApiGateway {
 
     const rootPathAPI = this.api.root.addResource('oauth2', {
       // 👇 enable CORS
-      defaultCorsPreflightOptions,
+      defaultCorsPreflightOptions: this.CorsPreflightOptions,
     });
 
     oauthEndpointsName.map(name => {

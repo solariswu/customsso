@@ -25,9 +25,12 @@ export const getTType = (step) => {
 export const headers = {
 	'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,Set-Cookie,Cookie,X-Requested-With',
 	'Access-Control-Allow-Origin': `https://${process.env.TENANT_ID}.${process.env.DOMAIN_NAME}`,
+	'Vary': 'Origin',
 	'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
 	'Access-Control-Expose-Headers': 'Set-Cookie',
 	'Access-Control-Allow-Credentials': 'true',
+	'Cache-Control': 'no-cache',
+	'X-Content-Type-Options': 'nosniff',
 };
 
 export const responseWithRequestId = (statusCode = 200, body, requestId) => {
