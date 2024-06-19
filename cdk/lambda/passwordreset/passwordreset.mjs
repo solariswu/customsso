@@ -23,11 +23,26 @@ const headers = {
     'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
     'Access-Control-Allow-Credentials': 'true',
     'Cache-Control': 'no-cache',
-	'X-Content-Type-Options': 'nosniff',
+    'X-Content-Type-Options': 'nosniff',
 };
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 const cognito = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
+
+const setNewPassword = async (Username, Password) => {
+    const input = { // AdminSetUserPasswordRequest
+        UserPoolId: process.env.USERPOOL_ID,
+        Username,
+        Password,
+        Permanent: true,
+    };
+
+    console.log('set pwd param', input)
+
+    const param = new AdminSetUserPasswordCommand(input);
+    const results = await cognito.send(param);
+    console.log('set user password result:', results);
+}
 
 const fetchConfig = async (type) => {
     const params = {
@@ -176,11 +191,12 @@ export const handler = async (event) => {
             (apti === payload.apti || apti === 'updateprofile')) {
 
             const config = await fetchConfig("amfaConfigs");
+            const username = email.trim().toLowerCase();
 
             if (config.enable_prevent_password_reuse) {
 
                 const newHash = calculateHash(payload.password);
-                const records = await getExistingHashes(payload.email.trim().toLowerCase());
+                const records = await getExistingHashes(usernname);
                 const previousHashes = getHashesFromRecords(records);
 
                 console.log('previousHashes', previousHashes)
@@ -189,27 +205,16 @@ export const handler = async (event) => {
                 console.log('usedPassword value:', usedPassword)
 
                 if (!usedPassword) {
-                    const input = { // AdminSetUserPasswordRequest
-                        UserPoolId: process.env.USERPOOL_ID, // required
-                        Username: email.trim().toLowerCase(), // required
-                        Password: payload.password, // required
-                        Permanent: true,
-                    };
-
-                    console.log('set pwd param', input)
-
-                    const param = new AdminSetUserPasswordCommand(input);
-                    const results = await cognito.send(param);
-                    console.log('set user password result:', results);
+                    await setNewPassword (username, payload.password);
 
                     // //delete the pwd reset session id once reset is done successfully.
                     // const deleteItemCommand = new DeleteItemCommand(params);
                     // await dynamodb.send(deleteItemCommand);
 
-                    await updatePWDHistory(email.trim().toLowerCase(), newHash, records, config.prevent_password_reuse_count);
+                    await updatePWDHistory(username, newHash, records, config.prevent_password_reuse_count);
 
                     const amfaBrandings = await fetchConfig('amfaBrandings');
-                    await notifyPasswordChange(email, amfaBrandings.email_logo_url, false)
+                    await notifyPasswordChange(username, amfaBrandings.email_logo_url, false)
 
                     return {
                         statusCode: 200,
@@ -223,9 +228,21 @@ export const handler = async (event) => {
                 }
             }
             else {
-                err = { message: "some parameter values are not valid" }
-                statusCode = 521;
+                await setNewPassword (username, payload.password);
+                const amfaBrandings = await fetchConfig('amfaBrandings');
+                await notifyPasswordChange(username, amfaBrandings.email_logo_url, false)
+
+                return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify({ message: 'success' }),
+                }
+
             }
+        }
+        else {
+            err = { message: "some parameter values are not valid" }
+            statusCode = 521;
         }
     }
     catch (error) {
