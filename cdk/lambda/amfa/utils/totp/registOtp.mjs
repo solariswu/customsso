@@ -47,7 +47,7 @@ export const registotp = async (headers, payload, configs, requestId, logoUrl, c
                         }]
                     }));
 
-                await notifyProfileChange(payload.email, ['Mobile Token'], [payload.tokenLabel], logoUrl, false);
+                await notifyProfileChange(payload.email, ['Mobile TOTP'], [payload.tokenLabel], logoUrl, false);
                 return response(headers, 200, 'TOTP configured', requestId);
             }
             else {
@@ -83,7 +83,7 @@ export const deleteTotp = async (
 
         if (needNotify) {
             // user may deleted
-            await notifyProfileChange(email, ['Mobile Token'], [null], logoUrl, isByAdmin);
+            await notifyProfileChange(email, ['Mobile TOTP'], [null], logoUrl, isByAdmin);
         }
 
     } catch (error) {

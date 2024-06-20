@@ -200,7 +200,7 @@ export const OTP = () => {
         case 202:
           if (resultMsg.message) {
             if (otptype !== 't') {
-              // mobile token no need to display sent message
+              // mobile TOTP no need to display sent message
               setInfoMsg(resultMsg.message);
             }
             setTimeout(() => {
@@ -446,27 +446,21 @@ export const OTP = () => {
         content: data?.vPhoneNumber ? `${data.vPhoneNumber}` : null,
       },
       t: {
-        title: 'Mobile Token',
+        title: 'Mobile TOTP',
         content: data?.mobileToken ? `amfa: ${maskedEmail}` : null,
       },
     };
 
     return (table[otptype]?.content &&
       <div className='row align-items-end'>
-        <div className='col-4'>{table[otptype].title}:</div>
+        <div className='col-5'>{table[otptype].title}:</div>
         <div className='col'>
-          {otptype === 't' ?
-            <span className='link-customizable'>
-              {table[otptype].content}
-            </span>
-            :
-            <span
-              className='link-customizable'
-              onClick={() => otpInFly === otptype ? sendOtpConfirmed(otptype) : sendOtp(otptype)}
-            >
-              {table[otptype].content}
-            </span>
-          }
+          <span
+            className='link-customizable'
+            onClick={() => otpInFly === otptype ? sendOtpConfirmed(otptype) : sendOtp(otptype)}
+          >
+            {table[otptype].content}
+          </span>
           {otpInFly === otptype && <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>
             {otptype === 't' ? data.mobileToken : '(resend code)'}
           </div>}
@@ -492,7 +486,7 @@ export const OTP = () => {
   const SubjectMessage = ({ otpInFly, OTPMethodsCount, currentStage }) => {
     if (otpInFly === '') {
       if (OTPMethodsCount === 1 && currentStage !== 2) {
-        // with mobile token, OTPMethodsCount would be one when there is another MFA other than mobile token
+        // with mobile TOTP, OTPMethodsCount would be one when there is another MFA other than mobile TOTP
         return (<>Access requires a verification.<br /> Click your ID below to receive a one time verification code</>)
       }
       return (currentStage === 2 ? config?.branding.update_profile_app_verify2_message : config?.branding.update_profile_app_verify1_message)

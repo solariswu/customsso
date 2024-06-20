@@ -149,7 +149,7 @@ const CONTENT = () => {
 	const UpdateDone = () => {
 		return (
 			<div>
-				<span className='idpDescription-customizable'> Your Mobile Token has been set up successfully. </span><br />
+				<span className='idpDescription-customizable'> Your Mobile TOTP has been set up successfully. </span><br />
 				<Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
 					variant="success"
 					onClick={{ applicationUrl } ?
@@ -178,7 +178,7 @@ const CONTENT = () => {
 
 	if (!config) {
 		<div>
-			<span><h4>Set Mobile Token</h4></span>
+			<span><h4>Set Mobile TOTP</h4></span>
 			<hr className="hr-customizable" />
 			return <Spinner />
 		</div>
@@ -190,7 +190,7 @@ const CONTENT = () => {
 
 	return (
 		<div>
-			<span><h4>Set Mobile Token</h4></span>
+			<span><h4>Set Mobile TOTP</h4></span>
 			<hr className="hr-customizable" />
 			{isUpdateDone ? <UpdateDone /> :
 				(secretCode && secretCode.length > 0) ?

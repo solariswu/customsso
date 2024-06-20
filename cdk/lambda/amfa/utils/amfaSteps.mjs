@@ -366,7 +366,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
     let uIp = event.uIP ? event.uIP : '00000000000'; // This is the client ip address as detected from the NodeJS server. see: https://www.abstractapi.com/guides/node-js-get-ip-address Let's'45.23.45.12'; // This is the client ip address as detected from the NodeJS server. see: https://www.abstractapi.com/guides/node-js-get-ip-address Let's use request.header.
     let apti = event.apti; // This key needs to be a randon key that is set for each new login process and kept and sent in until the user succeeds or fails their login.
     let otpm = 'e'; // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. s for sms, v for voice, ae for alt-email.
-    let p = u; // OTP Method value. Making p=u is our default use case to begin with. In order to do other methods, the end user will need a way to manage their other methods, like phone number, alt-email, mobile token.
+    let p = u; // OTP Method value. Making p=u is our default use case to begin with. In order to do other methods, the end user will need a way to manage their other methods, like phone number, alt-email, mobile TOTP.
 
     // API vars that are hard coded for this type of API call in the back-end node.js
     let otpp = 1; // OTP PAUSE: This tells asm to not send out an otp, essentially pauses it. For the initial passwordless auth, this should be set and sent.
@@ -436,12 +436,12 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
           // After the user enters their password.
           // You run extAuth. otpp=1.
 
-          // The user clicks mobile token.
+          // The user clicks mobile TOTP.
           // You do nothing but push the user the the otp page.  No need to do an otp resend.
 
-          // In otp page, the user enters mobile token.
+          // In otp page, the user enters mobile TOTP.
           // You send it with otp verify.
-          return response(202, 'Awaiting Mobile Token code')
+          return response(202, 'Awaiting Mobile TOTP code')
         }
         otpm = event.otptype;
         // This is the otp method. The default is e, which stands for email. If users have other methods for verification, this field can be used to set the method. 
@@ -477,7 +477,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
           postURL = asmurl + '/extResendOtp.kv?l=' + l + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType;
         }
         else {
-          //This puts ASM into an otp state for the user, then you can send a mobile token.
+          //This puts ASM into an otp state for the user, then you can send a mobile TOTP.
           // On the second verification, the auth api call is sending otpp=1, but it should be otpp=0 becuase we want ASM to push the otp immediately to the selected channel.
           otpp = event.otptype === 't' && ['pwdreset2', 'selfservice2'].includes(step) ? 1 : 0;
           sfl = 7;
@@ -673,7 +673,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
             case 'selfservice3':
             case 'emailverificationSendOTP':
               // The OTP was resent. Push the user back to the OTP Challenge Page: Display 'message'
-              return response(202, event.otpType === 't' ? 'Input Mobile Token' : amfaResponseJSON.message)
+              return response(202, event.otpType === 't' ? 'Input Mobile TOTP' : amfaResponseJSON.message)
             case 'updateProfileSendOTP':
               uuid = await genSessionID(event.email, event.apti, event.otpaddr, dynamodb);
               return {

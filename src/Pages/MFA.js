@@ -253,10 +253,12 @@ const MFAContent = () => {
 
   const OTPElement = ({ otptype }) => {
 
+    const maskedEmail = `${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))}`;
+
     const table = {
       e: {
         title: 'Email',
-        content: `${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))}`,
+        content: maskedEmail,
       },
       ae: {
         title: 'Alt-Email',
@@ -271,14 +273,14 @@ const MFAContent = () => {
         content: vPhoneNumber ? vPhoneNumber : null,
       },
       t: {
-        title: 'TOTP',
-        content: mobileToken ? 'mobile app token' : null,
+        title: 'Mobile TOTP',
+        content: mobileToken ? `amfa: ${maskedEmail}` : null,
       }
     };
 
     return (table[otptype].content &&
       <div className='row align-items-end'>
-        <div className='col-4'>{table[otptype].title}:</div>
+        <div className='col-5'>{table[otptype].title}:</div>
         <div className='col'>
           <span className='link-customizable' onClick={() => sendOtp(otptype)}>
             {table[otptype].content}

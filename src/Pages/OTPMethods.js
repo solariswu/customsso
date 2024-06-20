@@ -187,7 +187,7 @@ const OTPMethods = () => {
 
     const removeTOTP = async () => {
         console.log('remove TOTP');
-        if (window.confirm('Do you want to remove your Mobile Token verification method?')) {
+        if (window.confirm('Do you want to remove your Mobile TOTP verification method?')) {
             const params = {
                 email,
                 uuid,
@@ -251,7 +251,7 @@ const OTPMethods = () => {
                 <div class="row"
                     style={{ fontWeight: 'bold' }}
                 >
-                    Mobile Token:
+                    Mobile TOTP:
                 </div>
                 <div class="row" style={{ color: '#4E95D9' }}>
                     {data?.mobileToken ? data.mobileToken : <div style={{ color: '#C0C0C0' }}>{'---'}</div>}

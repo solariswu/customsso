@@ -64,7 +64,7 @@ export const deleteResData = async (payload, dynamodb, cognito) => {
 
 		const amfaBrandings = await fetchConfig ('amfaBrandings', dynamodb);
 
-		await notifyProfileChange(email, ['Mobile Token'], [null], amfaBrandings.email_logo_url, true)
+		await notifyProfileChange(email, ['Mobile TOTP'], [null], amfaBrandings.email_logo_url, true)
 
 		return 1
 	}
