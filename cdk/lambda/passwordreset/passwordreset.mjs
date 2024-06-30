@@ -14,6 +14,7 @@ import {
 
 import { createHash } from 'node:crypto';
 import { notifyPasswordChange } from './mailer.mjs';
+import { getAsmPortalTenantAuthToken } from './getKms.mjs';
 
 const headers = {
     'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key,X-Requested-With',
@@ -40,8 +41,7 @@ const setNewPassword = async (Username, Password) => {
     console.log('set pwd param', input)
 
     const param = new AdminSetUserPasswordCommand(input);
-    const results = await cognito.send(param);
-    console.log('set user password result:', results);
+    return cognito.send(param);
 }
 
 const fetchConfig = async (type) => {
@@ -155,6 +155,27 @@ const updatePWDHistory = async (username, newHash, records, count) => {
     }
 }
 
+const clearUserThreatState = async (username, config) => {
+
+    const secretToken = await getAsmPortalTenantAuthToken();
+    const policyConfig = await fetchConfig("amfaPolicies");
+    const defaultPolicyKey = policyConfig.default.policy_name;
+
+    console.log ('secretToken', secretToken)
+    console.log ('policyConfig', policyConfig)
+    console.log ('defaultPolicyKey', defaultPolicyKey)
+
+    //    "asm_portal_url": "https://fs.apersonadev2.com:8443/asm_portal",
+    const postURL = `${config.asm_portal_url}/extResetThreat.ap?l=${defaultPolicyKey}&u=${username}&tenantAuthToken=${secretToken}&requestedBy=${process.env.TENANT_ID}-admin@domain.com`;
+
+    console.log ('postURL', postURL)
+
+    const amfaResponse = await fetch(postURL, {
+        method: "POST"
+    });
+    console.log('asm admin clear user threat statues result', amfaResponse);
+}
+
 export const handler = async (event) => {
 
     console.info("EVENT\n" + JSON.stringify(event, null, 2));
@@ -196,7 +217,7 @@ export const handler = async (event) => {
             if (config.enable_prevent_password_reuse) {
 
                 const newHash = calculateHash(payload.password);
-                const records = await getExistingHashes(usernname);
+                const records = await getExistingHashes(username);
                 const previousHashes = getHashesFromRecords(records);
 
                 console.log('previousHashes', previousHashes)
@@ -205,13 +226,9 @@ export const handler = async (event) => {
                 console.log('usedPassword value:', usedPassword)
 
                 if (!usedPassword) {
-                    await setNewPassword (username, payload.password);
-
-                    // //delete the pwd reset session id once reset is done successfully.
-                    // const deleteItemCommand = new DeleteItemCommand(params);
-                    // await dynamodb.send(deleteItemCommand);
-
+                    await setNewPassword(username, payload.password);
                     await updatePWDHistory(username, newHash, records, config.prevent_password_reuse_count);
+                    await clearUserThreatState(username, config);
 
                     const amfaBrandings = await fetchConfig('amfaBrandings');
                     await notifyPasswordChange(username, amfaBrandings.email_logo_url, false)
@@ -228,7 +245,9 @@ export const handler = async (event) => {
                 }
             }
             else {
-                await setNewPassword (username, payload.password);
+                await setNewPassword(username, payload.password);
+                await clearUserThreatState(username, config);
+
                 const amfaBrandings = await fetchConfig('amfaBrandings');
                 await notifyPasswordChange(username, amfaBrandings.email_logo_url, false)
 

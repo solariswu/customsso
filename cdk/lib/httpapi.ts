@@ -37,6 +37,7 @@ export class TenantApiGateway {
   vpc: Vpc;
   secret: ISecret;
   smtpSecret: ISecret;
+  asmSecret: ISecret;
   CorsPreflightOptions: CorsOptions;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
@@ -57,6 +58,7 @@ export class TenantApiGateway {
 
     this.secret = Secret.fromSecretNameV2(scope, `${tenantId}-secret`, `amfa/${tenantId}/secret`);
     this.smtpSecret = Secret.fromSecretNameV2(scope, `${tenantId}-smtpsecret`, `amfa/${tenantId}/smtp`);
+    this.asmSecret = Secret.fromSecretNameV2(scope, `${tenantId}-asmportalauthsecret`, `amfa/${tenantId}/tenantAuthToken`)
 
     // DB for storing custom auth session data
     this.authCodeTable = ddb.authCodeTable;
@@ -175,6 +177,7 @@ export class TenantApiGateway {
             actions: ['secretsmanager:GetSecretValue'],
             resources: [
               this.smtpSecret.secretArn + '*',
+              this.asmSecret.secretArn + '*',
             ],
           }),
         ],
@@ -369,6 +372,7 @@ export class TenantApiGateway {
           'cognito-idp:AdminAddUserToGroup',
           'cognito-idp:AdminLinkProviderForUser',
           'cognito-idp:AdminSetUserPassword',
+          'cognito-idp:AdminResetUserPassword',
         ],
         resources: [`arn:aws:cognito-idp:${this.region}:*:userpool/${userpool.userPoolId}`],
       });

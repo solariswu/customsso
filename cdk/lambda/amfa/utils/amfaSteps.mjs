@@ -3,6 +3,7 @@
 //
 import {
   AdminListGroupsForUserCommand,
+  AdminResetUserPasswordCommand,
   ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 
@@ -499,6 +500,18 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
 
       console.log('amfaResponseJSON:', amfaResponseJSON);
 
+      if ((step === 'username' || step === 'password') &&
+        (amfaResponseJSON.isUserUnderThreat === 'true' || amfaResponseJSON.isUserUnderThreat === true)) {
+        const params = {
+          Username: event.email,
+          UserPoolId: process.env.USERPOOL_ID,
+        }
+
+        await cognito.send(new AdminResetUserPasswordCommand(params));
+
+        return response(402, 'password reset due to account under threat')
+      }
+
       switch (amfaResponseJSON.code) {
         case 200:
           switch (step) {
@@ -610,7 +623,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
             case 'password':
               const isPasswordExpired = await checkPasswordExpiration(event.email, dynamodb, amfaConfigs);
               if (isPasswordExpired) {
-                return response(203, 'PASSWORD_EXPIRED')
+                return response(204, 'PASSWORD_EXPIRED')
               }
               // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
               const otpOptions = intersectOtpPolicies(

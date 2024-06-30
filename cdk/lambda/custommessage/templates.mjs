@@ -1,4 +1,4 @@
-const templateCommonHead = (email_logo_url) => `  <html>
+const templateHead = (email_logo_url) => `  <html>
   <head>
   <meta charset="utf-8">
   <style>
@@ -21,10 +21,6 @@ const templateCommonHead = (email_logo_url) => `  <html>
     .logo {
       text-align: center;
     }
-    img {
-      height: 57px;
-      width: 313px;
-    }
   </style>
 </head>
 <body>
@@ -33,40 +29,42 @@ const templateCommonHead = (email_logo_url) => `  <html>
         <img
         alt="logo"
         src="${email_logo_url}"
+        style="height: 57px; width: 313px"
       />
     </div>
     <div class="email">
-      <div class="email-body">
       `;
 
-const templateCommonTail = (username, code) => `
+// Non visiable contains mandatory values for custom message cup lambda
+const templateTail = (username, code) => `
     <div style="display:none;">${username}-${code}</div>
     </div></body></html>`;
 
-const templateInviteBody = (name, email, username, code) => `
-   <p>Hi ${name ? name : username}&#44</p>
-   <br/>
-   <p>${process.env.SERVICE_NAME} has created a new account for you.</p>
-   <p>Your login id is ${email}. Please use it to login and set up your new account.</span></p>`;
+const templateInviteBody = (name, email, username) => `
+  <div class="email-body">
+    <p>Hi ${name ? name : username}&#44</p>
+    <br/>
+    <p>${process.env.SERVICE_NAME} has created a new account for you.</p>
+    <p>Your login id is ${email}. Please use it to login and set up your new account.</span></p>
+  </div>`;
 
-const templateInviteButton = `
+const templateInviteButton = (login_url) => `
     <div style = "text-align: center; font-size: 12pt; padding: 2em" >
-      <a href="${process.env.APP_URL}" style="text-decoration: none; color: #fff;padding: 0.5em 4em; background-color:#06AA6D; border-radius: 0.3em"> Complete Registration </a>
+      <a href="${login_url}" style="text-decoration: none; color: #fff;padding: 0.5em 4em; background-color:#06AA6D; border-radius: 0.3em"> Complete Registration </a>
     </div >`;
 
 export const templateInvite = (name, email, username, code, configs) =>
-	templateCommonHead(configs.email_logo_url) +
-	templateInviteBody(name, email, username, code) +
-	'</div >' +
-	templateInviteButton +
-	templateCommonTail(username, code);
+  templateHead(configs.email_logo_url) +
+  templateInviteBody(name, email, username, code) +
+  templateInviteButton(process.env.APP_URL) +
+  templateTail(username, code);
 
-const templateResetButton = `
+const templateResetButton = (login_url) => `
     <div style="text-align: center; font-size: 12pt; padding: 2em">
-      <a href="${process.env.APP_URL}" style="text-decoration: none; color: #fff;padding: 0.5em 4em; background-color:#06AA6D; border-radius: 0.3em"> Login and Set New Password </a>
+      <a href="${login_url}" style="text-decoration: none; color: #fff;padding: 0.5em 4em; background-color:#06AA6D; border-radius: 0.3em"> Login and Set New Password </a>
     </div>`;
 
-const templateResetBody = (name, email, code) => `
+const templateResetBody = (name, email) => `
     <p>Hi ${name ? name : email}&#44</p>
     <br/>
     <p>${process.env.SERVICE_NAME}: Please be advised that your account password has been reset for security reasons.</p>
@@ -74,8 +72,7 @@ const templateResetBody = (name, email, code) => `
 `;
 
 export const templateReset = (name, email, username, code, configs) =>
-	templateCommonHead(configs.email_logo_url) +
-	templateResetBody(name, email, code) +
-	'</div>' +
-	templateResetButton +
-	templateCommonTail(username, code);
+  templateHead(configs.email_logo_url) +
+  templateResetBody(name, email, code) +
+  templateResetButton(process.env.APP_URL) +
+  templateTail(username, code);

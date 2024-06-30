@@ -84,7 +84,7 @@ const LOGIN = () => {
           credentials: 'include',
         });
 
-        console.log ('password amfa result', result.status)
+        console.log('password amfa result', result.status)
 
         switch (result.status) {
           case 200:
@@ -107,19 +107,37 @@ const LOGIN = () => {
               }
             });
             return;
-          case 203:
-            console.log('getting 203 result json')
-            const response203 = await result.json();
-            console.log('response back with 203 in password check', response203);
+          case 204:
+            console.log('getting 204 result json')
+            const response204 = await result.json();
+            console.log('response back with 204 in password check', response204);
             navigate('/dualotp', {
               state: {
                 email,
                 apti,
                 type: 'passwordreset',
-                typeExtra: response203.message,
+                typeExtra: response204.message,
               }
             });
             return;
+          case 402:
+            const resultMsg402 = await result.json();
+            if (resultMsg402.message && resultMsg402.message.includes('under threat')) {
+              setErrorMsg(resultMsg402.message);
+              navigate('/dualotp', {
+                state: {
+                  email,
+                  apti,
+                  type: 'passwordreset',
+                  typeExtra: 'RESET_REQUIRED',
+                }
+              });
+              return;
+            }
+            else {
+              setErrorMsg('Unknown 402 error, please contact help desk.');
+            };
+            break;
           case 505:
             const msg = "The login service is not currently available.\nPlease contact the help desk.";
             localStorage.setItem('OTPErrorMsg', msg);
@@ -180,11 +198,11 @@ const LOGIN = () => {
   return (
     <div>
       <span><h4>{config?.branding.login_app_main_page_header}</h4></span>
-      <div style={{height: "0.2em"}} />
+      <div style={{ height: "0.2em" }} />
       <hr className="hr-customizable" />
       <div>
         <span className='idpDescription-customizable'> {config?.branding.login_app_password_message}</span>
-        <div style={{height: "0.5em"}} />
+        <div style={{ height: "0.5em" }} />
         <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
           placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
           autoFocus

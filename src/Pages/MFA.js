@@ -182,8 +182,6 @@ const MFAContent = () => {
             setOtpInFly('');
           }
           break;
-        // case 203:
-        // Push the user back to the initial login page with this error: "Your location is not permitted. Contact the help desk."
         case 401:
           // Send the user back to the login page with this error: "You took too long or entered your otp wrong too many times. Try your login again."
           const resultMsg = await result.json();

@@ -36,4 +36,3 @@ export const getSMTP = async () => {
 
 	return secret;
 }
-

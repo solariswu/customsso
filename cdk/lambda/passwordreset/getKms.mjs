@@ -35,3 +35,15 @@ export const getSMTP = async () => {
 
 	return secret;
 }
+
+export const getAsmPortalTenantAuthToken = async () => {
+	const response = await client.send(
+		new GetSecretValueCommand({
+			SecretId: `amfa/${process.env.TENANT_ID}/tenantAuthToken`,
+			VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
+		})
+	);
+	const secret = JSON.parse(response.SecretString);
+
+	return secret?.tenantAuthToken;
+}

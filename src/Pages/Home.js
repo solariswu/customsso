@@ -152,6 +152,24 @@ const LOGIN = () => {
               break;
           }
           break;
+        case 402:
+          const resultMsg402 = await res.json();
+          if (resultMsg402.message && resultMsg402.message.includes('under threat')) {
+            setErrorMsg(resultMsg402.message);
+            navigate('/dualotp', {
+              state: {
+                email,
+                apti,
+                type: 'passwordreset',
+                typeExtra: 'RESET_REQUIRED',
+              }
+            });
+            return;
+          }
+          else {
+            setErrorMsg('Unknown 402 error, please contact help desk.');
+          };
+          break;
         default:
           const data = await res.json();
           if (data) {
