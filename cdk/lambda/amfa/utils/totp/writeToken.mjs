@@ -11,8 +11,8 @@ const aesEncrypt = ({ toEncrypt, aesKey }) => {
 const genTotpToken = async (secret_key, email) => {
 
 	const secret = await getSecret();
-	const totp_secret = secret?.totpSecret;
-	const totp_salt = secret?.totpSalt;
+	const totp_secret = secret?.Mobile_Token_Key;
+	const totp_salt = secret?.Mobile_Token_Salt;
 
 	const key_and_salt = `${totp_secret}${totp_salt}`;
 	const key_salt_and_email = key_and_salt + email.substring(0, email.length / 2);
