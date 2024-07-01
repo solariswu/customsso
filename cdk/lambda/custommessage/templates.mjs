@@ -61,7 +61,7 @@ export const templateInvite = (name, email, username, code, configs) =>
 
 const templateResetButton = (login_url) => `
     <div style="text-align: center; font-size: 12pt; padding: 2em">
-      <a href="${login_url}" style="text-decoration: none; color: #fff;padding: 0.5em 4em; background-color:#06AA6D; border-radius: 0.3em"> Login and Set New Password </a>
+      <a href="${login_url}" style="text-decoration: none; color: #fff;padding: 0.5em 4em; background-color:#06AA6D; border-radius: 0.3em"> Login </a>
     </div>`;
 
 const templateResetBody = (name, email) => `
