@@ -50,6 +50,7 @@ export const handler = async (event) => {
 				statusCode: 200,
 				headers,
 				body: JSON.stringify({ message: 'success' }),
+				isBase64Encoded: false,
 			}
 		}
 	}
@@ -59,6 +60,14 @@ export const handler = async (event) => {
 			statusCode: 500,
 			headers,
 			body: JSON.stringify(error),
+			isBase64Encoded: false,
 		};
+	}
+
+	return {
+		statusCode: 501,
+		headers,
+		body: JSON.stringify({ message: 'not found' }),
+		isBase64Encoded: false,
 	}
 }
