@@ -117,7 +117,7 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
                     className='btn btn-primary submitButton-customizable'
                     style={{ width: '80px', margin: 'auto 10px', display: 'inline', height: '40px' }}
                     onClick={handleSubmit}
-                    disabled={isLoading || content.length === 0}
+                    disabled={isLoading || content?.length === 0}
                 >
                     OK
                 </Button>
