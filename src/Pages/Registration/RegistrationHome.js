@@ -167,7 +167,7 @@ const LOGIN = () => {
         <span className='idpDescription-customizable'> Enter your {config?.branding.service_name} account ID </span>
         <div>
           <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
-            autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)}
+            autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value.toLowerCase())}
             onKeyUp={e => confirmSignUp(e)}
             disabled={isLoading}
           />

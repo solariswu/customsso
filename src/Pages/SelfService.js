@@ -92,7 +92,7 @@ const LOGIN = () => {
 				<div>
 					<input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
 						autoCapitalize="none" required aria-label="email"
-						value={email} type="email" onChange={(e) => setEmail(e.target.value)}
+						value={email} type="email" onChange={(e) => setEmail(e.target.value.toLowerCase())}
 						onKeyUp={e => confirmLogin(e)}
 						autoFocus
 						disabled={isLoading}
