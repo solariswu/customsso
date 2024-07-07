@@ -31,14 +31,16 @@ const App = () => {
    const [modal, setModal] = useState(false);
 
    const [time, setTime] = useState('');
-   const cd = useRef(300-30);
+   const [startTime, setStartTime] = useState(Date.now());
+   // const cd = useRef(300-30);
+   // const cd = useRef(startTime);
    const timer = useRef(null);
 
    const navigate = useNavigate();
    const config = useFeConfigs();
 
    const selfserviceTimeOut = () => {
-      cd.current = 60* 10;
+      setStartTime(Date.now());
       setTimerType('selfservice');
    }
 
@@ -52,7 +54,12 @@ const App = () => {
 
          timer.current && clearTimeout(timer.current);
 
-         if (cd.current <= 0) {
+         const timeNow = Date.now();
+         const passedSeconds = Math.floor((timeNow - startTime) / 1000);
+         const totalSeconds = timerType === 'selfservice' ? 60 * 10 : 60 * 4 + 30;
+
+         // 10 minutes or 4.5 minutes
+         if (passedSeconds >= totalSeconds) {
             const errorMsg = "You took too long or entered your otp wrong too many times.\nTry your login again.";
             setTime('');
             localStorage.setItem('OTPErrorMsg', errorMsg);
@@ -71,10 +78,11 @@ const App = () => {
                   return;
             }
          }
-         const m = parseInt(cd.current / 60) > 9 ? parseInt(cd.current / 60) : '0' + parseInt(cd.current / 60);
-         const s = parseInt(cd.current % 60) > 9 ? parseInt(cd.current % 60) : '0' + parseInt(cd.current % 60);
+
+         const remainSeconds = totalSeconds - passedSeconds;
+         const m = parseInt(remainSeconds / 60) > 9 ? parseInt(remainSeconds / 60) : '0' + parseInt(remainSeconds / 60);
+         const s = parseInt(remainSeconds % 60) > 9 ? parseInt(remainSeconds % 60) : '0' + parseInt(remainSeconds % 60);
          setTime(`${m}:${s}`);
-         cd.current = cd.current - 5;
          timer.current = setTimeout(() => {
             timerHandler();
          }, 5000);
@@ -90,7 +98,12 @@ const App = () => {
 
          timer.current && clearTimeout(timer.current);
 
-         if (cd.current <= 0) {
+         const timeNow = Date.now();
+         const passedSeconds = Math.floor((timeNow - startTime) / 1000);
+         const totalSeconds = timerType === 'selfservice' ? 60 * 10 : 60 * 4 + 30;
+
+         // 10 minutes or 4.5 minutes
+         if (passedSeconds >= totalSeconds) {
             const errorMsg = "You took too long or entered your otp wrong too many times.\nTry your login again.";
             setTime('');
             localStorage.setItem('OTPErrorMsg', errorMsg);
@@ -114,10 +127,10 @@ const App = () => {
                   return;
             }
          }
-         const m = parseInt(cd.current / 60) > 9 ? parseInt(cd.current / 60) : '0' + parseInt(cd.current / 60);
-         const s = parseInt(cd.current % 60) > 9 ? parseInt(cd.current % 60) : '0' + parseInt(cd.current % 60);
+         const remainSeconds = totalSeconds - passedSeconds;
+         const m = parseInt(remainSeconds / 60) > 9 ? parseInt(remainSeconds / 60) : '0' + parseInt(remainSeconds / 60);
+         const s = parseInt(remainSeconds % 60) > 9 ? parseInt(remainSeconds % 60) : '0' + parseInt(remainSeconds % 60);
          setTime(`${m}:${s}`);
-         cd.current = cd.current - 5;
          timer.current = setTimeout(() => {
             timerHandler();
          }, 5000);
