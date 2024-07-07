@@ -102,10 +102,8 @@ export const handler = async (event) => {
             const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
             console.log('asm delete user payload', payload);
             await asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin);
-            if (payload.hasTOTP) {
-              await deleteTotp(headers, payload.email, amfaConfigs,
-                requestId, client, false, dynamodb, amfaBrandings.email_logo_url, true);
-            }
+            await deleteTotp(headers, payload.email, amfaConfigs,
+              requestId, client, false, dynamodb, amfaBrandings.email_logo_url, true);
             await deletePwdHashByUser(payload.email, dynamodb, amfaConfigs);
           }
           return;
@@ -116,10 +114,10 @@ export const handler = async (event) => {
             amfaBrandings.email_logo_url, true);
           return;
         case 'admingetsecretinfo':
-          console.log ('admin get secret of tenants', payload.tenantid);
+          console.log('admin get secret of tenants', payload.tenantid);
           const result = await adminGetSecrets(payload.tenantid);
           if (result) {
-            return responseWithRequestId (200, result, requestId)
+            return responseWithRequestId(200, result, requestId)
           }
           return responseWithRequestId(404, payload.tenantid, requestId);
         case 'registotp':
