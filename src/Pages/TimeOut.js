@@ -1,7 +1,7 @@
 import { applicationUrl } from "../const";
 
 
-const TimeOut = ({stoptimer}) => {
+const TimeOut = ({updatetimer}) => {
 	const BackToSP = () => {
 
 		return (
@@ -13,7 +13,7 @@ const TimeOut = ({stoptimer}) => {
 		);
 	}
 
-	stoptimer();
+	updatetimer();
 	return (
 		<BackToSP />
 	);

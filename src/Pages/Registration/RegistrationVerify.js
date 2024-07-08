@@ -7,7 +7,7 @@ import { apiUrl } from '../../const';
 import 'react-phone-number-input/style.css'
 import InfoMsg from '../../Components/InfoMsg';
 
-const CONTENT = ({stoptimer}) => {
+const CONTENT = ({updatetimer}) => {
 	const navigate = useNavigate();
 	const location = useLocation();
 
@@ -174,7 +174,7 @@ const CONTENT = ({stoptimer}) => {
 	}
 
 	const VerifyDone = () => {
-		stoptimer()
+		updatetimer('selfservice')
 		return (
 			<div>
 				<span className='idpDescription-customizable'> Your account has been registed. </span><br />
@@ -261,10 +261,10 @@ const CONTENT = ({stoptimer}) => {
 	);
 }
 
-const RegistrationVerify = ({ stoptimer }) => {
+const RegistrationVerify = ({ updatetimer }) => {
 
 	return (
-		<CONTENT stoptimer={stoptimer}/>
+		<CONTENT updatetimer={updatetimer}/>
 	)
 }
 export default RegistrationVerify;

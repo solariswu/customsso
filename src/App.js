@@ -39,13 +39,14 @@ const App = () => {
    const navigate = useNavigate();
    const config = useFeConfigs();
 
-   const selfserviceTimeOut = () => {
+   const selfserviceTimeOut = (type) => {
       setStartTime(Date.now());
-      setTimerType('selfservice');
-   }
-
-   const timeout = () => {
-      timer.current && clearTimeout(timer.current);
+      if (type === 'passwordreset') {
+         setTimerType('passwordreset')
+      }
+      else {
+         setTimerType('selfservice');
+      }
    }
 
    const pauseTimer = () => timer.current && clearTimeout(timer.current);
@@ -56,7 +57,7 @@ const App = () => {
 
          const timeNow = Date.now();
          const passedSeconds = Math.floor((timeNow - startTime) / 1000);
-         const totalSeconds = timerType === 'selfservice' ? 60 * 10 : 60 * 4 + 30;
+         const totalSeconds = timerType === 'login' ? 60 * 4 + 30 : 60 * 10;
 
          // 10 minutes or 4.5 minutes
          if (passedSeconds >= totalSeconds) {
@@ -72,6 +73,7 @@ const App = () => {
                   });
                   return;
                case 'login':
+               case 'passwordreset':
                default:
                   // window.history.go(-3)
                   window.location.assign(`${applicationUrl}?err=${errorMsg}`)
@@ -100,7 +102,7 @@ const App = () => {
 
          const timeNow = Date.now();
          const passedSeconds = Math.floor((timeNow - startTime) / 1000);
-         const totalSeconds = timerType === 'selfservice' ? 60 * 10 : 60 * 4 + 30;
+         const totalSeconds = timerType === 'login' ? 60 * 4 + 30 : 60 * 10;
 
          // 10 minutes or 4.5 minutes
          if (passedSeconds >= totalSeconds) {
@@ -247,19 +249,19 @@ const App = () => {
                      <Route path="/authorize" element={<Home />} />
                      <Route path="/oauth2/authorize" element={<Home />} />
                      <Route path="/password" element={<Password />} />
-                     <Route path="/dualotp" element={<DualOTP stoptimer={selfserviceTimeOut} />} />
+                     <Route path="/dualotp" element={<DualOTP updatetimer={selfserviceTimeOut} />} />
                      <Route path="/mfa" element={<MFA />} />
                      <Route path="/passwordreset" element={<NewPasswords />} />
                      <Route path="/otpmethods" element={<OTPMethods />} />
-                     <Route path="/selfservice" element={<SelfService stoptimer={selfserviceTimeOut} />} />
+                     <Route path="/selfservice" element={<SelfService updatetimer={selfserviceTimeOut} />} />
                      <Route path="/updateprofile" element={<UpdateProfile />} />
                      <Route path='/removeprofile' element={<RemoveProfile />} />
                      <Route path="/setuptotp" element={<SetTOTP />} />
                      <Route path="/registration" element={<RegistrationHome />} />
                      <Route path="/registration_password" element={<RegistrationPasswords />} />
                      <Route path="/registration_attributes" element={<RegistrationAttributes />} />
-                     <Route path="/registration_verify" element={<RegistrationVerify stoptimer={selfserviceTimeOut} />} />
-                     <Route path="/timeout" element={<TimeOut stoptimer={timeout} />} />
+                     <Route path="/registration_verify" element={<RegistrationVerify updatetimer={selfserviceTimeOut} />} />
+                     <Route path="/timeout" element={<TimeOut updatetimer={pauseTimer} />} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
                   <Timer />

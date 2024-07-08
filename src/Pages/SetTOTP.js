@@ -86,7 +86,7 @@ const CONTENT = () => {
 			setErrorMsg('');
 			try {
 				const res = await fetch(`${apiUrl}/amfa`, options);
-				console.log('res', res);
+				// console.log('res', res);
 
 				switch (res.status) {
 					case 200:
@@ -104,7 +104,7 @@ const CONTENT = () => {
 				}
 			}
 			catch (err) {
-				console.log(err);
+				// console.log(err);
 				setErrorMsg('TOTP Set Failed. Please try again. If the problem persists, please contact help desk.');
 			}
 			finally {
@@ -133,7 +133,6 @@ const CONTENT = () => {
 				// fix again the CSS because lib changes it –_–
 				current.style.width = `${size}px`
 				current.style.height = `${size}px`
-				console.log('ygwu displayed')
 				if (!hasQr) {
 					setHasQr(true)
 					setTimeout(() => {

@@ -70,9 +70,9 @@ export const OTP = () => {
           credentials: 'include',
         });
         // convert the data to json
-        console.log('getUserOtpOptions response', response);
+        // console.log('getUserOtpOptions response', response);
         const json = await response.json();
-        console.log('getotpconfig json', json);
+        // console.log('getotpconfig json', json);
         setLoading(false);
 
         if (!response.ok) {
@@ -91,7 +91,7 @@ export const OTP = () => {
           setApti(getApti());
         }
         setShowOTP(true);
-        console.log('get otpoptions response: ', json);
+        // console.log('get otpoptions response: ', json);
       } catch (error) {
         console.error(error);
         setLoading(false);
@@ -153,7 +153,7 @@ export const OTP = () => {
   }
 
   const sendOtp = async (otptype) => {
-    console.log ('sendOtp, with type', otptype)
+    // console.log ('sendOtp, with type', otptype)
     if (otptype !== '' && (otptype === 't' || otptype === otpInFly)) {
       await sendOtpConfirmed(otptype)
     }
@@ -191,11 +191,11 @@ export const OTP = () => {
         credentials: 'include',
       });
 
-      console.log('result', result);
+      // console.log('result', result);
 
       const resultMsg = await result.json();
-      console.log('resultMsg:', resultMsg);
-      console.log('otptype:', otptype);
+      // console.log('resultMsg:', resultMsg);
+      // console.log('otptype:', otptype);
 
       switch (result.status) {
         case 202:
@@ -267,7 +267,7 @@ export const OTP = () => {
       phase: `${amfaStepPrefix}verify${otp.stage + 1}`,
     };
 
-    console.log('verify otp params:', verifyOtpParams);
+    // console.log('verify otp params:', verifyOtpParams);
 
     setLoading(true);
     setOtp({ ...otp, code: '', addr: '' });
@@ -279,18 +279,18 @@ export const OTP = () => {
         credentials: 'include',
       });
 
-      console.log('verify otp result:', result);
-      console.log('otp state:', otp);
+      // console.log('verify otp result:', result);
+      // console.log('otp state:', otp);
       switch (result.status) {
         case 200:
           const response = await result.json();
-          console.log('otp response:', response);
+          // console.log('otp response:', response);
           if (otp.stage === 1) {
             setOtp({ ...otp, type: '', code: '', addr: '', stage: otp.stage + 1 });
 
             let idx = data?.otpOptions.findIndex(option => option === otp.type);
-            console.log('idx:', idx);
-            console.log('count:', OTPMethodsCount);
+            // console.log('idx:', idx);
+            // console.log('count:', OTPMethodsCount);
 
             if (idx > -1 && OTPMethodsCount > 1) {
               data.otpOptions.splice(idx, 1);
@@ -328,8 +328,8 @@ export const OTP = () => {
             setOtpInFly('');
             return;
           }
-          console.log('otp state:', otp);
-          console.log('response:', response);
+          // console.log('otp state:', otp);
+          // console.log('response:', response);
           if (otp.stage === 2 && response.uuid && response.uuid.length > 0) {
             navigate(`/${location.state.type}`, {
               state: {

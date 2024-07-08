@@ -147,8 +147,8 @@ const LOGIN = () => {
 	);
 }
 
-const SelfService = ({ stoptimer }) => {
-	stoptimer();
+const SelfService = ({ updatetimer }) => {
+	updatetimer('selfservice');
 	return (
 		<LOGIN />
 	)
