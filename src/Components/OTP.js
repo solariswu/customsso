@@ -153,8 +153,9 @@ export const OTP = () => {
   }
 
   const sendOtp = async (otptype) => {
-    if (otptype === 't') {
-      sendOtpConfirmed(otptype)
+    console.log ('sendOtp, with type', otptype)
+    if (otptype !== '' && (otptype === 't' || otptype === otpInFly)) {
+      await sendOtpConfirmed(otptype)
     }
     else {
       setDialogOtp(otptype);
@@ -457,7 +458,7 @@ export const OTP = () => {
         <div className='col'>
           <span
             className='link-customizable'
-            onClick={() => otpInFly === otptype ? sendOtpConfirmed(otptype) : sendOtp(otptype)}
+            onClick={() => sendOtp(otptype)}
           >
             {table[otptype].content}
           </span>
