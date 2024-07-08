@@ -49,8 +49,8 @@ const templateInviteBody = (name, email, username) => `
   </div>`;
 
 const templateInviteButton = (login_url) => `
-    <div style = "text-align: center; font-size: 12pt; padding: 2em" >
-      <a href="${login_url}" style="text-decoration: none; color: #fff;padding: 0.5em 4em; background-color:#06AA6D; border-radius: 0.3em"> Complete Registration </a>
+    <div style = "text-align: center; font-size: 12pt; padding: 1em" >
+      <a href="${login_url}" style="text-decoration: none; color: #fff;padding: 0.5em 1.5em; background-color:#06AA6D; border-radius: 0.3em"> Login </a>
     </div >`;
 
 export const templateInvite = (name, email, username, code, configs) =>
@@ -60,8 +60,8 @@ export const templateInvite = (name, email, username, code, configs) =>
   templateTail(username, code);
 
 const templateResetButton = (login_url) => `
-    <div style="text-align: center; font-size: 12pt; padding: 2em">
-      <a href="${login_url}" style="text-decoration: none; color: #fff;padding: 0.5em 4em; background-color:#06AA6D; border-radius: 0.3em"> Login </a>
+    <div style="text-align: center; font-size: 12pt; padding: 1em">
+      <a href="${login_url}" style="text-decoration: none; color: #fff;padding: 0.5em 1.5em; background-color:#06AA6D; border-radius: 0.3em"> Login </a>
     </div>`;
 
 const templateResetBody = (name, email) => `
