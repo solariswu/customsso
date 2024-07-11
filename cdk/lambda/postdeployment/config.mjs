@@ -91,6 +91,7 @@ export const amfaConfigs = {
     "passwords_expire_days": 90,
     "enable_prevent_password_reuse": true,
     "prevent_password_reuse_count": 5,
+    "enable_auto_pwd_reset_on_threat": true,
 }
 
 export const amfaBrandings =

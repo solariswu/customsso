@@ -500,7 +500,8 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
 
       console.log('amfaResponseJSON:', amfaResponseJSON);
 
-      if ((step === 'username' || step === 'password') &&
+      if (amfaConfigs.enable_auto_pwd_reset_on_threat === true &&
+        (step === 'username' || step === 'password') &&
         (amfaResponseJSON.isUserUnderThreat === 'true' || amfaResponseJSON.isUserUnderThreat === true)) {
         const params = {
           Username: event.email,
