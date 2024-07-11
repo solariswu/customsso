@@ -107,16 +107,17 @@ const LOGIN = () => {
               }
             });
             return;
-          case 204:
-            console.log('getting 204 result json')
-            const response204 = await result.json();
-            console.log('response back with 204 in password check', response204);
+          case 401:
+            // password expired
+            console.log('getting 401 result json')
+            const response401 = await result.json();
+            console.log('response back with 401 in password check', response401);
             navigate('/dualotp', {
               state: {
                 email,
                 apti,
                 type: 'passwordreset',
-                typeExtra: response204.message,
+                typeExtra: response401.message,
               }
             });
             return;

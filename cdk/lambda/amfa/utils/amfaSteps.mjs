@@ -623,7 +623,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
             case 'password':
               const isPasswordExpired = await checkPasswordExpiration(event.email, dynamodb, amfaConfigs);
               if (isPasswordExpired) {
-                return response(204, 'PASSWORD_EXPIRED')
+                return response(401, 'PASSWORD_EXPIRED')
               }
               // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
               const otpOptions = intersectOtpPolicies(
