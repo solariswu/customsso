@@ -37,10 +37,11 @@ export const OTP = () => {
   const [inputRef, setInputFocus] = useFocus()
 
   useEffect(() => {
+    console.log ('useEffect in otp with otpInFly', otpInFly);
     if (otpInFly && otpInFly !== '') {
       setInputFocus()
     }
-  }, [otpInFly, setInputFocus])
+  }, [otpInFly])
 
 
   const setInfoMsg = (msg) => {
@@ -53,6 +54,7 @@ export const OTP = () => {
 
   useEffect(() => {
 
+    console.log ('useEffect in otp entry, location is', location.state, 'navigate is', navigate);
     const getUserOtpOptions = async () => {
       // get the data from the api
       const params = {
@@ -152,9 +154,10 @@ export const OTP = () => {
     }
   }
 
-  const sendOtp = async (otptype) => {
-    // console.log ('sendOtp, with type', otptype)
-    if (otptype !== '' && (otptype === 't' || otptype === otpInFly)) {
+  const sendOtp = async (otptype, e) => {
+    e.preventDefault();
+    console.log('sendOtp, with type', otptype)
+    if (otptype && otptype !== '' && (otptype === 't' || otptype === otpInFly)) {
       await sendOtpConfirmed(otptype)
     }
     else {
@@ -164,6 +167,7 @@ export const OTP = () => {
   }
 
   const sendOtpConfirmed = async (otptype) => {
+    console.log('sending oto for otptype', otptype)
     setOtp({ ...otp, type: otptype });
     setDialogOtp('');
 
@@ -458,7 +462,7 @@ export const OTP = () => {
         <div className='col'>
           <span
             className='link-customizable'
-            onClick={() => sendOtp(otptype)}
+            onClick={(e) => { console.log('got clicked event', e); sendOtp(otptype, e) }}
           >
             {table[otptype].content}
           </span>
@@ -500,6 +504,7 @@ export const OTP = () => {
     return config?.branding.update_profile_app_verify_retreive_message
   }
 
+  console.log ('rendering OTP, showOTP is', showOTP, 'otpInFly is', otpInFly, 'otp is', otp);
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
@@ -85,7 +85,7 @@ const LOGIN = () => {
 	return (
 		<div>
 			<span><h4>{config?.branding.update_profile_app_main_page_header}</h4></span>
-			<div style={{height: "0.2em"}} />
+			<div style={{ height: "0.2em" }} />
 			<hr className="hr-customizable" />
 			<span className='idpDescription-customizable'> {config?.branding.update_profile_app_main_page_message} </span>
 			{config?.enable_self_service &&
@@ -148,7 +148,10 @@ const LOGIN = () => {
 }
 
 const SelfService = ({ updatetimer }) => {
-	updatetimer('selfservice');
+	useEffect(() => {
+		updatetimer('selfservice');
+	}, [])
+
 	return (
 		<LOGIN />
 	)

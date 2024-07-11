@@ -1,7 +1,11 @@
+import { useEffect } from "react";
 import { applicationUrl } from "../const";
 
 
 const TimeOut = ({updatetimer}) => {
+	useEffect (() => {
+		updatetimer();
+	})
 	const BackToSP = () => {
 
 		return (
@@ -13,7 +17,6 @@ const TimeOut = ({updatetimer}) => {
 		);
 	}
 
-	updatetimer();
 	return (
 		<BackToSP />
 	);

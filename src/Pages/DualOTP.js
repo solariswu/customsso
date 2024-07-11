@@ -1,10 +1,14 @@
 import { useLocation } from 'react-router-dom';
 import { OTP } from "../Components/OTP";
+import { useEffect } from 'react';
 
 const DualOTP = ({ updatetimer }) => {
 	const location = useLocation();
 
-	updatetimer(location.state?.type);
+	useEffect(() => {
+		updatetimer(location.state?.type);
+	}, [])
+
 	return (
 		<OTP />
 	)
