@@ -126,7 +126,7 @@ const LOGIN = () => {
           break;
         case 202:
           const resJson = await res.json();
-          console.log('login 202 details', resJson);
+          // console.log('login 202 details', resJson);
           switch (resJson?.message) {
             case 'FORCE_CHANGE_PASSWORD':
             case 'RESET_REQUIRED':

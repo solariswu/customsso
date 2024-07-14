@@ -24,7 +24,7 @@ const CONTENT = ({updatetimer}) => {
 	const [otpcode, setOtpcode] = useState('');
 
 	const sendOTP = async (isResend) => {
-		console.log('send SignUp new OTP');
+		// console.log('send SignUp new OTP');
 
 		const options = {
 			method: 'POST',
@@ -48,7 +48,7 @@ const CONTENT = ({updatetimer}) => {
 				case 200:
 				case 202:
 					const resultMsg = await res.json();
-					console.log('resultMsg', resultMsg);
+					// console.log('resultMsg', resultMsg);
 					if (resultMsg.message) {
 						setInfoMsg(resultMsg.message);
 						setTimeout(() => {
@@ -138,7 +138,7 @@ const CONTENT = ({updatetimer}) => {
 				case 200:
 					const resultMsg = await res.json();
 					setUuid(resultMsg?.uuid);
-					console.log('resultMsg', resultMsg);
+					// console.log('resultMsg', resultMsg);
 					setVerified(true);
 					break;
 				case 403:

@@ -59,7 +59,6 @@ const OTPMethods = () => {
                 // }
                 setData(json);
                 setShowOTP(true);
-                console.log('get otpoptions response: ', json);
             } catch (error) {
                 console.error(error);
                 setErrorMsg('Error fetching data from the server');
@@ -67,7 +66,6 @@ const OTPMethods = () => {
             }
         }
 
-        console.log('otp methods, location state:', location.state);
         if (!location.state || !location.state.validated) {
             navigate('/selfservice');
         }
@@ -186,7 +184,7 @@ const OTPMethods = () => {
         </div>)
 
     const removeTOTP = async () => {
-        console.log('remove TOTP');
+        // console.log('remove TOTP');
         if (window.confirm('Do you want to remove your Mobile TOTP verification method?')) {
             const params = {
                 email,

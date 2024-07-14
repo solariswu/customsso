@@ -45,7 +45,7 @@ const LOGIN = () => {
 
     const json = await res.json();
 
-    console.log('verify captcha result', json);
+    // console.log('verify captcha result', json);
     if (json.success) {
       signUp();
       return;
@@ -58,7 +58,7 @@ const LOGIN = () => {
 
   const handleReCaptchaVerify = useCallback(async () => {
     if (!executeRecaptcha) {
-      console.log('Execute recaptcha not yet available');
+      // console.log('Execute recaptcha not yet available');
       return;
     }
     try {

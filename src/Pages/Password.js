@@ -84,7 +84,7 @@ const LOGIN = () => {
           credentials: 'include',
         });
 
-        console.log('password amfa result', result.status)
+        // console.log('password amfa result', result.status)
 
         switch (result.status) {
           case 200:
@@ -95,7 +95,7 @@ const LOGIN = () => {
             break;
           case 202:
             const response2 = await result.json();
-            console.log('response back with 202 in password check', response2);
+            // console.log('response back with 202 in password check', response2);
             navigate('/mfa', {
               state: {
                 email,
@@ -109,9 +109,9 @@ const LOGIN = () => {
             return;
           case 401:
             // password expired
-            console.log('getting 401 result json')
+            // console.log('getting 401 result json')
             const response401 = await result.json();
-            console.log('response back with 401 in password check', response401);
+            // console.log('response back with 401 in password check', response401);
             navigate('/dualotp', {
               state: {
                 email,

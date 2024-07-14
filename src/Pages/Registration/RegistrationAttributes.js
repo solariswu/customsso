@@ -29,7 +29,7 @@ const LOGIN = () => {
   const apti = location.state ? location.state.apti : '';
 
   const signUp = async (e) => {
-    console.log('now in sign up ');
+    // console.log('now in sign up ');
 
     if (!given_name || given_name.trim().length < 1) {
       setErrorMsg('Please enter a valid first name');

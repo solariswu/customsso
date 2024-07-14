@@ -165,7 +165,7 @@ const CONTENT = () => {
 		if (e)
 			e.preventDefault();
 
-		console.log('send register new OTP');
+		// console.log('send register new OTP');
 		let newApti = apti;
 
 		if (!apti) {
@@ -196,13 +196,13 @@ const CONTENT = () => {
 			setErrorMsg('');
 			try {
 				const res = await fetch(`${apiUrl}/amfa`, options);
-				console.log('res', res);
+				// console.log('res', res);
 
 				switch (res.status) {
 					case 200:
 					case 202:
 						const resultMsg = await res.json();
-						console.log('resultMsg', resultMsg);
+						// console.log('resultMsg', resultMsg);
 						if (resultMsg.message) {
 							setInfoMsg(resultMsg.message);
 							setTimeout(() => {

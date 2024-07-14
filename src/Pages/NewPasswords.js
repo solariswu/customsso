@@ -111,7 +111,7 @@ const LOGIN = () => {
       setErrorMsg('');
       try {
         const res = await fetch(`${apiUrl}/oauth2/passwordreset`, options);
-        console.log('res', res);
+        // console.log('res', res);
 
         switch (res.status) {
           case 200:
@@ -120,7 +120,7 @@ const LOGIN = () => {
             break;
           case 521:
             const result = await res.json();
-            console.log ('result', result)
+            // console.log ('result', result)
             setErrorMsg(result.message);
             break;
           default:

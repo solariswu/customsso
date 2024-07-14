@@ -29,11 +29,8 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
                     body: JSON.stringify(params),
                     credentials: 'include',
                 });
-                console.log('result', result);
 
                 const resultMsg = await result.json();
-                console.log('resultMsg:', resultMsg);
-                console.log('otptype:', otptype);
 
                 switch (result.status) {
                     case 200:
@@ -50,7 +47,7 @@ export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle })
                             toggle();
                         }
                         setCount(count + 1);
-                        console.log('verify otp address error', count);
+                        // console.log('verify otp address error', count);
                         break;
                 }
             }
