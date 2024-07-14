@@ -153,7 +153,7 @@ export const OTP = () => {
   }
 
   const sendOtp = async (otptype, e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     // console.log('sendOtp, with type', otptype)
     if (otptype && otptype !== '' && (otptype === 't' || otptype === otpInFly)) {
       await sendOtpConfirmed(otptype)

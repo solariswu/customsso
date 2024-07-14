@@ -162,8 +162,7 @@ const CONTENT = () => {
 	}
 
 	const sendOTP = async (e) => {
-		if (e)
-			e.preventDefault();
+		if (e) e.preventDefault();
 
 		// console.log('send register new OTP');
 		let newApti = apti;
