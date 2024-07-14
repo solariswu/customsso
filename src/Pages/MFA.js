@@ -349,7 +349,7 @@ const MFAContent = () => {
       {otpOptions.map((option) => ((otpInFly === '' || otpInFly === option) && <OTPElement otptype={option} />))}
       <div style={{ padding: '5px 0 0 0' }}>
         {
-          otpInFly && otpInFly !== '' &&
+          otpInFly !== '' &&
           <>
             <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
               style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
@@ -370,7 +370,16 @@ const MFAContent = () => {
             </Button>
           </>
         }
-        {otpInFly && otpInFly !== '' && OTPMethodsCount > 1 &&
+        {
+          !isLoading && OTPMethodsCount <= 1 && otpInFly !== '' &&
+          <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
+            disabled={isLoading}
+            onClick={() => window.location.assign(applicationUrl)}
+          >
+            Back to Login
+          </Button>
+        }
+        {!isLoading && otpInFly && otpInFly !== '' && OTPMethodsCount > 1 &&
           <Button name='changeotp' type="submit" className="btn btn-secondary submitButton-customizable-back"
             disabled={isLoading}
             onClick={() => setOtpInFly('')}

@@ -27,12 +27,12 @@ const LOGIN = () => {
     const handleSubmit = async (e) => {
         setErrorMsg('');
 
-        if (!email || validateEmail(email)) {
+        if (validateEmail(email)) {
             setErrorMsg('Please enter a valid email address');
             return;
         };
 
-        if (!password) {
+        if (password.trim().length < 1) {
             setErrorMsg('Please enter password');
             return;
         };
@@ -105,19 +105,21 @@ const LOGIN = () => {
                     />
                     <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
                         variant="success"
-                        disabled={isLoading}
-                        onClick={!isLoading ? handleSubmit : null}
+                        disabled={isLoading || email.length < 1 || password.length < 1}
+                        onClick={handleSubmit}
                     >
                         {isLoading ? 'Sending...' : 'Confirm'}
                     </Button>
-                    <Button name="back" type="submit" className="btn btn-primary submitButton-customizable-back"
-                        variant="success"
-                        disabled={isLoading}
-                        onClick={() => window.location.assign(applicationUrl)}
-                        style={{ marginTop: '10px' }}
-                    >
-                        Back to Login
-                    </Button>
+                    {!isLoading &&
+                        <Button name="back" type="submit" className="btn btn-primary submitButton-customizable-back"
+                            variant="success"
+                            disabled={isLoading}
+                            onClick={() => window.location.assign(applicationUrl)}
+                            style={{ marginTop: '10px' }}
+                        >
+                            Back to Login
+                        </Button>
+                    }
                 </div>}
 
             {
