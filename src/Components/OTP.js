@@ -450,7 +450,7 @@ export const OTP = () => {
       },
       t: {
         title: 'Mobile TOTP',
-        content: data?.mobileToken ? `amfa: ${maskedEmail}` : null,
+        content: data?.mobileToken ? `${config?.mobile_token_svc_name ? config.mobile_token_svc_name : 'amfa'}\n${maskedEmail}` : null,
       },
     };
 
@@ -464,9 +464,18 @@ export const OTP = () => {
           >
             {table[otptype].content}
           </span>
-          {otpInFly === otptype && <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>
-            {otptype === 't' ? data.mobileToken : '(resend code)'}
-          </div>}
+          {
+            otpInFly === '' && otptype === 't' &&
+            <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>
+              {data?.mobileToken}
+            </div>
+          }
+          {
+            otpInFly === otptype &&
+            <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>
+              {otptype === 't' ? data?.mobileToken : '(resend code)'}
+            </div>
+          }
         </div>
       </div>
     )

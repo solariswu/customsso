@@ -272,7 +272,7 @@ const MFAContent = () => {
       },
       t: {
         title: 'Mobile TOTP',
-        content: mobileToken ? `amfa: ${maskedEmail}` : null,
+        content: mobileToken ? `${config?.mobile_token_svc_name ? config.mobile_token_svc_name : 'amfa'}\n${maskedEmail}` : null,
       }
     };
 
@@ -283,7 +283,18 @@ const MFAContent = () => {
           <span className='link-customizable' onClick={() => sendOtp(otptype)}>
             {table[otptype].content}
           </span>
-          {otpInFly === otptype && otptype !== 't' && <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>(resend code)</div>}
+          {
+            otpInFly === '' && otptype === 't' &&
+            <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>
+              {mobileToken}
+            </div>
+          }
+          {
+            otpInFly === otptype &&
+            <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>
+              {otptype === 't' ? mobileToken : '(resend code)'}
+            </div>
+          }
         </div>
       </div>
     )
