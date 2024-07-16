@@ -34,22 +34,18 @@ function makeId(length) {
 
 const getUserWithPassword = async (payload, cognito, secretHash) => {
 
-    const params = {
-        AuthParameters: {
-            USERNAME: payload.email.trim().toLowerCase(),
-            PASSWORD: payload.password,
-            SECRET_HASH: secretHash,
-        },
-        UserPoolId: process.env.USERPOOL_ID,
-        ClientId: process.env.APPCLIENT_ID,
-        AuthFlow: "ADMIN_NO_SRP_AUTH",
-    };
-
-    const command = new AdminInitiateAuthCommand(params);
-    const user = await cognito.send(command);
-    console.log('password login user:', user);
-
-    return user;
+    return cognito.send(new AdminInitiateAuthCommand(
+        {
+            AuthParameters: {
+                USERNAME: payload.email.trim().toLowerCase(),
+                PASSWORD: payload.password,
+                SECRET_HASH: secretHash,
+            },
+            UserPoolId: process.env.USERPOOL_ID,
+            ClientId: process.env.APPCLIENT_ID,
+            AuthFlow: "ADMIN_NO_SRP_AUTH",
+        }
+    ));
 }
 
 const getUser = async (payload, cognito) => {
@@ -62,7 +58,7 @@ const getUser = async (payload, cognito) => {
         .update(payload.email.trim().toLowerCase() + appclientId)
         .digest('base64');
 
-    return await getUserWithPassword(payload, cognito, secretHash);
+    return getUserWithPassword(payload, cognito, secretHash);
 }
 
 const storeTokens = async (user, payload, authCode, dynamodb, requestTimeEpoch) => {
@@ -140,8 +136,8 @@ const genSessionID = async (username, apti, dynamodb) => {
                 N: `${timestamp}`,
             },
             ttl: {
-				N: `${parseInt(timestamp / 1000 + 3600)}`,
-			},
+                N: `${parseInt(timestamp / 1000 + 3600)}`,
+            },
         },
         ReturnConsumedCapacity: 'TOTAL',
         TableName: process.env.SESSION_ID_TABLE,
@@ -173,6 +169,7 @@ export const handler = async (event) => {
 
             const user = await getUser(payload, cognito);
 
+            // force change password
             if (user.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
                 const uuid = await genSessionID(payload.email, payload.apti, dynamodb);
                 const res = { email: payload.email, apti: payload.apti, uuid };
@@ -197,6 +194,17 @@ export const handler = async (event) => {
             }
         } catch (err) {
             console.error(err);
+
+            if (err.code === 'PasswordResetRequiredException' || err.message === 'Password reset required for the user') {
+                const uuid = await genSessionID(payload.email, payload.apti, dynamodb);
+                const res = { email: payload.email, apti: payload.apti, uuid, message: 'RESET_REQUIRED' };
+                return {
+                    statusCode: 402,
+                    headers,
+                    body: JSON.stringify(res),
+                }
+            }
+
             const error = err.message ? err : { message: "error in password login" }
             return {
                 statusCode: 400,

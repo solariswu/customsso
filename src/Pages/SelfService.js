@@ -56,6 +56,19 @@ const LOGIN = () => {
                     }
                 });
             }
+            else if (res.status === 402) {
+                const data = await res.json();
+                console.log(data);
+                navigate('/dualotp', {
+                    state: {
+                        email,
+                        uuid: data.uuid,
+                        apti: data.apti,
+                        type: 'passwordreset',
+                        typeExtra: data.message,
+                    }
+                });
+            }
             else {
                 const data = await res.json();
 

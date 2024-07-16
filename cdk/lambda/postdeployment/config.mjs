@@ -66,7 +66,7 @@ export const amfaPolicies = {
 
 export const amfaConfigs = {
     "COMMENT-File": "This file contains the available primary AWS aPersona Adaptive MFA login settings.",
-    "asmurl": "https://asm-aws.apersonadev2.com:8443/asm",
+    "asmurl": "https://fs.apersonadev2.com:8443/asm",
     "asm_portal_url": "https://fs.apersonadev2.com:8443/asm_portal",
     "enable_password_reset": true,
     "enable_self_service": true,
@@ -86,7 +86,7 @@ export const amfaConfigs = {
     "update_profile_force_mobile_token_first_if_registered": true,
     "COMMENT-totp": "This totp information must match the aPersona Adaptive Security Manager Tenant/Client ID and associated salt. salt now is saving in secret manager",
     "totp": {
-        "asm_provider_id": 1,
+        "asm_provider_id": 50,
     },
     "enable_password_expire": true,
     "passwords_expire_days": 90,

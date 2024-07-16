@@ -165,7 +165,6 @@ const clearUserThreatState = async (username, config) => {
     console.log ('policyConfig', policyConfig)
     console.log ('defaultPolicyKey', defaultPolicyKey)
 
-    //    "asm_portal_url": "https://fs.apersonadev2.com:8443/asm_portal",
     const postURL = `${config.asm_portal_url}/extResetThreat.ap?l=${defaultPolicyKey}&u=${username}&tenantAuthToken=${secretToken}&requestedBy=${process.env.TENANT_ID}-admin@domain.com`;
 
     console.log ('postURL', postURL)

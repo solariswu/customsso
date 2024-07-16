@@ -109,7 +109,6 @@ const LOGIN = () => {
             return;
           case 401:
             // password expired
-            // console.log('getting 401 result json')
             const response401 = await result.json();
             // console.log('response back with 401 in password check', response401);
             navigate('/dualotp', {
@@ -122,6 +121,7 @@ const LOGIN = () => {
             });
             return;
           case 402:
+            // account under threat
             const resultMsg402 = await result.json();
             if (resultMsg402.message && resultMsg402.message.includes('under threat')) {
               setErrorMsg(resultMsg402.message);
