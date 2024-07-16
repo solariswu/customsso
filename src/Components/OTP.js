@@ -455,8 +455,10 @@ export const OTP = () => {
     };
 
     return (table[otptype]?.content &&
-      <div className='row align-items-end'>
-        <div className='col-5'>{table[otptype].title}:</div>
+      <div className='row'>
+        <div className='col-5' style={{textAlign: "left"}}>
+          {table[otptype].title}:
+        </div>
         <div className='col'>
           <span
             className='link-customizable'
