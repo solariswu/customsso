@@ -500,6 +500,13 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
 
       console.log('amfaResponseJSON:', amfaResponseJSON);
 
+      // asm license check
+      if (postURL.includes('/extAuthenticate.kv') &&
+        amfaResponseJSON.code === 202 &&
+        amfaResponseJSON.platform !== 'AWS') {
+        return response(501, 'Your service is not yet licensed. Please contact aPersona.');
+      }
+
       if (amfaConfigs.enable_auto_pwd_reset_on_threat === true &&
         (step === 'username' || step === 'password') &&
         (amfaResponseJSON.isUserUnderThreat === 'true' || amfaResponseJSON.isUserUnderThreat === true)) {
