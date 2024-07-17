@@ -456,10 +456,10 @@ export const OTP = () => {
 
     return (table[otptype]?.content &&
       <div className='row'>
-        <div className='col-5' style={{textAlign: "left"}}>
+        <div className='col-5 mt-2 text-left'>
           {table[otptype].title}:
         </div>
-        <div className='col'>
+        <div className='col text-left'>
           <span
             className='link-customizable'
             onClick={(e) => sendOtp(otptype, e)}
