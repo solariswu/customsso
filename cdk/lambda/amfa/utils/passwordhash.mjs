@@ -108,7 +108,7 @@ export const deletePwdHashByUser = async (username, dynamodb, config) => {
 				await dynamodb.send(new BatchWriteItemCommand(batchWriteParams))
 			})
 
-			await Promise.all(batchCalls)
+			await Promise.allSettled(batchCalls)
 		}
 	}
 }

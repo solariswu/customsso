@@ -101,10 +101,13 @@ export const handler = async (event) => {
           {
             const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
             console.log('asm delete user payload', payload);
-            await asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin);
-            await deleteTotp(headers, payload.email, amfaConfigs,
-              requestId, client, false, dynamodb, amfaBrandings.email_logo_url, true);
-            await deletePwdHashByUser(payload.email, dynamodb, amfaConfigs);
+            const results = await Promise.allSettled([
+              asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin),
+              deleteTotp(headers, payload.email, amfaConfigs,
+                requestId, client, false, dynamodb, amfaBrandings.email_logo_url, true),
+              deletePwdHashByUser(payload.email, dynamodb, amfaConfigs),
+            ])
+            console.log ('admin delete user promises result:', results);
           }
           return;
         case 'adminupdateuser':
