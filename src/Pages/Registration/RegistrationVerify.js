@@ -245,7 +245,7 @@ const CONTENT = ({ updatetimer }) => {
 						disabled={isLoading}
 						onClick={() => sendOTP(true)}
 					>{!isLoading ? 'Resend OTP' : 'Sending...'}</Button>
-					<Button name='back' type="submit" className="btn btn-secondary submitButton-customizable-back"
+					{!isLoading && <Button name='back' type="submit" className="btn btn-secondary submitButton-customizable-back"
 						variant="outline-success"
 						disabled={isLoading}
 						onClick={() =>
@@ -257,7 +257,8 @@ const CONTENT = ({ updatetimer }) => {
 									attributes,
 								}
 							})}
-					>{'Back'}</Button>
+						style={{ marginTop: '10px' }}
+					>{'Back'}</Button>}
 					<InfoMsg msg={msg} isLoading={isLoading} />
 				</div>}
 		</div >

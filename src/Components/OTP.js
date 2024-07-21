@@ -459,7 +459,7 @@ export const OTP = () => {
         <div className='col-5 mt-2 text-left'>
           {table[otptype].title}:
         </div>
-        <div className='col text-left'>
+        <div className='col mt-2 text-left'>
           <span
             className='link-customizable'
             onClick={(e) => sendOtp(otptype, e)}
@@ -571,7 +571,7 @@ export const OTP = () => {
             </Button>
           </>
         }
-        {!isLoading && showOTP && otpInFly !== '' &&
+        {!isLoading && showOTP &&
           (((config?.update_profile_force_mobile_token_first_if_registered && data?.mobileToken && otpInFly === 't') ||
             (OTPMethodsCount === 1)) ?
             <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"

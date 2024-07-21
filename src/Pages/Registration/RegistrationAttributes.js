@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import InfoMsg from '../../Components/InfoMsg';
 import { Button } from 'reactstrap';
 import { useTranslation } from 'react-i18next';
+import { applicationUrl } from '../../const';
 
 
 const LOGIN = () => {
@@ -14,7 +15,7 @@ const LOGIN = () => {
   const [given_name, setGivenName] = useState(location.state?.attributes ? location.state?.attributes?.given_name : '');
   const [family_name, setFamilyName] = useState(location.state?.attributes ? location.state?.attributes?.family_name : '');;
 
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   const setErrorMsg = (msg) => {
     setMsg({ msg, type: 'error' });
@@ -79,6 +80,12 @@ const LOGIN = () => {
         onClick={() => signUp()}
       >
         Next
+      </Button>
+      <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
+        onClick={() => window.location.assign(applicationUrl)}
+        style={{marginTop: '10px'}}
+      >
+        Cancel
       </Button>
 
       <InfoMsg msg={msg} isLoading={false} />

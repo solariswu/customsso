@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from 'reactstrap';
 
-import { apiUrl } from '../../const';
+import { apiUrl, applicationUrl } from '../../const';
 import { getApti, validateEmail } from '../../Components/utils';
 import InfoMsg from '../../Components/InfoMsg';
 import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
@@ -194,6 +194,12 @@ const LOGIN = () => {
           >
             {isLoading ? 'Loading...' : 'Next'}
           </Button>
+          {!isLoading && <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
+            onClick={() => window.location.assign(applicationUrl)}
+            style={{ marginTop: "10px" }}
+          >
+            Cancel
+          </Button>}
           <div id='recaptcha' name='recaptcha' />
         </div></div>}
       {!isLoading && config && !config.enable_user_registration &&

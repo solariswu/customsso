@@ -284,7 +284,7 @@ const MFAContent = () => {
         <div className='col-5 mt-2 text-left'>
           {table[otptype].title}:
         </div>
-        <div className='col text-left'>
+        <div className='col mt-2 text-left'>
           <span className='link-customizable' onClick={() => sendOtp(otptype)}>
             {table[otptype].content}
           </span>
@@ -386,8 +386,9 @@ const MFAContent = () => {
             </Button>
           </>
         }
+        {!isLoading && otpInFly === ''}
         {
-          !isLoading && OTPMethodsCount <= 1 && otpInFly !== '' &&
+          !isLoading && (OTPMethodsCount <= 1 || otpInFly === '') &&
           <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
             disabled={isLoading}
             onClick={() => window.location.assign(applicationUrl)}
@@ -395,7 +396,7 @@ const MFAContent = () => {
             Back to Login
           </Button>
         }
-        {!isLoading && otpInFly && otpInFly !== '' && OTPMethodsCount > 1 &&
+        {!isLoading && otpInFly !== '' && OTPMethodsCount > 1 &&
           <Button name='changeotp' type="submit" className="btn btn-secondary submitButton-customizable-back"
             disabled={isLoading}
             onClick={() => setOtpInFly('')}

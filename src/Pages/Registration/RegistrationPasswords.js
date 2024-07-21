@@ -6,6 +6,7 @@ import { validatePassword, check_pwn_password } from '../../Components/utils';
 import PwnedPWDModal from '../../Components/PwnedPWDModal';
 import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
 import { useTranslation } from 'react-i18next';
+import { applicationUrl } from '../../const';
 
 
 const LOGIN = () => {
@@ -43,7 +44,7 @@ const LOGIN = () => {
   const [passwordType, setPasswordType] = useState('password');
   const [pwnedpasswords, setPwnedpasswords] = useState(false);
 
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   const confirmSignUp = (e) => {
     if (e.key === "Enter") {
@@ -195,6 +196,12 @@ const LOGIN = () => {
         >
           {'Next'}
         </Button>
+        <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
+          onClick={() => window.location.assign(applicationUrl)}
+          style={{marginTop: "10px"}}
+        >
+          Cancel
+        </Button>
       </div>
       {location.state && location.state.backable &&
         <Button name='back' type="submit" className="btn btn-secondary submitButton-customizable-back"
@@ -212,10 +219,10 @@ const LOGIN = () => {
         </Button>
       }
       {
-          errorMsg && <div>
-            <br />
-            <span className='errorMessage-customizable'>{errorMsg}</span>
-          </div>
+        errorMsg && <div>
+          <br />
+          <span className='errorMessage-customizable'>{errorMsg}</span>
+        </div>
       }
       {pwnedpasswords && <PwnedPWDModal />}
     </div >
