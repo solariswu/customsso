@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import InfoMsg from '../../Components/InfoMsg';
 import { Button } from 'reactstrap';
+import { useTranslation } from 'react-i18next';
 
 
 const LOGIN = () => {
@@ -13,13 +14,15 @@ const LOGIN = () => {
   const [given_name, setGivenName] = useState(location.state?.attributes ? location.state?.attributes?.given_name : '');
   const [family_name, setFamilyName] = useState(location.state?.attributes ? location.state?.attributes?.family_name : '');;
 
+  const {t} = useTranslation();
+
   const setErrorMsg = (msg) => {
     setMsg({ msg, type: 'error' });
   }
 
   useEffect(() => {
     document.title = 'Registration';
-    if (!location?.state?.email || !location?.state?.password || !location?.state?.apti) { 
+    if (!location?.state?.email || !location?.state?.password || !location?.state?.apti) {
       navigate('/register_consent');
     }
   }, [navigate, location]);
@@ -59,14 +62,14 @@ const LOGIN = () => {
         <h4>Registration</h4>
       </span>
       <hr className="hr-customizable" />
-      <span className='idpDescription-customizable'> First Name  </span>
+      <span className='idpDescription-customizable'> {t('registration_app_first_name')}  </span>
       <div style={{ alignItems: 'left' }}>
-        <input name="firstName" id="firstname" className="form-control inputField-customizable" placeholder="First Name"
+        <input name="firstName" id="firstname" className="form-control inputField-customizable" placeholder={t('registration_app_first_name')}
           required aria-label="first name" value={given_name} type="text" onChange={(e) => setGivenName(e.target.value)}
         />
-        <span className='idpDescription-customizable'> Last Name </span>
+        <span className='idpDescription-customizable'> {t('registration_app_last_name')} </span>
         <div>
-          <input name="lastName" id="lastname" className="form-control inputField-customizable" placeholder="Last Name"
+          <input name="lastName" id="lastname" className="form-control inputField-customizable" placeholder={t('registration_app_last_name')}
             required aria-label="last name" value={family_name} type="text" onChange={(e) => setFamilyName(e.target.value)}
           />
         </div>

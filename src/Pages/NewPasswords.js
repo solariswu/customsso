@@ -6,12 +6,15 @@ import { apiUrl, applicationUrl } from '../const';
 import { validatePassword, check_pwn_password } from '../Components/utils';
 import PwnedPWDModal from '../Components/PwnedPWDModal';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
+import { useTranslation } from 'react-i18next';
 
 
 const LOGIN = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const config = useFeConfigs();
+
+  const {t} = useTranslation();
 
   const closeQuickView = () => {
     console.log('back pressed');
@@ -214,7 +217,7 @@ const LOGIN = () => {
       <hr className="hr-customizable" />
       {isResetDone ? <ResetDone /> :
         <div>
-          <span className='idpDescription-customizable'> Enter your new password </span>
+          <span className='idpDescription-customizable'> {t('registration_app_password_input_new_password"')} </span>
           <div className="input-group">
             <input id="signInFormPassword" name="password" type={passwordType} className="form-control inputField-customizable"
               style={{ height: '40px' }}
@@ -249,7 +252,7 @@ const LOGIN = () => {
               )}
             </button>
           </div>
-          <span className='idpDescription-customizable'> Verify your new password </span>
+          <span className='idpDescription-customizable'>{t('registration_app_password_reenter_password"')} </span>
           <div className="input-group">
             <input id="signInFormNewPassword" name="newPassword" type={passwordType} className="form-control inputField-customizable"
               style={{ height: '40px' }}

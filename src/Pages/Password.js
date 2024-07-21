@@ -5,6 +5,7 @@ import { Button, Spinner } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 import { getApti } from '../Components/utils';
+import { useTranslation } from 'react-i18next';
 
 const LOGIN = () => {
   const navigate = useNavigate();
@@ -41,6 +42,8 @@ const LOGIN = () => {
   const [errorMsg, setErrorMsg] = useState(null);
   const [password, setPassword] = useState('');
   const [isLoading, setLoading] = useState(false);
+
+  const { t } = useTranslation();
 
   const confirmLogin = (e) => {
     if (e.key === "Enter") {
@@ -198,11 +201,11 @@ const LOGIN = () => {
 
   return (
     <div>
-      <span><h4>{config?.branding.login_app_main_page_header}</h4></span>
+      <span><h4>{t('login_app_main_page_header')}</h4></span>
       <div style={{ height: "0.2em" }} />
       <hr className="hr-customizable" />
       <div>
-        <span className='idpDescription-customizable'> {config?.branding.login_app_password_message}</span>
+        <span className='idpDescription-customizable'> {t('login_app_password_message')}</span>
         <div style={{ height: "0.5em" }} />
         <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
           placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}

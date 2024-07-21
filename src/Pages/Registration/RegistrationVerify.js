@@ -6,8 +6,9 @@ import { apiUrl } from '../../const';
 
 import 'react-phone-number-input/style.css'
 import InfoMsg from '../../Components/InfoMsg';
+import { useTranslation } from 'react-i18next';
 
-const CONTENT = ({updatetimer}) => {
+const CONTENT = ({ updatetimer }) => {
 	const navigate = useNavigate();
 	const location = useLocation();
 
@@ -22,6 +23,8 @@ const CONTENT = ({updatetimer}) => {
 	const [isVerified, setVerified] = useState(false);
 	const [isIniting, setIniting] = useState(true);
 	const [otpcode, setOtpcode] = useState('');
+
+	const { t } = useTranslation();
 
 	const sendOTP = async (isResend) => {
 		// console.log('send SignUp new OTP');
@@ -216,8 +219,8 @@ const CONTENT = ({updatetimer}) => {
 				<div>
 					<span className='idpDescription-customizable'> Email Verification </span>
 					<span>
-						A one-time registration code was emailed to you at {email}.
-						Please retrieve it, enter it below and click Complete Registration.</span>
+						{t('registration_app_verify_retreive_message')}
+					</span>
 					<hr className="hr-customizable" />
 					<input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
 						style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
@@ -234,7 +237,7 @@ const CONTENT = ({updatetimer}) => {
 						className='btn btn-primary submitButton-customizable'
 						style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
 						disabled={isLoading}
-						onClick={handleOTPVerify} 
+						onClick={handleOTPVerify}
 					>
 						{'Verify OTP'}
 					</Button>
@@ -264,7 +267,7 @@ const CONTENT = ({updatetimer}) => {
 const RegistrationVerify = ({ updatetimer }) => {
 
 	return (
-		<CONTENT updatetimer={updatetimer}/>
+		<CONTENT updatetimer={updatetimer} />
 	)
 }
 export default RegistrationVerify;

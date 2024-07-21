@@ -5,6 +5,7 @@ import { Button, Spinner } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
 import { validateEmail } from '../Components/utils';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
+import { useTranslation } from 'react-i18next';
 
 const LOGIN = () => {
     const location = useLocation();
@@ -17,6 +18,8 @@ const LOGIN = () => {
     const [email, setEmail] = useState(localStorage.getItem('amfa-username') || '');
     const [password, setPassword] = useState('');
     const [isLoading, setLoading] = useState(false);
+
+    const { t } = useTranslation();
 
     const confirmLogin = (e) => {
         if (e.key === "Enter") {
@@ -97,10 +100,10 @@ const LOGIN = () => {
 
     return (
         <div>
-            <span><h4>{config?.branding.update_profile_app_main_page_header}</h4></span>
+            <span><h4>{t('update_profile_app_main_page_header')}</h4></span>
             <div style={{ height: "0.2em" }} />
             <hr className="hr-customizable" />
-            <span className='idpDescription-customizable'> {config?.branding.update_profile_app_main_page_message} </span>
+            <span className='idpDescription-customizable'> {t('update_profile_app_main_page_message')} </span>
             {config?.enable_self_service &&
                 <div>
                     <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
@@ -110,7 +113,7 @@ const LOGIN = () => {
                         autoFocus
                         disabled={isLoading}
                     />
-                    <span className='idpDescription-customizable'> {config?.branding.update_profile_app_main_page_password_message} </span>
+                    <span className='idpDescription-customizable'> {t('update_profile_app_main_page_password_message')} </span>
                     <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
                         placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)}
                         onKeyUp={e => confirmLogin(e)}

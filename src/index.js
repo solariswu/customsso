@@ -6,6 +6,8 @@ import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import './bootstrap.css';
 import './index.css';
 import App from './App';
+import './i18n.js';
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

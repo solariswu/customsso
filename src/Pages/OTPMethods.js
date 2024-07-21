@@ -7,6 +7,7 @@ import InfoMsg from '../Components/InfoMsg';
 import { apiUrl, applicationUrl } from '../const';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 import { getApti } from '../Components/utils';
+import { useTranslation } from 'react-i18next';
 
 const OTPMethods = () => {
     const navigate = useNavigate();
@@ -17,6 +18,8 @@ const OTPMethods = () => {
     const [showOTP, setShowOTP] = useState(false);
     const [msg, setMsg] = useState(location.state?.msg);
     const [isLoading, setLoading] = useState(false);
+
+    const { t} = useTranslation();
 
     const email = location.state?.email;
     const uuid = location.state?.uuid;
@@ -292,7 +295,7 @@ const OTPMethods = () => {
 
     return (
         <div>
-            <span><h4>{config?.branding.update_provile_app_portal_header}</h4></span>
+            <span><h4>{t('update_provile_app_portal_header')}</h4></span>
             {
                 showOTP &&
                 <span className='idpDescription-customizable' style={{ color: '#4E95D9' }}>

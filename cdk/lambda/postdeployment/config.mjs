@@ -82,7 +82,7 @@ export const amfaConfigs = {
         "t"
     ],
     "user_registration_default_group": "user",
-    "mobile_token_svc_name" : "aPersona AMFA",
+    "mobile_token_svc_name": "aPersona AMFA",
     "update_profile_force_mobile_token_first_if_registered": true,
     "COMMENT-totp": "This totp information must match the aPersona Adaptive Security Manager Tenant/Client ID and associated salt. salt now is saving in secret manager",
     "totp": {
@@ -97,24 +97,10 @@ export const amfaConfigs = {
 
 export const amfaBrandings =
 {
-    service_name: "apersona",
-    logo_url: "https://downloads.apersona.com/downloads/aPersona_Logos_Package/aPLogo-370x67.png",
-    email_logo_url: "https://downloads.apersona.com/downloads/aPersona_Logos_Package/aPLogo-370x67.png",
-    brand_base_color: "#42739C",
-    login_app_main_page_header: "Sign in to your account",
-    login_app_main_page_message: "Login with your account email address.",
-    login_app_password_message: "Please enter your password",
-    login_app_verification_page_header: "Your login requires an additional verificaiton.",
-    login_app_verify_page_message: "Please click on one of your verification methods, then enter it below, and click Verify",
-    update_profile_app_main_page_header: "Update Profile",
-    update_profile_app_main_page_message: "Login with your account email address.",
-    update_profile_app_main_page_password_message: "Please enter your password",
-    update_profile_app_verify1_message: "Access requires 2 verifications. Verification Step 1. Choose contact method:",
-    update_profile_app_verify2_message: "Access requires 2 verifications. Verification Step 2. Choose contact method:",
-    update_profile_app_verify_retreive_message: "A verification code has been sent to you. Please retrieve it, enter it below and click Verify.",
-    update_provile_app_portal_header: "Update Profile: Verify Methods",
-    password_reset_page_header: "Password Reset",
-    force_password_reset_page_header: "Password Reset Required",
+    service_name: "ASTARICS",
+    logo_url: "https://downloads.apersona.com/logos/astarics_logo.png",
+    email_logo_url: "https://downloads.apersona.com/logos/astarics_logo.png",
+    brand_base_color: "#009AD0",
     consent_content: 'By signing up, I accept the <a href="https://example.com" target="_blank">privacy policy</a> and the <a href="https://example2.com" target="_blank"> terms &amp; conditions</a>',
 }
 

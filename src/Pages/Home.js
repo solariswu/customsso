@@ -8,6 +8,8 @@ import { getApti, validateEmail } from '../Components/utils';
 import InfoMsg from '../Components/InfoMsg';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 
+import { useTranslation } from "react-i18next";
+
 const LOGIN = () => {
 
   const [msg, setMsg] = useState({ msg: '', type: '' });
@@ -18,6 +20,7 @@ const LOGIN = () => {
   const [rememberDevice, setRememberDevice] = useState(localStorage.getItem('amfa-remember-device') || 'false');
   const [email, setEmail] = useState(localStorage.getItem('amfa-username') || '');
   const [isIniting, setIniting] = useState(true);
+  const { t } = useTranslation();
 
   const config = useFeConfigs();
 
@@ -196,11 +199,11 @@ const LOGIN = () => {
   return (
     <div>
       <span style={{ padding: "5px 0 5px 0" }}>
-        <h4>{config?.branding.login_app_main_page_header}</h4>
+        <h4>{t('login_app_main_page_header')}</h4>
       </span>
       <div style={{ height: "0.2em" }} />
       <hr className="hr-customizable" />
-      <span className='idpDescription-customizable'> {config?.branding.login_app_main_page_message} </span>
+      <span className='idpDescription-customizable'> {t('login_app_main_page_message')} </span>
       <hr className="hr-customizable" />
       <div>
         <input

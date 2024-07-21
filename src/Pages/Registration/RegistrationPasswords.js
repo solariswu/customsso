@@ -5,6 +5,7 @@ import { Button, Spinner } from 'reactstrap';
 import { validatePassword, check_pwn_password } from '../../Components/utils';
 import PwnedPWDModal from '../../Components/PwnedPWDModal';
 import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
+import { useTranslation } from 'react-i18next';
 
 
 const LOGIN = () => {
@@ -41,6 +42,8 @@ const LOGIN = () => {
   const [newPassword, setNewPassword] = useState('');
   const [passwordType, setPasswordType] = useState('password');
   const [pwnedpasswords, setPwnedpasswords] = useState(false);
+
+  const {t} = useTranslation();
 
   const confirmSignUp = (e) => {
     if (e.key === "Enter") {
@@ -119,7 +122,7 @@ const LOGIN = () => {
       <span><h4>Registration</h4></span>
       <hr className="hr-customizable" />
       <div>
-        <span className='idpDescription-customizable'> Enter your password </span>
+        <span className='idpDescription-customizable'> {t('registration_app_password_input_new_password')} </span>
         <div className="input-group">
           <input id="signInFormPassword" name="password" type={passwordType} className="form-control inputField-customizable"
             style={{ height: '40px' }}
@@ -153,7 +156,7 @@ const LOGIN = () => {
             )}
           </button>
         </div>
-        <span className='idpDescription-customizable'> Verify your new password </span>
+        <span className='idpDescription-customizable'> {t('registration_app_password_reenter_password')}</span>
         <div className="input-group">
           <input id="signInFormNewPassword" name="newPassword" type={passwordType} className="form-control inputField-customizable"
             style={{ height: '40px' }}

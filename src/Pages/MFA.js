@@ -6,6 +6,7 @@ import { Button } from 'reactstrap';
 import { apiUrl, applicationUrl } from '../const';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 import InfoMsg from '../Components/InfoMsg';
+import { useTranslation } from 'react-i18next';
 
 const MFAContent = () => {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ const MFAContent = () => {
   const [isLoading, setLoading] = useState(false);
   const [otp, setOtp] = useState({ type: '', code: '', addr: '' });
   const [otpInFly, setOtpInFly] = useState('');
+
+  const { t } = useTranslation();
 
   useEffect(() => {
 
@@ -305,7 +308,7 @@ const MFAContent = () => {
   if (OTPMethodsCount === 0) {
     return (
       <div>
-        <span> <h4>{config?.branding.login_app_verification_page_header}</h4> </span>
+        <span> <h4>{t('login_app_verification_page_header')}</h4> </span>
         <hr className='hr-customizable' />
         <div>
           <span
@@ -336,20 +339,20 @@ const MFAContent = () => {
   const SubjectMessage = ({ otpInFly, OTPMethodsCount }) => {
     if (otpInFly === '' || !otpInFly) {
       return (OTPMethodsCount > 1 ?
-        config?.branding.login_app_verify_page_message :
-        'Access requires a verification. Click your ID below to receive a one time verification code.')
+        t('login_app_verify_page_message') : t('login_app_verify_page_message2')
+      )
     }
 
     if (otpInFly === 't') {
       return (<>Please enter your mobile authenticator one-time code below and click Verify.</>)
     }
 
-    return config?.branding.update_profile_app_verify_retreive_message
+    return t('update_profile_app_verify_retreive_message')
   }
 
   return (
     <div>
-      <span> <h4>{config?.branding.login_app_verification_page_header}</h4> </span>
+      <span> <h4>{t('login_app_verification_page_header')}</h4> </span>
       <hr className='hr-customizable' />
       <div>
         <span

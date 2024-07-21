@@ -8,6 +8,7 @@ import InfoMsg from './InfoMsg';
 import { getApti } from './utils';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 import { OTPDialog } from './OTPDialog';
+import { useTranslation } from 'react-i18next';
 
 export const OTP = () => {
   const navigate = useNavigate();
@@ -24,9 +25,8 @@ export const OTP = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogOtp, setDialogOtp] = useState('');
   const toggle = () => setDialogOpen(!dialogOpen)
-
-
   const [apti, setApti] = useState(null);
+  const { t } = useTranslation();
 
   const useFocus = () => {
     const htmlElRef = useRef(null)
@@ -483,15 +483,15 @@ export const OTP = () => {
     )
   }
 
-  const OTPPageTitle = ({ type, typeExtra, branding }) =>
+  const OTPPageTitle = ({ type, typeExtra }) =>
     <>
       <span><h4>
         {
           typeExtra === 'RESET_REQUIRED' || typeExtra === 'PASSWORD_EXPIRED' ?
-            branding.force_password_reset_page_header :
+            t('force_password_reset_page_header') :
             type === 'passwordreset' ?
-              branding.password_reset_page_header :
-              branding.update_profile_app_main_page_header
+              t('password_reset_page_header') :
+              t('update_profile_app_main_page_header')
         }
       </h4> </span>
       {typeExtra === 'PASSWORD_EXPIRED' && 'Your password is expired'}
@@ -503,14 +503,14 @@ export const OTP = () => {
         // with mobile TOTP, OTPMethodsCount would be one when there is another MFA other than mobile TOTP
         return (<>Access requires a verification.<br /> Click your ID below to receive a one time verification code</>)
       }
-      return (currentStage === 2 ? config?.branding.update_profile_app_verify2_message : config?.branding.update_profile_app_verify1_message)
+      return (currentStage === 2 ? t('update_profile_app_verify2_message') : t('update_profile_app_verify1_message'))
     }
 
     if (otpInFly === 't') {
       return (<>Please enter your mobile authenticator one-time code below and click Verify.</>)
     }
 
-    return config?.branding.update_profile_app_verify_retreive_message
+    return t('update_profile_app_verify_retreive_message')
   }
 
   return (
@@ -522,7 +522,7 @@ export const OTP = () => {
         open={dialogOpen}
         toggle={toggle}
       />
-      <OTPPageTitle type={location.state?.type} typeExtra={location.state?.typeExtra} branding={config?.branding} />
+      <OTPPageTitle type={location.state?.type} typeExtra={location.state?.typeExtra} />
       <div style={{ height: "0.2em" }} />
       <hr className='hr-customizable' />
       <div>

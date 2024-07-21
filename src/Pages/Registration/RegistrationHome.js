@@ -9,6 +9,7 @@ import InfoMsg from '../../Components/InfoMsg';
 import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
 
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { useTranslation } from 'react-i18next';
 
 
 const LOGIN = () => {
@@ -22,6 +23,8 @@ const LOGIN = () => {
   const [msg, setMsg] = useState({ msg: '', type: '' });
   const [consent, setConsent] = useState(false);
   const [email, setEmail] = useState(location.state ? location.state.email : '');
+
+  const { t } = useTranslation();
 
   const setErrorMsg = (msg) => {
     setMsg({ msg, type: 'error' });
@@ -148,7 +151,7 @@ const LOGIN = () => {
   return (
     <div>
       <span>
-        <h4>Registration</h4>
+        <h4>{t('registration_app_main_page_header')}</h4>
       </span>
       <hr className="hr-customizable" />
 
@@ -164,7 +167,7 @@ const LOGIN = () => {
             dangerouslySetInnerHTML={{ __html: config?.branding.consent_content }} />
         </div>
         <hr className='hr-customizable' />
-        <span className='idpDescription-customizable'> Enter your {config?.branding.service_name} account ID </span>
+        <span className='idpDescription-customizable'> {t('registration_app_main_page_input_email')} </span>
         <div>
           <input name="email" id="email" className="form-control inputField-customizable" placeholder="user@email.com"
             autoCapitalize="none" required aria-label="email" value={email} type="email" onChange={(e) => setEmail(e.target.value.toLowerCase())}
