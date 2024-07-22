@@ -82,7 +82,7 @@ export const amfaConfigs = {
         "t"
     ],
     "user_registration_default_group": "user",
-    "mobile_token_svc_name": "aPersona AMFA",
+    "mobile_token_svc_name": "WeaveAI AMFA",
     "update_profile_force_mobile_token_first_if_registered": true,
     "COMMENT-totp": "This totp information must match the aPersona Adaptive Security Manager Tenant/Client ID and associated salt. salt now is saving in secret manager",
     "totp": {
