@@ -539,7 +539,7 @@ export const OTP = () => {
         data?.otpOptions.map((option) => ((otpInFly === '' || otpInFly === option) && <OTPElement otptype={option} />))}
       <br />
       <div>
-        {otpInFly && otpInFly !== '' &&
+        {otpInFly !== '' &&
           <>
             <input
               name="otpcode" id="otpcode" type="tel"
@@ -573,7 +573,7 @@ export const OTP = () => {
         }
         {!isLoading && showOTP &&
           (((config?.update_profile_force_mobile_token_first_if_registered && data?.mobileToken && otpInFly === 't') ||
-            (OTPMethodsCount === 1)) ?
+            (OTPMethodsCount === 1) || otpInFly === '') ?
             <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
               onClick={() => window.location.assign(applicationUrl)}
             >
