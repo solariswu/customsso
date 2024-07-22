@@ -118,7 +118,7 @@ export const handler = async (event) => {
           return;
         case 'admingetsecretinfo':
           console.log('admin get secret of tenants', payload.tenantid);
-          const result = await adminGetSecrets(payload.tenantid);
+          const result = /*await*/ adminGetSecrets(payload.tenantid);
           if (result) {
             return responseWithRequestId(200, result, requestId)
           }
