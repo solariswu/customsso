@@ -13,6 +13,7 @@
 		"constructs": "^10.0.0",
 		"esbuild": "^0.23.0",
 		"i18next": "^23.12.2",
+		"nodemailer": "^6.9.14",
 		"otplib": "^12.0.1",
 		"qrcode": "^1.5.3",
 		"react": "^18.2.0",
