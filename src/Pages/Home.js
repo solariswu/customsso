@@ -234,12 +234,14 @@ const LOGIN = () => {
         >
           {isLoading ? 'Sending...' : 'Sign In'}
         </Button>
-        <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
-          onClick={() => window.location.assign(applicationUrl)}
-          style={{marginTop: '10px'}}
-        >
-          Back to Login
-        </Button>
+        {!isLoading &&
+          <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
+            onClick={() => window.location.assign(applicationUrl)}
+            style={{ marginTop: '10px' }}
+          >
+            Back to Login
+          </Button>
+        }
       </div>
       {config?.enable_user_registration && !isLoading && <div>
         <span className='textDescription-customizable'> New User?

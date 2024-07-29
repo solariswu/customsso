@@ -123,7 +123,7 @@ export class TenantApiGateway {
       this.scope,
       `${lambdaName}-${tenantId}`,
       {
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
         handler: `${lambdaName}.handler`,
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}/dist`)),
         environment: {
@@ -193,7 +193,7 @@ export class TenantApiGateway {
       this.scope,
       `${lambdaName}-${this.tenantId}`,
       {
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
         handler: `${lambdaName}.handler`,
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
         environment: {
@@ -228,7 +228,7 @@ export class TenantApiGateway {
       this.scope,
       `${lambdaName}-${this.tenantId}`,
       {
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
         handler: `${lambdaName}.handler`,
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
         environment: {
@@ -260,7 +260,7 @@ export class TenantApiGateway {
       this.scope,
       `${lambdaName}-${this.tenantId}`,
       {
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
         handler: `${lambdaName}.handler`,
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
         environment: {
@@ -295,7 +295,7 @@ export class TenantApiGateway {
       this.scope,
       `${lambdaName}-${this.tenantId}`,
       {
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
         handler: `${lambdaName}.handler`,
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
         environment: {
@@ -325,7 +325,7 @@ export class TenantApiGateway {
       this.scope,
       `${lambdaName}lambda-${this.tenantId}`,
       {
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
         handler: `${lambdaName}.handler`,
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}/dist`)),
         environment: {
@@ -421,7 +421,7 @@ export class TenantApiGateway {
       this.scope,
       `${lambdaName}-${this.tenantId}`,
       {
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
         handler: `${lambdaName}.handler`,
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
         environment: {
@@ -515,7 +515,7 @@ export class TenantApiGateway {
       });
 
     const myLambda = new Function(this.scope, `amfa-customauth-${name}-${this.tenantId}`, {
-      runtime: name === 'token' ? Runtime.PYTHON_3_9 : Runtime.NODEJS_18_X,
+      runtime: name === 'token' ? Runtime.PYTHON_3_12 : Runtime.NODEJS_20_X,
       handler: name === 'token' ? `my${name}.handler` : `${name}.handler`,
       code: Code.fromAsset(path.join(__dirname, `/../lambda/${name}`)),
       environment: {
@@ -587,7 +587,7 @@ export class TenantApiGateway {
       })
 
     const myLambda = new Function(this.scope, `amfa-totptoken-${fnName}-${this.tenantId}`, {
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       handler: `${fnName}.handler`,
       code: Code.fromAsset(path.join(__dirname, `/../lambda/${fnName}/dist`)),
       environment: {

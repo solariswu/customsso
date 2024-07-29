@@ -56,7 +56,7 @@ export const createCustomMessageLambda = (scope: Construct, configTable: Table, 
   const lambdaName = 'custommessage';
 
   const lambda = new Function(scope, lambdaName, {
-    runtime: Runtime.NODEJS_18_X,
+    runtime: Runtime.NODEJS_20_X,
     handler: 'index.handler',
     code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
     environment: {

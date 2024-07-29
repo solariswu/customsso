@@ -223,9 +223,9 @@ export class TenantUserPool {
 
   private addCustomAuthLambdaTriggers() {
     const authChallengeFnsConfig = [
-      { name: 'createauthchallenge', runtime: Runtime.PYTHON_3_9 },
-      { name: 'defineauthchallenge', runtime: Runtime.NODEJS_18_X },
-      { name: 'verifyauthchallenge', runtime: Runtime.NODEJS_18_X },
+      { name: 'createauthchallenge', runtime: Runtime.PYTHON_3_12 },
+      { name: 'defineauthchallenge', runtime: Runtime.NODEJS_20_X },
+      { name: 'verifyauthchallenge', runtime: Runtime.NODEJS_20_X },
     ];
     const authChallengeFns = authChallengeFnsConfig.map((fn) =>
       createAuthChallengeFn(this.scope, fn.name, fn.runtime, this.tenantId)
