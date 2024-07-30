@@ -1,4 +1,6 @@
-import * as sha1 from 'sha1'
+// import * as sha1 from 'sha1'
+import { sha1 } from 'js-sha1';
+
 export const getApti = () => {
   return (Math.random().toString(36).substring(2, 16) + Math.random().toString(36).substring(2, 16))
 }
