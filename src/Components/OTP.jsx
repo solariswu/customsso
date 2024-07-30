@@ -155,10 +155,18 @@ export const OTP = () => {
   const sendOtp = async (otptype, e) => {
     if (e) e.preventDefault();
     // console.log('sendOtp, with type', otptype)
-    if (otptype && otptype !== '' && (otptype === 't' || otptype === otpInFly)) {
+
+    // ignore resend for mobile otp
+    if (otptype === otpInFly && otptype === 't') {
+      return
+    }
+
+    if (otptype !== '' && (otptype === 't' || otptype === otpInFly)) {
+      // mobile otp or resend otp
       await sendOtpConfirmed(otptype)
     }
     else {
+      // initiate send for non mobile otp
       setDialogOtp(otptype);
       setDialogOpen(true);
     }

@@ -1,37 +1,43 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import {useState, useEffect} from 'react';
+import {useNavigate, useLocation} from 'react-router-dom';
 
-import { Button } from 'reactstrap';
+import {Button} from 'reactstrap';
 
-import { apiUrl, applicationUrl } from '../const';
-import { useFeConfigs } from '../DataProviders/FeConfigProvider';
+import {apiUrl, applicationUrl} from '../const';
+import {useFeConfigs} from '../DataProviders/FeConfigProvider';
 import InfoMsg from '../Components/InfoMsg';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
 const MFAContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const config = useFeConfigs();
 
-  const [msg, setMsg] = useState({ msg: '', type: '' });
+  const [msg, setMsg] = useState({msg: '', type: ''});
   const [isLoading, setLoading] = useState(false);
-  const [otp, setOtp] = useState({ type: '', code: '', addr: '' });
+  const [otp, setOtp] = useState({type: '', code: '', addr: ''});
   const [otpInFly, setOtpInFly] = useState('');
 
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   useEffect(() => {
-
     if (!location.state) {
       navigate('/');
       return;
-    }
-    else {
-      window.history.pushState('fake-route', document.title, window.location.href);
+    } else {
+      window.history.pushState(
+        'fake-route',
+        document.title,
+        window.location.href
+      );
 
-      window.addEventListener('popstate', () => console.log('back pressed in MFA'));
+      window.addEventListener('popstate', () =>
+        console.log('back pressed in MFA')
+      );
       return () => {
-        window.removeEventListener('popstate', () => console.log('back pressed in MFA'));
+        window.removeEventListener('popstate', () =>
+          console.log('back pressed in MFA')
+        );
         // If we left without using the back button, aka by using a button on the page, we need to clear out that fake history event
         if (window.history.state === 'fake-route') {
           window.history.back();
@@ -55,26 +61,27 @@ const MFAContent = () => {
   let otpOptions = location.state?.otpOptions;
 
   const setInfoMsg = (msg) => {
-    setMsg({ msg, type: 'info' });
-  }
+    setMsg({msg, type: 'info'});
+  };
 
   const setErrorMsg = (msg) => {
-    setMsg({ msg, type: 'error' });
-  }
+    setMsg({msg, type: 'error'});
+  };
 
   const setOTPCode = (e) => {
-    e === '' ? setOtp({ ...otp, code: '' }) :
-      setOtp({ ...otp, code: e?.target?.value });
-  }
+    e === ''
+      ? setOtp({...otp, code: ''})
+      : setOtp({...otp, code: e?.target?.value});
+  };
 
   const confirmLogin = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       stepfour(e);
     }
-  }
+  };
 
   const sendOtp = async (otptype) => {
-    setOtp({ ...otp, type: otptype });
+    setOtp({...otp, type: otptype});
 
     const sendOtpParams = {
       email,
@@ -84,7 +91,7 @@ const MFAContent = () => {
       otptype,
       state,
       redirectUri,
-      phase: 'sendotp'
+      phase: 'sendotp',
     };
 
     setLoading(true);
@@ -105,8 +112,7 @@ const MFAContent = () => {
               setInfoMsg('');
             }, 8000);
             setOtpInFly(otptype);
-          }
-          else {
+          } else {
             setErrorMsg('Unknown OTP send error, please contact help desk.');
           }
           break;
@@ -115,34 +121,38 @@ const MFAContent = () => {
           if (resultMsg401.message) {
             localStorage.setItem('OTPErrorMsg', resultMsg401.message);
             // window.history.go(-4);
-            window.location.assign(`${applicationUrl}?err=${resultMsg401.message}`);
+            window.location.assign(
+              `${applicationUrl}?err=${resultMsg401.message}`
+            );
             return;
-          }
-          else {
+          } else {
             setErrorMsg('Unknown OTP send error, please contact help desk.');
           }
           break;
         default:
           const data = await result.json();
           if (data) {
-            setErrorMsg(data.message ? data.message : data.name ? data.name : JSON.stringify(data));
-          }
-          else {
+            setErrorMsg(
+              data.message
+                ? data.message
+                : data.name
+                ? data.name
+                : JSON.stringify(data)
+            );
+          } else {
             setErrorMsg('Unknown error, please contact help desk.');
           }
           break;
       }
       setLoading(false);
-    }
-    catch (err) {
+    } catch (err) {
       // console.error('error in OTP login', err);
       setErrorMsg('OTP login error, please contact help desk.');
       setLoading(false);
     }
-  }
+  };
 
   const stepfour = async (e) => {
-
     if (!otp.code || otp.code.length < 1) {
       setErrorMsg('Please enter the verification code');
       return;
@@ -157,13 +167,13 @@ const MFAContent = () => {
       otpcode: otp.code,
       state,
       redirectUri,
-      phase: 'verifyotp'
+      phase: 'verifyotp',
     };
 
     // console.log('verify otp params:', verifyOtpParams);
 
     setLoading(true);
-    setOtp({ ...otp, code: '', addr: '' });
+    setOtp({...otp, code: '', addr: ''});
     setErrorMsg('');
     try {
       const result = await fetch(`${apiUrl}/amfa`, {
@@ -179,9 +189,10 @@ const MFAContent = () => {
           if (response.location) {
             window.location.assign(response.location);
             return;
-          }
-          else {
-            setErrorMsg('Unknown OTP verification system error, please contact help desk.');
+          } else {
+            setErrorMsg(
+              'Unknown OTP verification system error, please contact help desk.'
+            );
             setOtpInFly('');
           }
           break;
@@ -191,11 +202,14 @@ const MFAContent = () => {
           if (resultMsg.message) {
             localStorage.setItem('OTPErrorMsg', resultMsg.message);
             // window.history.go(-4);
-            window.location.assign(`${applicationUrl}?err=${resultMsg.message}`);
+            window.location.assign(
+              `${applicationUrl}?err=${resultMsg.message}`
+            );
             return;
-          }
-          else {
-            setErrorMsg('Unknown OTP verification error, please contact help desk.');
+          } else {
+            setErrorMsg(
+              'Unknown OTP verification error, please contact help desk.'
+            );
             setOTPCode('');
           }
           break;
@@ -203,23 +217,27 @@ const MFAContent = () => {
         default:
           const data = await result.json();
           if (data) {
-            setErrorMsg(data.message ? data.message : data.name ? data.name : JSON.stringify(data));
-          }
-          else {
+            setErrorMsg(
+              data.message
+                ? data.message
+                : data.name
+                ? data.name
+                : JSON.stringify(data)
+            );
+          } else {
             setErrorMsg('Unknown error, please contact help desk.');
           }
           setOTPCode('');
           break;
       }
       setLoading(false);
-    }
-    catch (err) {
+    } catch (err) {
       setLoading(false);
       console.error('error in password login', err);
       setErrorMsg('OTP login error, please contact help desk.');
       setOTPCode('');
     }
-  }
+  };
 
   let OTPMethodsCount = 0;
 
@@ -227,34 +245,30 @@ const MFAContent = () => {
     otpOptions.forEach((option) => {
       switch (option) {
         case 'e':
-          if (email)
-            OTPMethodsCount++;
+          if (email) OTPMethodsCount++;
           break;
         case 'ae':
-          if (aemail)
-            OTPMethodsCount++;
+          if (aemail) OTPMethodsCount++;
           break;
         case 's':
-          if (phoneNumber)
-            OTPMethodsCount++;
+          if (phoneNumber) OTPMethodsCount++;
           break;
         case 'v':
-          if (vPhoneNumber && vPhoneNumber !== phoneNumber)
-            OTPMethodsCount++;
+          if (vPhoneNumber && vPhoneNumber !== phoneNumber) OTPMethodsCount++;
           break;
         case 't':
-          if (mobileToken)
-            OTPMethodsCount++;
-          break
+          if (mobileToken) OTPMethodsCount++;
+          break;
         default:
           break;
       }
-    })
+    });
   }
 
-  const OTPElement = ({ otptype }) => {
-
-    const maskedEmail = `${email[0]}xxx@${email[email.lastIndexOf('@') + 1]}xx.${email.substring((email.lastIndexOf('.') + 1))}`;
+  const OTPElement = ({otptype}) => {
+    const maskedEmail = `${email[0]}xxx@${
+      email[email.lastIndexOf('@') + 1]
+    }xx.${email.substring(email.lastIndexOf('.') + 1)}`;
 
     const table = {
       e: {
@@ -275,145 +289,199 @@ const MFAContent = () => {
       },
       t: {
         title: 'Mobile TOTP',
-        content: mobileToken ? `${config?.mobile_token_svc_name ? config.mobile_token_svc_name : 'amfa'}\n${maskedEmail}` : null,
-      }
+        content: mobileToken
+          ? `${
+              config?.mobile_token_svc_name
+                ? config.mobile_token_svc_name
+                : 'amfa'
+            }\n${maskedEmail}`
+          : null,
+      },
     };
 
-    return (table[otptype].content &&
-      <div className='row'>
-        <div className='col-5 mt-2 text-left'>
-          {table[otptype].title}:
+    return (
+      table[otptype].content && (
+        <div className='row'>
+          <div className='col-5 mt-2 text-left'>{table[otptype].title}:</div>
+          <div className='col mt-2 text-left'>
+            <span
+              className='link-customizable'
+              onClick={() => {
+                if (otptype !== 't' || otpInFly !== otptype) {
+                  // only resend when it is not mobile OTP
+                  sendOtp(otptype);
+                }
+              }}
+            >
+              {table[otptype].content}
+            </span>
+            {otpInFly === '' && otptype === 't' && (
+              <div style={{fontSize: '0.7em', fontStyle: 'italic'}}>
+                {mobileToken}
+              </div>
+            )}
+            {otpInFly === otptype && (
+              <div style={{fontSize: '0.7em', fontStyle: 'italic'}}>
+                {otptype === 't' ? mobileToken : '(resend code)'}
+              </div>
+            )}
+          </div>
         </div>
-        <div className='col mt-2 text-left'>
-          <span className='link-customizable' onClick={() => sendOtp(otptype)}>
-            {table[otptype].content}
-          </span>
-          {
-            otpInFly === '' && otptype === 't' &&
-            <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>
-              {mobileToken}
-            </div>
-          }
-          {
-            otpInFly === otptype &&
-            <div style={{ fontSize: '0.7em', fontStyle: 'italic' }}>
-              {otptype === 't' ? mobileToken : '(resend code)'}
-            </div>
-          }
-        </div>
-      </div>
-    )
-  }
+      )
+    );
+  };
 
   if (OTPMethodsCount === 0) {
     return (
       <div>
-        <span> <h4>{t('login_app_verification_page_header')}</h4> </span>
+        <span>
+          {' '}
+          <h4>{t('login_app_verification_page_header')}</h4>{' '}
+        </span>
         <hr className='hr-customizable' />
         <div>
-          <span
-            style={{ lineHeight: '1rem', color: 'grey' }}
-          >
-            Your account does not have sufficient verification methods to log in. Please update your profile.
+          <span style={{lineHeight: '1rem', color: 'grey'}}>
+            Your account does not have sufficient verification methods to log
+            in. Please update your profile.
           </span>
           <hr className='hr-customizable' />
         </div>
         <div>
-          <Button name='updateprofile' type="submit" className="btn btn-primary submitButton-customizable"
-            onClick={() => navigate('/otpmethods', {
-              state: {
-                email,
-                uuid,
-                validated: true,
-                msg: { msg: '', type: '' },
-              }
-            })}
+          <Button
+            name='updateprofile'
+            type='submit'
+            className='btn btn-primary submitButton-customizable'
+            onClick={() =>
+              navigate('/otpmethods', {
+                state: {
+                  email,
+                  uuid,
+                  validated: true,
+                  msg: {msg: '', type: ''},
+                },
+              })
+            }
           >
             Update Profile
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
-  const SubjectMessage = ({ otpInFly, OTPMethodsCount }) => {
+  const SubjectMessage = ({otpInFly, OTPMethodsCount}) => {
     if (otpInFly === '' || !otpInFly) {
-      return (OTPMethodsCount > 1 ?
-        t('login_app_verify_page_message') : t('login_app_verify_page_message2')
-      )
+      return OTPMethodsCount > 1
+        ? t('login_app_verify_page_message')
+        : t('login_app_verify_page_message2');
     }
 
     if (otpInFly === 't') {
-      return (<>Please enter your mobile authenticator one-time code below and click Verify.</>)
+      return (
+        <>
+          Please enter your mobile authenticator one-time code below and click
+          Verify.
+        </>
+      );
     }
 
-    return t('update_profile_app_verify_retreive_message')
-  }
+    return t('update_profile_app_verify_retreive_message');
+  };
 
   return (
     <div>
-      <span> <h4>{t('login_app_verification_page_header')}</h4> </span>
+      <span>
+        {' '}
+        <h4>{t('login_app_verification_page_header')}</h4>{' '}
+      </span>
       <hr className='hr-customizable' />
       <div>
-        <span
-          style={{ lineHeight: '1rem', color: 'grey' }}
-        >
-          <SubjectMessage otpInFly={otpInFly} OTPMethodsCount={OTPMethodsCount} />
+        <span style={{lineHeight: '1rem', color: 'grey'}}>
+          <SubjectMessage
+            otpInFly={otpInFly}
+            OTPMethodsCount={OTPMethodsCount}
+          />
         </span>
         <hr className='hr-customizable' />
       </div>
-      {otpOptions.map((option) => ((otpInFly === '' || otpInFly === option) && <OTPElement otptype={option} />))}
-      <div style={{ padding: '5px 0 0 0' }}>
-        {
-          otpInFly !== '' &&
+      {otpOptions.map(
+        (option) =>
+          (otpInFly === '' || otpInFly === option) && (
+            <OTPElement otptype={option} />
+          )
+      )}
+      <div style={{padding: '5px 0 0 0'}}>
+        {otpInFly !== '' && (
           <>
-            <input name="otpcode" id="otpcode" type="tel" className="form-control inputField-customizable" placeholder="####"
-              style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
-              autoCapitalize="none" required aria-label="otp code" value={otp.code} onChange={setOTPCode}
+            <input
+              name='otpcode'
+              id='otpcode'
+              type='tel'
+              className='form-control inputField-customizable'
+              placeholder='####'
+              style={{
+                width: '40%',
+                margin: 'auto 10px',
+                display: 'inline',
+                height: '40px',
+              }}
+              autoCapitalize='none'
+              required
+              aria-label='otp code'
+              value={otp.code}
+              onChange={setOTPCode}
               autoFocus
-              onKeyUp={e => confirmLogin(e)}
+              onKeyUp={(e) => confirmLogin(e)}
               disabled={isLoading || otpInFly === ''}
             />
             <Button
               name='verifyotp'
               type='submit'
               className='btn btn-primary submitButton-customizable'
-              style={{ width: '40%', margin: 'auto 10px', display: 'inline', height: '40px' }}
+              style={{
+                width: '40%',
+                margin: 'auto 10px',
+                display: 'inline',
+                height: '40px',
+              }}
               disabled={isLoading || otpInFly === ''}
               onClick={stepfour}
             >
               {isLoading ? 'Sending...' : 'Verify'}
             </Button>
           </>
-        }
+        )}
         {!isLoading && otpInFly === ''}
-        {
-          !isLoading && (OTPMethodsCount <= 1 || otpInFly === '') &&
-          <Button name="back" type="submit" className="btn btn-secondary submitButton-customizable-back"
+        {!isLoading && (OTPMethodsCount <= 1 || otpInFly === '') && (
+          <Button
+            name='back'
+            type='submit'
+            className='btn btn-secondary submitButton-customizable-back'
             disabled={isLoading}
             onClick={() => window.location.assign(applicationUrl)}
           >
             Back to Login
           </Button>
-        }
-        {!isLoading && otpInFly !== '' && OTPMethodsCount > 1 &&
-          <Button name='changeotp' type="submit" className="btn btn-secondary submitButton-customizable-back"
+        )}
+        {!isLoading && otpInFly !== '' && OTPMethodsCount > 1 && (
+          <Button
+            name='changeotp'
+            type='submit'
+            className='btn btn-secondary submitButton-customizable-back'
             disabled={isLoading}
             onClick={() => setOtpInFly('')}
           >
             Try another Channel
           </Button>
-        }
+        )}
       </div>
       <br />
       <InfoMsg isLoading={isLoading} msg={msg} />
     </div>
   );
-}
+};
 
 const MFA = () => {
-  return (
-    <MFAContent />
-  )
-}
+  return <MFAContent />;
+};
 export default MFA;
