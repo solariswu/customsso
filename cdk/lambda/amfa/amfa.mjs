@@ -10,7 +10,7 @@ import { notifyProfileChange } from './utils/mailer.mjs';
 import { deletePwdHashByUser } from './utils/passwordhash.mjs';
 import { headers, responseWithRequestId } from './utils/amfaUtils.mjs';
 import { adminGetSecrets } from './utils/admingetsecrets.mjs';
-import { validateEmail, validateTOTP, validateOTP } from './utils/inputValidate.mjs';
+import { validateEmail, validateTOTP, validateOTP, validatePhoneNumber } from './utils/inputValidate.mjs';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION, });
@@ -61,6 +61,8 @@ const validateInputParams = (payload) => {
       if (!payload.otptype || !C_OTP_TYPES.includes(payload.otptype)) return false;
       if (payload.otptype === 't' && validateTOTP(payload.otpcode)) return false;
       if (payload.otptype !== 't' && validateOTP(payload.otpcode)) return false;
+      if (payload.otptype === 'ae' && validateEmail(payload.newProfile)) return false;
+      if ((payload.otptype === 's' || payload.otptype === 'v') && validatePhoneNumber(payload.newProfile)) return false;
       return (payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam && payload.uuid);
     case 'getOtpOptions':
@@ -69,7 +71,8 @@ const validateInputParams = (payload) => {
     case 'removeProfile':
       return (payload.email && payload.authParam && payload.profile && payload.otptype && C_OTP_TYPES.includes(payload.otptype));
     case 'registotp':
-      return (payload.email && payload.uuid && payload.secretCode && !validateTOTP(payload.secretCode) && payload.tokenLabel && payload.tokenLabel.length <= 25);
+      return (payload.email && payload.uuid && payload.secretCode && payload.secretCode.length === 16 &&
+        !validateTOTP(payload.sixDigits) && payload.tokenLabel && payload.tokenLabel.length <= 25);
     case 'confirmOTPAddress':
       return (payload.email && payload.authParam && payload.otpaddr && payload.otptype && C_OTP_TYPES.includes(payload.otptype))
     default:
