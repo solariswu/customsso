@@ -97,7 +97,7 @@ const OTPMethods = () => {
                     >
                         {updateType === 'Phone Number' ? 'Mobile/SMS' : updateType === 'Voice Number' ? 'Voice' : updateType}:
                     </div>
-                    <div className='row text-left' style={{ color: '#4E95D9' }}>
+                    <div className='row text-left small' style={{ color: '#4E95D9' }}>
                         {profile ? profile : <div style={{ color: '#C0C0C0' }}>{'---'}</div>}
                     </div>
                 </div>
@@ -254,7 +254,7 @@ const OTPMethods = () => {
                 >
                     Mobile TOTP:
                 </div>
-                <div class="row" style={{ color: '#4E95D9' }}>
+                <div className='row text-left small' style={{ color: '#4E95D9' }}>
                     {data?.mobileToken ? data.mobileToken : <div style={{ color: '#C0C0C0' }}>{'---'}</div>}
                 </div>
             </div>

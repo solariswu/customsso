@@ -158,6 +158,16 @@ const MFAContent = () => {
       return;
     }
 
+    if (otp.type !== 't' && !/^\d{4}$/gm.test(otp.code)) {
+      setErrorMsg('Please enter valid otp code');
+      return;
+    }
+
+    if (otp.type === 't' && !/^\d{6}$/gm.test(otp.code)) {
+      setErrorMsg('Please enter valid mobile token code');
+      return;
+    }
+
     const verifyOtpParams = {
       email,
       rememberDevice,

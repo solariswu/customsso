@@ -10,11 +10,15 @@ import { notifyProfileChange } from './utils/mailer.mjs';
 import { deletePwdHashByUser } from './utils/passwordhash.mjs';
 import { headers, responseWithRequestId } from './utils/amfaUtils.mjs';
 import { adminGetSecrets } from './utils/admingetsecrets.mjs';
+import { validateEmail, validateTOTP, validateOTP } from './utils/inputValidate.mjs';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION, });
 
+const C_OTP_TYPES = ['e', 'ae', 's', 'v', 't'];
+
 const validateInputParams = (payload) => {
+  if (!payload.email || validateEmail(payload.email)) return false;
   // check required params here
   switch (payload.phase) {
     case 'admindeletetotp':
@@ -24,8 +28,7 @@ const validateInputParams = (payload) => {
     case 'admingetsecretinfo':
       return (payload.tenantid);
     case 'username':
-      return (payload.email &&
-        payload.apti && payload.authParam);
+      return (payload.email && payload.apti && payload.authParam);
     case 'password':
       return (payload.email && payload.password &&
         payload.apti && payload.authParam);
@@ -43,23 +46,32 @@ const validateInputParams = (payload) => {
     case 'pwdresetverify3':
     case 'selfserviceverify2':
     case 'selfserviceverify3':
+      if (!C_OTP_TYPES.includes(payload.otptype)) return false;
+      if (payload.otptype === 't' && validateTOTP(payload.otpcode)) return false;
+      if (payload.otptype !== 't' && validateOTP(payload.otpcode)) return false;
       return (payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam);
     case 'emailverificationverifyotp':
+      if (!C_OTP_TYPES.includes(payload.otptype)) return false;
+      if (payload.otptype === 't' && validateTOTP(payload.otpcode)) return false; 
+      if (payload.otptype !== 't' && validateOTP(payload.otpcode)) return false;
       return (payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam && payload.attributes && payload.password);
     case 'updateProfile':
+      if (!payload.otptype || !C_OTP_TYPES.includes(payload.otptype)) return false;
+      if (payload.otptype === 't' && validateTOTP(payload.otpcode)) return false;
+      if (payload.otptype !== 't' && validateOTP(payload.otpcode)) return false;
       return (payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam && payload.uuid);
     case 'getOtpOptions':
     case 'getUserOtpOptions':
       return (payload.email && payload.authParam);
     case 'removeProfile':
-      return (payload.email && payload.authParam && payload.profile);
+      return (payload.email && payload.authParam && payload.profile && payload.otptype && C_OTP_TYPES.includes(payload.otptype));
     case 'registotp':
-      return (payload.email && payload.uuid && payload.secretCode && payload.tokenLabel);
+      return (payload.email && payload.uuid && payload.secretCode && !validateTOTP(payload.secretCode) && payload.tokenLabel && payload.tokenLabel.length <= 25);
     case 'confirmOTPAddress':
-      return (payload.email && payload.authParam && payload.otptype && payload.otpaddr && ['e', 'ae', 's', 'v'].includes(payload.otptype))
+      return (payload.email && payload.authParam && payload.otpaddr && payload.otptype && C_OTP_TYPES.includes(payload.otptype))
     default:
       break;
   }
@@ -107,10 +119,10 @@ export const handler = async (event) => {
                 requestId, client, false, dynamodb, amfaBrandings.email_logo_url, true),
               deletePwdHashByUser(payload.email, dynamodb, amfaConfigs),
             ])
-            console.log ('admin delete user promises result:', results);
+            console.log('admin delete user promises result:', results);
           }
-          return;
-        case 'adminupdateuser':
+          return responseWithRequestId(200, 'OKay', requestId)
+          case 'adminupdateuser':
           console.log('admin update user - otptypes', payload.otptype, ' newProfileValue')
           await notifyProfileChange(payload.email,
             payload.otptype, payload.newProfileValue,
@@ -183,6 +195,7 @@ export const handler = async (event) => {
       }
     } else {
       error = 'incoming params error.';
+      return responseWithRequestId(422, error, requestId);
     }
   } catch (err) {
     console.error('error details:', err);
@@ -193,5 +206,4 @@ export const handler = async (event) => {
     );
   }
 
-  return responseWithRequestId(500, error, requestId);
 };
