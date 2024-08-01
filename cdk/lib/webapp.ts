@@ -11,7 +11,6 @@ import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { RemovalPolicy, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
-import { config } from "./config";
 import { DNS } from './const';
 import * as path from 'path';
 
@@ -25,13 +24,16 @@ export class WebApplication {
     s3bucket: Bucket;
     distribution: Distribution;
     tenantId: string;
+    accountId: string | undefined;
 
-    constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone, tenantId: string) {
+    constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone, 
+        tenantId: string | undefined, accountId: string | undefined) {
         this.scope = scope;
         this.domainName = `${tenantId}.${DNS.RootDomainName}`;
         this.certificate = certificate;
         this.hostedZone = hostedZone;
-        this.tenantId = tenantId;
+        this.tenantId = tenantId?tenantId:'';
+        this.accountId = accountId;
 
         this.distribution = this.createDistribution();
         this.aRecord = this.createRoute53ARecord();
@@ -39,7 +41,7 @@ export class WebApplication {
 
     private createS3Bucket() {
         return new Bucket(this.scope, 'amfaWebAppDeployBucket', {
-            bucketName: `${config[this.tenantId].awsaccount}-amfa-${this.tenantId.toLowerCase()}`,
+            bucketName: `${this.accountId}-amfa-${this.tenantId.toLowerCase()}`,
             accessControl: BucketAccessControl.PRIVATE,
             removalPolicy: RemovalPolicy.DESTROY,
         });

@@ -7,7 +7,7 @@ export class AmfaServcieDDB {
 	scope: Construct;
 	account: string | undefined;
 	region: string | undefined;
-	tenantId: string;
+	tenantId: string | undefined;
 	authCodeTable: Table;
 	sessionIdTable: Table;
 	configTable: Table;
@@ -15,7 +15,7 @@ export class AmfaServcieDDB {
 	totpTokenTable: Table;
 	pwdHashTable: Table;
 
-	constructor(scope: Construct, account: string | undefined, region: string | undefined, tenantId: string) {
+	constructor(scope: Construct, account: string | undefined, region: string | undefined, tenantId: string | undefined) {
 		this.scope = scope;
 		this.account = account;
 		this.region = region;

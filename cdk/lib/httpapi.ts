@@ -11,7 +11,6 @@ import { Vpc, SubnetType, IpAddresses } from 'aws-cdk-lib/aws-ec2';
 import { Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
-import { config } from './config';
 import { DNS, resourceName, totpScopeName } from "./const";
 
 import * as path from 'path';
@@ -39,15 +38,16 @@ export class TenantApiGateway {
   smtpSecret: ISecret;
   asmSecret: ISecret;
   CorsPreflightOptions: CorsOptions;
+  samlproxyinstanceid: string;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
-    account: string | undefined, region: string | undefined, tenantId: string, ddb: AmfaServcieDDB) {
+    account: string | undefined, region: string | undefined, tenantId: string | undefined, ddb: AmfaServcieDDB) {
     this.scope = scope;
     this.certificate = certificate;
     this.hostedZone = hostedZone;
     this.account = account;
     this.region = region;
-    this.tenantId = tenantId;
+    this.tenantId = tenantId ? tenantId : '';
 
     this.CorsPreflightOptions = {
       allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization'],
@@ -131,7 +131,7 @@ export class TenantApiGateway {
           SESSION_ID_TABLE: sessionIdTable.tableName,
           PWD_HISTORY_TABLE: pwdHashTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
-          TENANT_ID: this.tenantId,
+          TENANT_ID: this.tenantId ? this.tenantId : '',
           ALLOW_ORIGIN: `${this.tenantId}.${DNS.RootDomainName}`,
         },
         timeout: Duration.minutes(5),
@@ -254,7 +254,8 @@ export class TenantApiGateway {
     return myLambda;
   }
 
-  private createReloadSamlProxyLambda(tenantId: string) {
+  // needs to move for multi-tenants. samlproxy can't be linked with tenant account
+  private createReloadSamlProxyLambda(tenantId: string, samlproxyinstanceid: string | undefined) {
     const lambdaName = 'reloadsamlproxy';
     const myLambda = new Function(
       this.scope,
@@ -264,7 +265,7 @@ export class TenantApiGateway {
         handler: `${lambdaName}.handler`,
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
         environment: {
-          SAMLPROXY_INSTANCE_ID: config[tenantId].samlproxyinstanceid,
+          SAMLPROXY_INSTANCE_ID: samlproxyinstanceid ? samlproxyinstanceid : '',
         },
         timeout: Duration.minutes(5),
       }
@@ -278,7 +279,7 @@ export class TenantApiGateway {
               'ssm:SendCommand',
             ],
             resources: [
-              `arn:aws:ec2:${this.region}:${config[tenantId].awsaccount}:instance/${config[tenantId].samlproxyinstanceid}`,
+              `arn:aws:ec2:${this.region}:${this.account}:instance/${samlproxyinstanceid}`,
               `arn:aws:ssm:${this.region}::document/AWS-RunShellScript`
             ],
           }),
@@ -319,7 +320,8 @@ export class TenantApiGateway {
     sessionIdTable: Table,
     configTable: Table,
     totpTokenTable: Table,
-    pwdhashTable: Table) {
+    pwdhashTable: Table,
+    magicstring: string) {
 
     const myLambda = new Function(
       this.scope,
@@ -337,7 +339,7 @@ export class TenantApiGateway {
           APP_SECRET: userPoolClient.userPoolClientSecret.unsafeUnwrap(),
           CLIENTCREDENTIALS_ID: clientCredentialsClient.userPoolClientId,
           CLIENTCREDENTIALS_SECRET: clientCredentialsClient.userPoolClientSecret.unsafeUnwrap(),
-          MAGIC_STRING: config[this.tenantId].magicstring,
+          MAGIC_STRING: magicstring,
           HOSTED_CLIENT_ID: hostedClientId,
           SESSION_ID_TABLE: sessionIdTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
@@ -472,13 +474,13 @@ export class TenantApiGateway {
   };
 
   public createAmfaApiEndpoints = (userpool: UserPool, userPoolClient: UserPoolClient,
-    clientCredentialsClient: UserPoolClient, hostedClientId: string, userpoolDomain: UserPoolDomain) => {
+    clientCredentialsClient: UserPoolClient, hostedClientId: string, userpoolDomain: UserPoolDomain, magicString: string) => {
     const amfaLambdaFunctions = ['amfa'];
 
     amfaLambdaFunctions.map(fnName => {
       const lambdaFn = this.createAmfaLambda(fnName, userpool,
         userPoolClient, clientCredentialsClient, userpoolDomain, this.authCodeTable, hostedClientId,
-        this.sessionIdTable, this.configTable, this.totpTokenTable, this.pwdHashTable);
+        this.sessionIdTable, this.configTable, this.totpTokenTable, this.pwdHashTable, magicString);
       this.attachLambdaToApiGWService(this.api.root, lambdaFn, fnName);
       return fnName;
     });
@@ -653,7 +655,7 @@ export class TenantApiGateway {
     });
   }
 
-  public createOAuthEndpoints(customAuthClient: UserPoolClient, userpool: UserPool) {
+  public createOAuthEndpoints(customAuthClient: UserPoolClient, userpool: UserPool, samlproxyinstanceid: string | undefined) {
     const oauthEndpointsName = ['token', 'admininitauth'];
 
     const rootPathAPI = this.api.root.addResource('oauth2', {
@@ -682,6 +684,6 @@ export class TenantApiGateway {
     this.attachLambdaToApiGWService(rootPathAPI, this.createCheckUserLambda(userpool), 'checkuser');
     this.attachLambdaToApiGWService(rootPathAPI, this.createVerifyCaptchaLambda(), 'verifyrecaptcha');
     this.attachLambdaToApiGWService(rootPathAPI, this.createLogoutLambda(this.sessionIdTable), 'signout');
-    this.attachLambdaToApiGWService(rootPathAPI, this.createReloadSamlProxyLambda(this.tenantId), 'reloadsamlproxy', false);
+    this.attachLambdaToApiGWService(rootPathAPI, this.createReloadSamlProxyLambda(this.tenantId, samlproxyinstanceid), 'reloadsamlproxy', false);
   }
 }

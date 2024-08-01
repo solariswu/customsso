@@ -13,7 +13,7 @@ export class CertificateStack extends Stack {
 	apiCertificate: Certificate;
 	hostedZone: PublicHostedZone;
 
-	constructor(scope: Construct, id: string, props: StackProps, tenantId: string) {
+	constructor(scope: Construct, id: string, props: StackProps, tenantId: string | undefined) {
 		super(scope, id, props);
 
 		const certificateResources = new CertificateResources(this, 'certificate', tenantId);
@@ -28,7 +28,7 @@ export class CertificateResources extends Construct {
 	public readonly acmcert: Certificate;
 	public readonly wildcert: Certificate;
 
-	constructor(scope: Construct, id: string, tenantId: string) {
+	constructor(scope: Construct, id: string, tenantId: string | undefined) {
 		super(scope, id);
 
 		const hostedZoneName = `${tenantId}-HostedZone`;

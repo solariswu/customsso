@@ -8,16 +8,14 @@ import { Duration } from 'aws-cdk-lib';
 import * as path from 'path';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 
-import { config } from './config';
-
-// import type { TenantInfo } from './types';
 
 export const createPostDeploymentLambda = (
 	scope: Construct,
 	configTable: Table,
 	tenantTable: Table,
 	userPoolId: string,
-	tenantId: string,
+	region: string | undefined,
+	tenantId: string | undefined,
 ) => {
 
 	// todo update multi-tenants later
@@ -57,7 +55,7 @@ export const createPostDeploymentLambda = (
 					actions: [
 						'cognito-idp:CreateGroup',
 					],
-					resources: [`arn:aws:cognito-idp:${config[tenantId].region}:*:userpool/${userPoolId}`],
+					resources: [`arn:aws:cognito-idp:${region}:*:userpool/${userPoolId}`],
 					// resources,
 				}),
 			],

@@ -29,33 +29,37 @@ export class AmfaStack extends Stack {
 
     // backend
     // amfa apis
-    for (var tenantId in config) {
-      const webapp = new WebApplication(this, props.siteCertificate, props.hostedZone, tenantId);
-      const ddb = new AmfaServcieDDB(this, props.env?.account, props.env?.region, tenantId);
+    config.map(tenant => {
+
+      const webapp = new WebApplication(this, props.siteCertificate, props.hostedZone, tenant.tenantId, tenant.awsaccount);
+      const ddb = new AmfaServcieDDB(this, tenant.awsaccount, tenant.region, tenant.tenantId);
 
       const apigateway = new TenantApiGateway(this, props.apiCertificate,
-        props.hostedZone, props.env?.account, props.env?.region, tenantId, ddb);
-      const tenantUserPool = new TenantUserPool(this, apigateway.configTable, props.env?.region, tenantId);
-      apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool);
+        props.hostedZone, tenant.awsaccount, tenant.region, tenant.tenantId, ddb);
+      const tenantUserPool = new TenantUserPool(this, apigateway.configTable,
+        tenant.region, tenant.tenantId, tenant.magicstring,
+        tenant.callbackUrls,
+        tenant.logoutUrls,
+        tenant.spPortalUrl, tenant.serviceName);
+      apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool, tenant.samlproxyinstanceid);
       apigateway.createAmfaApiEndpoints(tenantUserPool.userpool, tenantUserPool.customAuthClient,
         tenantUserPool.clientCredentialsClient, tenantUserPool.hostedUIClient.userPoolClientId,
-        tenantUserPool.userpoolDomain);
+        tenantUserPool.userpoolDomain, tenant.magicstring);
       apigateway.createTotpTokenDBEndpoints(tenantUserPool.userpool);
 
-      createPostDeploymentLambda(this, apigateway.configTable, apigateway.tenantTable, tenantUserPool.userpool.userPoolId, tenantId);
+      createPostDeploymentLambda(this, apigateway.configTable, apigateway.tenantTable, tenantUserPool.userpool.userPoolId, tenant.region, tenant.tenantId);
 
       // output
-      new CfnOutput(this, 'Tenant ID: ', { value: tenantId, });
       new CfnOutput(this, 'userPoolId', { value: tenantUserPool.userpool.userPoolId, });
 
       // new CfnOutput(this, 'NoSecret AppClientId', { value: tenantUserPool.hostedUIClient.userPoolClientId, });
       // // new CfnOutput(this, 'Secret AppClientId', { value: tenantUserPool.secretClient.userPoolClientId, });
       // // new CfnOutput(this, 'AppClientSecret', { value: tenantUserPool.secretClient.userPoolClientSecret.unsafeUnwrap(), });
-      // new CfnOutput(this, 'Authorization Endpoint', { value: `https://${config.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/authorize?identity_provider=${AMFAIdPName}`, });
-      // new CfnOutput(this, 'Token Endpoint', { value: `https://${config.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/token`, });
-      // new CfnOutput(this, 'UserInfo Endpoint', { value: `https://${config.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/userInfo`, });
+      // new CfnOutput(this, 'Authorization Endpoint', { value: `https://${config.tenant.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/authorize?identity_provider=${AMFAIdPName}`, });
+      // new CfnOutput(this, 'Token Endpoint', { value: `https://${config.tenant.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/token`, });
+      // new CfnOutput(this, 'UserInfo Endpoint', { value: `https://${config.tenant.tenantId}-apersona.auth.${config.region}.amazoncognito.com/oauth2/userInfo`, });
 
-    }
+    })
 
     // userpool hostedui customauth-oidc customauth-lambda triggers.
 

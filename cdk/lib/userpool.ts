@@ -42,19 +42,21 @@ export class TenantUserPool {
   userpoolDomain: UserPoolDomain;
 
 
-  constructor(scope: Construct, configTable: Table, region: string | undefined, tenantId: string) {
+  constructor(scope: Construct, configTable: Table, region: string | undefined, tenantId: string | undefined,
+    magicString: string, callbackUrls: string[], logoutUrls: string[],
+    spPortalUrl: string | undefined, serviceName: string) {
     this.scope = scope;
     this.region = region;
-    this.tenantId = tenantId;
+    this.tenantId = tenantId ? tenantId : '';
 
     this.userpool = this.createUserPool();
     this.customAuthClient = this.addCustomAuthClient();
-    this.addCustomAuthLambdaTriggers();
+    this.addCustomAuthLambdaTriggers(magicString);
     this.oidcProvider = this.createOIDCProvider();
-    this.hostedUIClient = this.addHostedUIAppClient();
+    this.hostedUIClient = this.addHostedUIAppClient(callbackUrls, logoutUrls);
     this.hostedUIClient.node.addDependency(this.oidcProvider);
     this.userpoolDomain = this.addHostedUIDomain();
-    this.addCustomMessageLambdaTrigger(configTable);
+    this.addCustomMessageLambdaTrigger(configTable, spPortalUrl, serviceName);
 
     this.clientCredentialsClient = this.addClientCredentialClient();
   }
@@ -124,7 +126,7 @@ export class TenantUserPool {
     });
   };
 
-  private addHostedUIAppClient() {
+  private addHostedUIAppClient(callbackUrls: string[], logoutUrls: string[]) {
     const writeAttributes = new ClientAttributes()
       .withStandardAttributes({
         email: true,
@@ -134,7 +136,7 @@ export class TenantUserPool {
     const readAttributes = (new ClientAttributes()).withStandardAttributes({
       address: true, email: true, emailVerified: true,
       phoneNumber: true, phoneNumberVerified: true,
-      birthdate: true, givenName: true, familyName: true, gender: true, 
+      birthdate: true, givenName: true, familyName: true, gender: true,
       middleName: true, profilePicture: true, profilePage: true
     });
 
@@ -151,8 +153,8 @@ export class TenantUserPool {
           authorizationCodeGrant: true,
         },
         scopes: [OAuthScope.OPENID, OAuthScope.PROFILE/*, OAuthScope.COGNITO_ADMIN*/],
-        callbackUrls: config[this.tenantId].callbackUrls,
-        logoutUrls: config[this.tenantId].logoutUrls,
+        callbackUrls,
+        logoutUrls,
       },
       userPoolClientName: 'amfasys_hostedUIClient',
       supportedIdentityProviders: [UserPoolClientIdentityProvider.custom(AMFAIdPName)]
@@ -221,14 +223,14 @@ export class TenantUserPool {
     );
   };
 
-  private addCustomAuthLambdaTriggers() {
+  private addCustomAuthLambdaTriggers(magicString: string) {
     const authChallengeFnsConfig = [
       { name: 'createauthchallenge', runtime: Runtime.PYTHON_3_12 },
       { name: 'defineauthchallenge', runtime: Runtime.NODEJS_20_X },
       { name: 'verifyauthchallenge', runtime: Runtime.NODEJS_20_X },
     ];
     const authChallengeFns = authChallengeFnsConfig.map((fn) =>
-      createAuthChallengeFn(this.scope, fn.name, fn.runtime, this.tenantId)
+      createAuthChallengeFn(this.scope, fn.name, fn.runtime, this.tenantId, magicString)
     );
 
     this.userpool.addTrigger(
@@ -245,9 +247,9 @@ export class TenantUserPool {
     );
   };
 
-  private addCustomMessageLambdaTrigger(configTable) {
+  private addCustomMessageLambdaTrigger(configTable, spPortalUrl, serviceName) {
     const lambdaFn = createCustomMessageLambda(
-      this.scope, configTable, this.tenantId
+      this.scope, configTable, this.tenantId, spPortalUrl, serviceName
     );
     this.userpool.addTrigger(
       UserPoolOperation.CUSTOM_MESSAGE,

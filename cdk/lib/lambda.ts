@@ -3,9 +3,7 @@ import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Duration } from 'aws-cdk-lib';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
-import { config } from '../lib/config';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
-
 
 
 // basic lambda policy
@@ -32,6 +30,7 @@ export const createAuthChallengeFn = (
   lambdaName: string,
   runtime: Runtime,
   tenantId: string,
+  magicString: string
 ) => {
   const fn = new Function(scope, lambdaName, {
     runtime,
@@ -39,7 +38,7 @@ export const createAuthChallengeFn = (
     code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
     timeout: Duration.minutes(5),
     environment: {
-      MAGIC_STRING: config[tenantId].magicstring,
+      MAGIC_STRING: magicString,
     },
   });
 
@@ -52,7 +51,7 @@ export const createAuthChallengeFn = (
   return fn;
 };
 
-export const createCustomMessageLambda = (scope: Construct, configTable: Table, tenantId: string) => {
+export const createCustomMessageLambda = (scope: Construct, configTable: Table, tenantId: string, spPortalUrl: string, serviceName: string) => {
   const lambdaName = 'custommessage';
 
   const lambda = new Function(scope, lambdaName, {
@@ -61,8 +60,8 @@ export const createCustomMessageLambda = (scope: Construct, configTable: Table, 
     code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
     environment: {
       CONFIG_TABLE: configTable.tableName,
-      APP_URL: config[tenantId].spPortalUrl,
-      SERVICE_NAME: config[tenantId].serviceName,
+      APP_URL: spPortalUrl,
+      SERVICE_NAME: serviceName,
     },
     timeout: Duration.minutes(5)
   });
