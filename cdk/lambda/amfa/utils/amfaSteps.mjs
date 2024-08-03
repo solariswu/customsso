@@ -480,7 +480,8 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
         else {
           //This puts ASM into an otp state for the user, then you can send a mobile TOTP.
           // On the second verification, the auth api call is sending otpp=1, but it should be otpp=0 becuase we want ASM to push the otp immediately to the selected channel.
-          otpp = event.otptype === 't' && ['pwdreset2', 'selfservice2'].includes(step) ? 1 : 0;
+          // otpp = event.otptype === 't' && ['pwdreset2', 'selfservice2'].includes(step) ? 1 : 0;
+          otpp = event.otptype === 't' ? 1: 0;
           sfl = 7;
           postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp + '&nsf=' + nsf + '&igd=' + igd + '&a=' + a;
         }
