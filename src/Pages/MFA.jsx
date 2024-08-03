@@ -158,7 +158,7 @@ const MFAContent = () => {
       return;
     }
 
-    if (otp.type !== 't' && !/^\d{4}$/gm.test(otp.code)) {
+    if (otp.type !== 't' && !/^\d{4,8}$/gm.test(otp.code)) {
       setErrorMsg('Please enter valid otp code');
       return;
     }

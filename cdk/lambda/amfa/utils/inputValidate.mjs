@@ -15,7 +15,7 @@ export const validateTOTP = (value) => {
 
 export const validateOTP = (value) => {
     console.log('validateOTP', value)
-    console.log('validateOTP result', /^\d{4}$/gm.test(value))
-    if (value && /^\d{4}$/gm.test(value)) return undefined
-    return 'OTP must be 4 characters';
+    console.log('validateOTP result', /^\d{4,8}$/gm.test(value))
+    if (value && /^\d{4,8}$/gm.test(value)) return undefined
+    return 'OTP must be 4-8 characters';
 }
