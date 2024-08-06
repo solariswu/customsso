@@ -8,6 +8,7 @@ export SAML_INSTANCE_ID='i-028b38d91c41d660c'
 
 if aws sts get-caller-identity >/dev/null; then
 
+    source ~/.bashrc
     export NODE_OPTIONS=--max-old-space-size=4096
 
     npm install
