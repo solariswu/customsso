@@ -17,10 +17,11 @@ if aws sts get-caller-identity >/dev/null; then
     npm run lambda-build
     npm run cdk-build
 
+    echo "Please wait"
     #check DNS domain
 
     #bootstrap CDK account and region
-    set -e
+    # set -e
 
     RED='\033[0;31m'
     BOLD="\033[1m"
@@ -33,9 +34,15 @@ if aws sts get-caller-identity >/dev/null; then
     CDK_DEPLOY_REGION=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
     CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
 
+    rm delegationRole.json
+    echo "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::$CDK_DEPLOY_ACCOUNT:root\"},\"Action\":\"sts:AssumeRole\"}]}" >> delegationRole.json
+
+    aws iam create-role --role-name CrossAccountDnsDelegationRole-DO-NOT-DELETE --assume-role-policy-document file://delegationRole.json
+    aws iam create-policy --policy-name dns-delegation-policy --policy-document file://delegationPolicy.json
+    aws iam attach-role-policy --role-name CrossAccountDnsDelegationRole-DO-NOT-DELETE --policy-arn "arn:aws:iam::$CDK_DEPLOY_ACCOUNT:policy/dns-delegation-policy"
+
     export CDK_NEW_BOOTSTRAP=1
     export IS_BOOTSTRAP=1
-    echo
     echo "*************************************************************************************"
     read -p "Are you sure to deploy AMFA on Account $(echo -e $BOLD$YELLOW$CDK_DEPLOY_ACCOUNT$NC) in Region $(echo -e $BOLD$YELLOW$CDK_DEPLOY_REGION$NC)? (y/n)" response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
