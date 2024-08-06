@@ -10,6 +10,8 @@ if aws sts get-caller-identity >/dev/null; then
 
     export NODE_OPTIONS=--max-old-space-size=4096
 
+    npm install
+
     npm run build
     npm run lambda-build
     npm run cdk-build
