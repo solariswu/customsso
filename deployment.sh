@@ -37,7 +37,7 @@ if aws sts get-caller-identity >/dev/null; then
     export IS_BOOTSTRAP=1
     echo
     echo "*************************************************************************************"
-    read -p "Are you sure you want to bootstrap Account $(echo -e $BOLD$YELLOW$CDK_DEPLOY_ACCOUNT$NC) in Region $(echo -e $BOLD$YELLOW$CDK_DEPLOY_REGION$NC)? (y/n)" response
+    read -p "Are you sure to deploy AMFA on Account $(echo -e $BOLD$YELLOW$CDK_DEPLOY_ACCOUNT$NC) in Region $(echo -e $BOLD$YELLOW$CDK_DEPLOY_REGION$NC)? (y/n)" response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         echo "*************************************************************************************"
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNTD/$CDK_DEPLOY_REGION || (unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP)
