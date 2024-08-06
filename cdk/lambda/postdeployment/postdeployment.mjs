@@ -87,10 +87,8 @@ const createTenants = async (dynamodb, userpoolIds) => {
 }
 
 export const handler = async (event) => {
-	await createAmfaConfigs('amfaPolicies', dynamodb);
-	await createAmfaConfigs('amfaBrandings', dynamodb);
-	await createAmfaConfigs('amfaConfigs', dynamodb);
-	await createAmfaConfigs('amfaLegals', dynamodb);
+	const dbTables = ['amfaPolicies', 'amfaBrandings', 'amfaConfigs', 'amfaLegals'];
+	await Promise.allSettled(dbTables.map((table) => createAmfaConfigs(table, dynamodb)))
 
 	try {
 		const userpoolIds = JSON.parse(process.env.USERPOOL_IDS);
