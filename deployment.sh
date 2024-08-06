@@ -1,39 +1,13 @@
 #!/bin/bash
 
-#project code repo
-PRJ_REPO_BASE=https://github.com/solariswu/
-PRJ_REPO_NAME=customsso
-
 #deployment tenant info
 export TENANT_ID='amfa-dev004'
 export SP_PORTAL_URL='https://apersona.netlify.app'
 export EXTRA_APP_URL='https://amfa.netlify.app/'
 export SAML_INSTANCE_ID='i-028b38d91c41d660c'
 
-#deployment CDK env
-NVM_VER=v0.39.7
-NPM_VER=10.8.2
-
-#install node
 if aws sts get-caller-identity >/dev/null; then
 
-    rm -rf .nvm
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$NVM_VER/install.sh | bash
-    source ~/.bashrc
-    nvm install --lts
-
-    #install git
-    sudo yum update -y
-    sudo yum install git -y
-
-    #update npm
-    npm install -g npm@$NPM_VER
-
-    #download code repo
-    git clone $PRJ_REPO_BASE$PRJ_REPO_BASE
-    cd $PRJ_REPO_NAME
-    git pull
-    npm install
     export NODE_OPTIONS=--max-old-space-size=4096
 
     npm run build
