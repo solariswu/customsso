@@ -54,13 +54,13 @@ export const amfaPolicies = {
     },
     "default": {
         "policy_name": "default-72ws81aq67jf",
-        "rank": 5,
+        "rank": 50,
         "enable_passwordless": false,
         "permissions": [
-            'ae',
-            'e',
-            't'
-        ]
+            "ae",
+            "e",
+            "t"
+        ],
     },
 }
 
