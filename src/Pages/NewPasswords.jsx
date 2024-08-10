@@ -217,7 +217,7 @@ const LOGIN = () => {
       <hr className="hr-customizable" />
       {isResetDone ? <ResetDone /> :
         <div>
-          <span className='idpDescription-customizable'> {t('registration_app_password_input_new_password"')} </span>
+          <span className='idpDescription-customizable'> {t('registration_app_password_input_new_password')} </span>
           <div className="input-group">
             <input id="signInFormPassword" name="password" type={passwordType} className="form-control inputField-customizable"
               style={{ height: '40px' }}
@@ -252,7 +252,7 @@ const LOGIN = () => {
               )}
             </button>
           </div>
-          <span className='idpDescription-customizable'>{t('registration_app_password_reenter_password"')} </span>
+          <span className='idpDescription-customizable'>{t('registration_app_password_reenter_password')} </span>
           <div className="input-group">
             <input id="signInFormNewPassword" name="newPassword" type={passwordType} className="form-control inputField-customizable"
               style={{ height: '40px' }}

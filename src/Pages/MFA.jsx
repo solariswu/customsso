@@ -315,7 +315,7 @@ const MFAContent = () => {
           <div className='col-5 mt-2 text-left'>{table[otptype].title}:</div>
           <div className='col mt-2 text-left'>
             <span
-              className='link-customizable'
+              className={(otptype !== 't' || otpInFly !== otptype) ? 'link-customizable' : ''}
               onClick={() => {
                 if (otptype !== 't' || otpInFly !== otptype) {
                   // only resend when it is not mobile OTP

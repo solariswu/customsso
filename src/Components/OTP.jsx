@@ -479,8 +479,9 @@ export const OTP = () => {
         </div>
         <div className='col mt-2 text-left'>
           <span
-            className='link-customizable'
-            onClick={(e) => sendOtp(otptype, e)}
+            className={(otpInFly === 't') ? '' : 'link-customizable'}
+            onClick={(e) => {
+              if (otpInFly !== 't') sendOtp(otptype, e)}}
           >
             {table[otptype].content}
           </span>
