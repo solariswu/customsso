@@ -41,7 +41,7 @@ export class AmfaStack extends Stack {
         tenant.callbackUrls,
         tenant.logoutUrls,
         tenant.spPortalUrl, tenant.serviceName);
-      apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool, tenant.samlproxyinstanceid);
+      apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool/*, tenant.samlproxyinstanceid*/);
       apigateway.createAmfaApiEndpoints(tenantUserPool.userpool, tenantUserPool.customAuthClient,
         tenantUserPool.clientCredentialsClient, tenantUserPool.hostedUIClient.userPoolClientId,
         tenantUserPool.userpoolDomain, tenant.magicstring);

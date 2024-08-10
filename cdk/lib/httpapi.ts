@@ -38,7 +38,7 @@ export class TenantApiGateway {
   smtpSecret: ISecret;
   asmSecret: ISecret;
   CorsPreflightOptions: CorsOptions;
-  samlproxyinstanceid: string;
+  // samlproxyinstanceid: string;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
     account: string | undefined, region: string | undefined, tenantId: string | undefined, ddb: AmfaServcieDDB) {
@@ -655,7 +655,7 @@ export class TenantApiGateway {
     });
   }
 
-  public createOAuthEndpoints(customAuthClient: UserPoolClient, userpool: UserPool, samlproxyinstanceid: string | undefined) {
+  public createOAuthEndpoints(customAuthClient: UserPoolClient, userpool: UserPool /*, samlproxyinstanceid: string | undefined*/) {
     const oauthEndpointsName = ['token', 'admininitauth'];
 
     const rootPathAPI = this.api.root.addResource('oauth2', {
@@ -684,6 +684,7 @@ export class TenantApiGateway {
     this.attachLambdaToApiGWService(rootPathAPI, this.createCheckUserLambda(userpool), 'checkuser');
     this.attachLambdaToApiGWService(rootPathAPI, this.createVerifyCaptchaLambda(), 'verifyrecaptcha');
     this.attachLambdaToApiGWService(rootPathAPI, this.createLogoutLambda(this.sessionIdTable), 'signout');
-    this.attachLambdaToApiGWService(rootPathAPI, this.createReloadSamlProxyLambda(this.tenantId, samlproxyinstanceid), 'reloadsamlproxy', false);
+    // moved to samlproxy apigateway
+    // this.attachLambdaToApiGWService(rootPathAPI, this.createReloadSamlProxyLambda(this.tenantId, samlproxyinstanceid), 'reloadsamlproxy', false);
   }
 }

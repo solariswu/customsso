@@ -27,7 +27,7 @@ export const config = [
 		logoutUrls,
 		'magicstring': 'youguesswhat',
 		'serviceName': 'apersona',
-		'samlproxyinstanceid': process.env.SAML_INSTANCE_ID,
+		// 'samlproxyinstanceid': process.env.SAML_INSTANCE_ID,
 	}
 ]
 
