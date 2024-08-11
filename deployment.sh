@@ -18,7 +18,7 @@ RECAPTCHA_SECRET = '' ## example '6LdFWYUnAAAAABlC3YcF7DqDqPO123456789'
 if aws sts get-caller-identity >/dev/null; then
 
     source ~/.bashrc
-    NODE_OPTIONS=--max-old-space-size=4096
+    NODE_OPTIONS=--max-old-space-size=8192
 
     echo "install application dependency libs"
     npm install
@@ -50,12 +50,13 @@ if aws sts get-caller-identity >/dev/null; then
 
     echo "generate AMFA front end config file"
 
+    rm -rf src/const.js
     echo "export const clientName = '$TENANT_ID'" >> src/const.js
     echo "export const region = '$CDK_DEPLOY_REGION'" >> src/const.js
-    echo "export const applicationUrl: '$SP_PORTAL_URL'" >> src/const.js
-    echo "export const extraAppUrl: '$EXTRA_APP_URL'" >> src/const.js
-    echo "export const apiUrl: 'https:///api.$TENANT_ID.$ROOT_DOMAIN_NAME'" >> src/const.js
-    echo "export const recaptcha_key: '$RECAPTCHA_KEY'" >> src/const.js
+    echo "export const applicationUrl = '$SP_PORTAL_URL'" >> src/const.js
+    echo "export const extraAppUrl = '$EXTRA_APP_URL'" >> src/const.js
+    echo "export const apiUrl = 'https:///api.$TENANT_ID.$ROOT_DOMAIN_NAME'" >> src/const.js
+    echo "export const recaptcha_key = '$RECAPTCHA_KEY'" >> src/const.js
 
     npm run build
     npm run lambda-build
