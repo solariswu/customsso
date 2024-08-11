@@ -21,8 +21,7 @@ import { RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Duration } from 'aws-cdk-lib';
 
 
-import { config } from './config';
-import { DNS, AMFAIdPName, resourceName, totpScopeName } from './const';
+import { AMFAIdPName, resourceName, totpScopeName, RootDomainName } from './const';
 import { createAuthChallengeFn, createCustomMessageLambda } from './lambda';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 
@@ -184,8 +183,8 @@ export class TenantUserPool {
 
   private createOIDCProvider() {
     const issuerUrl = `https://cognito-idp.${this.region}.amazonaws.com/${this.userpool.userPoolId}`;
-    const customauthUrl = `https://${this.tenantId}.${DNS.RootDomainName}`;
-    const serviceApiUrl = `https://api.${this.tenantId}.${DNS.RootDomainName}`;
+    const customauthUrl = `https://${this.tenantId}.${RootDomainName}`;
+    const serviceApiUrl = `https://api.${this.tenantId}.${RootDomainName}`;
 
     return new UserPoolIdentityProviderOidc(
       this.scope,

@@ -25,3 +25,4 @@ cdk/*.js
 cdk/bin/*.js
 cdk/lib/*.js
 cdk.out
+.DS_Store

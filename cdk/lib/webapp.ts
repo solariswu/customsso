@@ -11,7 +11,7 @@ import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { RemovalPolicy, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
-import { DNS } from './const';
+import { RootDomainName } from './const';
 import * as path from 'path';
 
 export class WebApplication {
@@ -29,7 +29,7 @@ export class WebApplication {
     constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone, 
         tenantId: string | undefined, accountId: string | undefined) {
         this.scope = scope;
-        this.domainName = `${tenantId}.${DNS.RootDomainName}`;
+        this.domainName = `${tenantId}.${RootDomainName}`;
         this.certificate = certificate;
         this.hostedZone = hostedZone;
         this.tenantId = tenantId?tenantId:'';
@@ -68,7 +68,7 @@ export class WebApplication {
         // set up cloudfront
         const distribution = new Distribution(this.scope, 'Distribution', {
             defaultRootObject: 'index.html',
-            domainNames: [`${this.tenantId}.${DNS.RootDomainName}`],
+            domainNames: [`${this.tenantId}.${RootDomainName}`],
             certificate: this.certificate,
             defaultBehavior: {
                 origin: new S3Origin(bucket, { originAccessIdentity }),

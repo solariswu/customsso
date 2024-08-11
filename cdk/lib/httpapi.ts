@@ -11,7 +11,7 @@ import { Vpc, SubnetType, IpAddresses } from 'aws-cdk-lib/aws-ec2';
 import { Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
-import { DNS, resourceName, totpScopeName } from "./const";
+import { RootDomainName, resourceName, totpScopeName } from "./const";
 
 import * as path from 'path';
 import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
@@ -53,7 +53,7 @@ export class TenantApiGateway {
       allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization'],
       allowMethods: Cors.ALL_METHODS,
       allowCredentials: true,
-      allowOrigins: [`https://${this.tenantId}.${DNS.RootDomainName}`, `https://*.${this.tenantId}.${DNS.RootDomainName}`],
+      allowOrigins: [`https://${this.tenantId}.${RootDomainName}`, `https://*.${this.tenantId}.${RootDomainName}`],
     };
 
     this.secret = Secret.fromSecretNameV2(scope, `${tenantId}-secret`, `amfa/${tenantId}/secret`);
@@ -75,7 +75,7 @@ export class TenantApiGateway {
   // create APIGateway
   private createApiGateway() {
     const apiDomainName = new DomainName(this.scope, 'TenantApiGatewayDomain', {
-      domainName: `api.${this.tenantId}.${DNS.RootDomainName}`,
+      domainName: `api.${this.tenantId}.${RootDomainName}`,
       certificate: this.certificate,
       endpointType: EndpointType.EDGE
     });
@@ -132,7 +132,7 @@ export class TenantApiGateway {
           PWD_HISTORY_TABLE: pwdHashTable.tableName,
           AMFACONFIG_TABLE: configTable.tableName,
           TENANT_ID: this.tenantId ? this.tenantId : '',
-          ALLOW_ORIGIN: `${this.tenantId}.${DNS.RootDomainName}`,
+          ALLOW_ORIGIN: `${this.tenantId}.${RootDomainName}`,
         },
         timeout: Duration.minutes(5),
       }
@@ -300,7 +300,7 @@ export class TenantApiGateway {
         handler: `${lambdaName}.handler`,
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
         environment: {
-          RECAPTCHA_SECRET: '',
+          RECAPTCHA_SECRET: process.env.RECAPTCHA_SECRET ? process.env.RECAPTCHA_SECRET : '',
         },
         timeout: Duration.minutes(5),
       }
@@ -333,7 +333,7 @@ export class TenantApiGateway {
         environment: {
           TENANT_ID: this.tenantId,
           USERPOOL_ID: userpool.userPoolId,
-          DOMAIN_NAME: DNS.RootDomainName,
+          DOMAIN_NAME: RootDomainName ? RootDomainName : '',
           AUTHCODE_TABLE: authCodeTable.tableName,
           APPCLIENT_ID: userPoolClient.userPoolClientId,
           APP_SECRET: userPoolClient.userPoolClientSecret.unsafeUnwrap(),
@@ -428,7 +428,7 @@ export class TenantApiGateway {
         code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
         environment: {
           SESSION_ID_TABLE: sessionIdTable.tableName,
-          ALLOW_ORIGIN: `${this.tenantId}.${DNS.RootDomainName}`,
+          ALLOW_ORIGIN: `${this.tenantId}.${RootDomainName}`,
         },
         timeout: Duration.minutes(5),
       }

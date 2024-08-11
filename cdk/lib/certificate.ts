@@ -5,7 +5,7 @@ import { Certificate, CertificateValidation } from "aws-cdk-lib/aws-certificatem
 import { CrossAccountZoneDelegationRecord, PublicHostedZone } from "aws-cdk-lib/aws-route53";
 import { IRole, Role } from "aws-cdk-lib/aws-iam";
 
-import { DNS } from './const';
+import { RootDomainName, RootHostedZoneDelegationRoleArn, RootHostedZoneDelegationRoleName, RootHostedZoneId } from './const';
 
 
 export class CertificateStack extends Stack {
@@ -33,30 +33,30 @@ export class CertificateResources extends Construct {
 
 		const hostedZoneName = `${tenantId}-HostedZone`;
 		this.hostedZone = new PublicHostedZone(this, hostedZoneName, {
-			zoneName: `${tenantId}.${DNS.RootDomainName}` // <tenantId>.<rootDomainName>
+			zoneName: `${tenantId}.${RootDomainName}` // <tenantId>.<rootDomainName>
 		});
 		this.hostedZone.applyRemovalPolicy(RemovalPolicy.RETAIN);
 
 		// Delegate subdomain by injecting its record to parent domain
 		new CrossAccountZoneDelegationRecord(this, `${hostedZoneName}DelegationRecord`, {
-			parentHostedZoneId: DNS.RootHostedZoneId,
+			parentHostedZoneId: RootHostedZoneId,
 			delegationRole: this.getHostedZoneDelegationRole(this),
 			delegatedZone: this.hostedZone
 		});
 
 		this.acmcert = new Certificate(this, `${tenantId}-ACMCertificate`, {
 			validation: CertificateValidation.fromDns(this.hostedZone),
-			domainName: `${tenantId}.${DNS.RootDomainName}`,
+			domainName: `${tenantId}.${RootDomainName}`,
 		});
 
 		this.wildcert = new Certificate(this, `${tenantId}-ACMwildCertificate`, {
 			validation: CertificateValidation.fromDns(this.hostedZone),
-			domainName: `*.${tenantId}.${DNS.RootDomainName}`,
+			domainName: `*.${tenantId}.${RootDomainName}`,
 		});
 	}
 
 	private getHostedZoneDelegationRole(scope: Construct): IRole {
-		return Role.fromRoleArn(scope, DNS.RootHostedZoneDelegationRoleName, DNS.RootHostedZoneDelegationRoleArn)
+		return Role.fromRoleArn(scope, RootHostedZoneDelegationRoleName, RootHostedZoneDelegationRoleArn)
 	}
 
 }
