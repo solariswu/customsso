@@ -1,19 +1,19 @@
 #!/bin/bash
 
 # deployment tenant info
-TENANT_ID='' ## example 'amfa-dev006'
+export TENANT_ID='' ## example 'amfa-dev006'
 
 # DNS domain and hosted zone id, required
-ROOT_DOMAIN_NAME = '' ## example 'apersona2.aws-amplify.dev'
-ROOT_HOSTED_ZONE_ID = '' ## example 'Z0596003151J12345678X'
+export ROOT_DOMAIN_NAME='' ## example 'apersona2.aws-amplify.dev'
+export ROOT_HOSTED_ZONE_ID='' ## example 'Z0596003151J12345678X'
 
 # optional
-SP_PORTAL_URL='' ## example 'https://apersona.netlify.app' ## can be removed if not use service providers portal.
-EXTRA_APP_URL='' ## example 'https://amfa.netlify.app/' ## can be removed if no extra application using AMFA controller.
+export SP_PORTAL_URL='' ## example 'https://apersona.netlify.app' ## can be removed if not use service providers portal.
+export EXTRA_APP_URL='' ## example 'https://amfa.netlify.app/' ## can be removed if no extra application using AMFA controller.
 
 # google captcha key and secret. Leave them empty as '' if not uses.
-RECAPTCHA_KEY = '' ## example '6LdFWYUnAAAAAATdjfhjNZqDqPOEn12345678'
-RECAPTCHA_SECRET = '' ## example '6LdFWYUnAAAAABlC3YcF7DqDqPO123456789'
+export RECAPTCHA_KEY='' ## example '6LdFWYUnAAAAAATdjfhjNZqDqPOEn12345678'
+export RECAPTCHA_SECRET='' ## example '6LdFWYUnAAAAABlC3YcF7DqDqPO123456789'
 
 if aws sts get-caller-identity >/dev/null; then
 
@@ -28,7 +28,7 @@ if aws sts get-caller-identity >/dev/null; then
         if [ -z ${EXTRA_APP_URL+x} ]; then
         echo "EXTRA_APP_URL is not configured too, you would need to manually config userpool callback url later"
         else
-        SP_PORTAL_URL=$EXTRA_APP_URL
+        export SP_PORTAL_URL=$EXTRA_APP_URL
         echo "using EXTRA_APP_URL as default application url"
         fi
     fi
@@ -36,8 +36,8 @@ if aws sts get-caller-identity >/dev/null; then
     #get region and account by EC2 info
     TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
     EC2_AVAIL_ZONE=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone)
-    CDK_DEPLOY_REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
-    CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
+    export CDK_DEPLOY_REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
+    export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
 
     rm delegationRole.json
     echo "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::$CDK_DEPLOY_ACCOUNT:root\"},\"Action\":\"sts:AssumeRole\"}]}" >> delegationRole.json
@@ -83,7 +83,8 @@ if aws sts get-caller-identity >/dev/null; then
     read -p "Confirm to deploy AMFA on Account $(echo -e $BOLD$YELLOW$CDK_DEPLOY_ACCOUNT$NC) in Region $(echo -e $BOLD$YELLOW$CDK_DEPLOY_REGION$NC)? (y/n)" response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         echo "*************************************************************************************"
-        npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNTD/$CDK_DEPLOY_REGION || (unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP)
+        npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/us-east-1
+        npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION || (unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP)
         unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP
         npx cdk deploy "$@" --all
         echo "Deploy finished"

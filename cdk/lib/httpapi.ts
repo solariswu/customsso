@@ -6,9 +6,9 @@ import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, PublicHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGatewayDomain } from "aws-cdk-lib/aws-route53-targets";
-import { Vpc, SubnetType, IpAddresses } from 'aws-cdk-lib/aws-ec2';
+import { Vpc, SubnetType, IpAddresses, NatGatewayProvider, CfnEIP} from 'aws-cdk-lib/aws-ec2';
 
-import { Duration } from 'aws-cdk-lib';
+import { Duration, aws_ec2 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import { RootDomainName, resourceName, totpScopeName } from "./const";
@@ -38,6 +38,7 @@ export class TenantApiGateway {
   smtpSecret: ISecret;
   asmSecret: ISecret;
   CorsPreflightOptions: CorsOptions;
+  eip: CfnEIP;
   // samlproxyinstanceid: string;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
@@ -98,10 +99,15 @@ export class TenantApiGateway {
   };
 
   private createVpc() {
+    this.eip = new CfnEIP(this.scope, 'lambda-natgw-eip');
+
     this.vpc = new Vpc(this.scope, 'lambda-vpc', {
       ipAddresses: IpAddresses.cidr('10.0.0.0/16'),
       natGateways: 1,
       maxAzs: 1,
+      natGatewayProvider: new NatGatewayProvider(/* all optional props */ {
+        eipAllocationIds: [this.eip.attrAllocationId],
+      }),
       subnetConfiguration: [
         {
           name: 'private-subnet-1',
