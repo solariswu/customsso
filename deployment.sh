@@ -1,19 +1,22 @@
 #!/bin/bash
+unset TENANT_ID && unset ROOT_DOMAIN_NAME && unset ROOT_HOSTED_ZONE_ID && unset SP_PORTAL_URL && unset EXTRA_APP_URL && unset RECAPTCHA_KEY && unset RECAPTCHA_SECRET
 
-# deployment tenant info
-export TENANT_ID='' ## example 'amfa-dev006'
+source ./config.sh
 
-# DNS domain and hosted zone id, required
-export ROOT_DOMAIN_NAME='' ## example 'apersona2.aws-amplify.dev'
-export ROOT_HOSTED_ZONE_ID='' ## example 'Z0596003151J12345678X'
+if [ -z "$TENANT_ID" ]; then
+    echo "TENANT_ID is not set, please set TENANT_ID in config.sh"
+    exit 1
+fi
 
-# optional
-export SP_PORTAL_URL='' ## example 'https://apersona.netlify.app' ## can be removed if not use service providers portal.
-export EXTRA_APP_URL='' ## example 'https://amfa.netlify.app/' ## can be removed if no extra application using AMFA controller.
+if [ -z "$ROOT_DOMAIN_NAME" ]; then
+    echo "ROOT_DOMAIN_NAME is not set, please set ROOT_DOMAIN_NAME in config.sh"
+    exit 1
+fi
 
-# google captcha key and secret. Leave them empty as '' if not uses.
-export RECAPTCHA_KEY='' ## example '6LdFWYUnAAAAAATdjfhjNZqDqPOEn12345678'
-export RECAPTCHA_SECRET='' ## example '6LdFWYUnAAAAABlC3YcF7DqDqPO123456789'
+if [ -z "$ROOT_HOSTED_ZONE_ID" ]; then
+    echo "ROOT_HOSTED_ZONE_ID is not set, please set ROOT_HOSTED_ZONE_ID in config.sh"
+    exit 1
+fi
 
 if aws sts get-caller-identity >/dev/null; then
 
@@ -23,9 +26,9 @@ if aws sts get-caller-identity >/dev/null; then
     echo "install application dependency libs"
     npm install
 
-    if [ -z ${SP_PORTAL_URL+x} ]; then
+    if [ -z "$SP_PORTAL_URL" ]; then
         echo "SP_PORTAL_URL is not configured"
-        if [ -z ${EXTRA_APP_URL+x} ]; then
+        if [ -z "$EXTRA_APP_URL" ]; then
         echo "EXTRA_APP_URL is not configured too, you would need to manually config userpool callback url later"
         else
         export SP_PORTAL_URL=$EXTRA_APP_URL
