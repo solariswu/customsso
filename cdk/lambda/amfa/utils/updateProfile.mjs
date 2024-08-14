@@ -5,6 +5,7 @@ import {
 import { notifyProfileChange } from './mailer.mjs';
 
 export const updateProfile = async (email, otptype, profile, logoUrl, cognitoClient) => {
+	console.log('updateProfile', email, otptype, profile, logoUrl);
 	let UserAttributes = [];
 	const profileTypes = {
 		'ae': 'alter email',

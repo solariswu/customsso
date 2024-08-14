@@ -1,4 +1,4 @@
-var n=Object.defineProperty;var m=Object.getOwnPropertyDescriptor;var h=Object.getOwnPropertyNames;var s=Object.prototype.hasOwnProperty;var g=(t,e)=>{for(var a in e)n(t,a,{get:e[a],enumerable:!0})},c=(t,e,a,o)=>{if(e&&typeof e=="object"||typeof e=="function")for(let i of h(e))!s.call(t,i)&&i!==a&&n(t,i,{get:()=>e[i],enumerable:!(o=m(e,i))||o.enumerable});return t};var p=t=>c(n({},"__esModule",{value:!0}),t);var b={};g(b,{default:()=>v});module.exports=p(b);var r=(t,e,a,o,i)=>{let d=`<p>Your following MFA value${e.length>1?"s":""} has been changed${i?" by Admin":""}.</p>`;for(let l=0;l<e.length;l++)d+=`<p>&nbsp;&nbsp;&#x2022; ${e[l]} has been `,d+=a[l]&&a[l].length>1?"changed to "+a[l]:"removed",d+="</p>";return console.log("HTML template diff value",d),`
+var n=Object.defineProperty;var m=Object.getOwnPropertyDescriptor;var s=Object.getOwnPropertyNames;var g=Object.prototype.hasOwnProperty;var c=(t,e)=>{for(var i in e)n(t,i,{get:e[i],enumerable:!0})},p=(t,e,i,o)=>{if(e&&typeof e=="object"||typeof e=="function")for(let l of s(e))!g.call(t,l)&&l!==i&&n(t,l,{get:()=>e[l],enumerable:!(o=m(e,l))||o.enumerable});return t};var r=t=>p(n({},"__esModule",{value:!0}),t);var f={};c(f,{default:()=>b});module.exports=r(f);var v=(t,e,i,o,l,h)=>{let d=`<p>Your following MFA value${e.length>1?"s":""} has been changed${l?" by Admin":""}.</p>`;for(let a=0;a<e.length;a++)d+=`<p>&nbsp;&nbsp;&#x2022; ${e[a]} has been `,d+=i[a]&&i[a].length>1?"changed to "+i[a]:"removed",d+="</p>";return console.log("HTML template diff value",d),`
 		<!DOCTYPE html >
 			<html>
 				<head>
@@ -45,11 +45,11 @@ var n=Object.defineProperty;var m=Object.getOwnPropertyDescriptor;var h=Object.g
 								<p>If you did not make this change, please contact the help desk.</p>
 							</div>
 							<div class="email-footer">
-								<p>APERSONA amfa</p>
+								<p>${h}</p>
 							</div>
 						</div>
 					</div>
 				</body>
 			</html>
-	`},v=r;
+	`},b=v;
 //# sourceMappingURL=htmlTemplate.js.map

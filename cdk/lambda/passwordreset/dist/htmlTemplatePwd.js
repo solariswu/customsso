@@ -1,4 +1,4 @@
-var i=Object.defineProperty;var s=Object.getOwnPropertyDescriptor;var d=Object.getOwnPropertyNames;var l=Object.prototype.hasOwnProperty;var m=(o,e)=>{for(var t in e)i(o,t,{get:e[t],enumerable:!0})},n=(o,e,t,r)=>{if(e&&typeof e=="object"||typeof e=="function")for(let a of d(e))!l.call(o,a)&&a!==t&&i(o,a,{get:()=>e[a],enumerable:!(r=s(e,a))||r.enumerable});return o};var h=o=>n(i({},"__esModule",{value:!0}),o);var c={};m(c,{default:()=>y});module.exports=h(c);var p=(o,e,t)=>`
+var r=Object.defineProperty;var s=Object.getOwnPropertyDescriptor;var d=Object.getOwnPropertyNames;var l=Object.prototype.hasOwnProperty;var m=(o,e)=>{for(var t in e)r(o,t,{get:e[t],enumerable:!0})},n=(o,e,t,a)=>{if(e&&typeof e=="object"||typeof e=="function")for(let i of d(e))!l.call(o,i)&&i!==t&&r(o,i,{get:()=>e[i],enumerable:!(a=s(e,i))||a.enumerable});return o};var h=o=>n(r({},"__esModule",{value:!0}),o);var c={};m(c,{default:()=>y});module.exports=h(c);var p=(o,e,t,a)=>`
 		<!DOCTYPE html >
 			<html>
 				<head>
@@ -46,7 +46,7 @@ var i=Object.defineProperty;var s=Object.getOwnPropertyDescriptor;var d=Object.g
 								<p>If you are not sure you or your administrator performed this password reset, then you should contact your administrator immediately or change your password yourself.</p>
 							</div>
 							<div class="email-footer">
-								<p>APERSONA amfa</p>
+								<p>${a}</p>
 							</div>
 						</div>
 					</div>

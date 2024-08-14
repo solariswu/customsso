@@ -37,7 +37,7 @@ export const notifyProfileChange = async (email, types, newProfileValues, logoUr
 		to: email, // receiver email
 		subject: "Your profile has been updated", // Subject line
 		text: message+messageMfaList,
-		html: HTML_TEMPLATE(email, types, newProfileValues, logoUrl, isByAdmin),
+		html: HTML_TEMPLATE(email, types, newProfileValues, logoUrl, isByAdmin, process.env.SERVICE_NAME),
 	}
 
 	const smtpConfigs = await getSMTP();

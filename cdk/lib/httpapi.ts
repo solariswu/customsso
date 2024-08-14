@@ -39,16 +39,18 @@ export class TenantApiGateway {
   asmSecret: ISecret;
   CorsPreflightOptions: CorsOptions;
   eip: CfnEIP;
+  serviceName: string;
   // samlproxyinstanceid: string;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
-    account: string | undefined, region: string | undefined, tenantId: string | undefined, ddb: AmfaServcieDDB) {
+    account: string | undefined, region: string | undefined, tenantId: string | undefined, ddb: AmfaServcieDDB, serviceName: string) {
     this.scope = scope;
     this.certificate = certificate;
     this.hostedZone = hostedZone;
     this.account = account;
     this.region = region;
     this.tenantId = tenantId ? tenantId : '';
+    this.serviceName = serviceName;
 
     this.CorsPreflightOptions = {
       allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization'],
@@ -139,6 +141,7 @@ export class TenantApiGateway {
           AMFACONFIG_TABLE: configTable.tableName,
           TENANT_ID: this.tenantId ? this.tenantId : '',
           ALLOW_ORIGIN: `${this.tenantId}.${RootDomainName}`,
+          SERVICE_NAME: this.serviceName,
         },
         timeout: Duration.minutes(5),
       }
@@ -352,6 +355,7 @@ export class TenantApiGateway {
           TOTPTOKEN_TABLE: totpTokenTable.tableName,
           PWD_HISTORY_TABLE: pwdhashTable.tableName,
           USERPOOL_DOMAIN: userpoolDomain.domainName,
+          SERVICE_NAME: this.serviceName,
         },
         timeout: Duration.minutes(5),
         // 👇 place lambda in the VPC
@@ -602,7 +606,8 @@ export class TenantApiGateway {
         TOTPTOKEN_TABLE: totpTokenTable.tableName,
         TENANT_ID: this.tenantId,
         USERPOOL_ID: userpool.userPoolId,
-        AMFACONFIG_TABLE: this.configTable.tableName
+        AMFACONFIG_TABLE: this.configTable.tableName,
+        SERVICE_NAME: this.serviceName,
       },
       timeout: Duration.minutes(5),
     });

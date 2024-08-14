@@ -1,4 +1,4 @@
-const HTML_TEMPLATE = (user, types, values, logoUrl, isByAdmin) => {
+const HTML_TEMPLATE = (user, types, values, logoUrl, isByAdmin, serviceName) => {
 	let diff = `<p>Your following MFA value${types.length > 1 ? 's' : ''} has been changed${isByAdmin ? ' by Admin' : ''}.</p>`;
 
 	for (let index = 0; index < types.length; index++) {
@@ -56,7 +56,7 @@ const HTML_TEMPLATE = (user, types, values, logoUrl, isByAdmin) => {
 								<p>If you did not make this change, please contact the help desk.</p>
 							</div>
 							<div class="email-footer">
-								<p>APERSONA amfa</p>
+								<p>${serviceName}</p>
 							</div>
 						</div>
 					</div>

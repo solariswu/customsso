@@ -1,4 +1,4 @@
-const HTML_TEMPLATE_PWD = (user, logoUrl, isByAdmin) => {
+const HTML_TEMPLATE_PWD = (user, logoUrl, isByAdmin, serviceName) => {
 
 	return `
 		<!DOCTYPE html >
@@ -48,7 +48,7 @@ const HTML_TEMPLATE_PWD = (user, logoUrl, isByAdmin) => {
 								<p>If you are not sure you or your administrator performed this password reset, then you should contact your administrator immediately or change your password yourself.</p>
 							</div>
 							<div class="email-footer">
-								<p>APERSONA amfa</p>
+								<p>${serviceName}</p>
 							</div>
 						</div>
 					</div>

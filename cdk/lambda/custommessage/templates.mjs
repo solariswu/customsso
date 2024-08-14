@@ -67,7 +67,7 @@ const templateResetButton = (login_url) => `
 const templateResetBody = (name, email) => `
     <p>Hi ${name ? name : email}&#44</p>
     <br/>
-    <p>${process.env.SERVICE_NAME}: Please be advised that your account password has been reset for security reasons.</p>
+    <p>Please be advised that your account password has been reset for security reasons.</p>
     <p>The next time you login, you will be required to update your password.</p>
 `;
 

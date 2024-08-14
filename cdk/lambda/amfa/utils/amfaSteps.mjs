@@ -13,14 +13,12 @@ import { passwordlessLogin } from './passwordlessLogin.mjs';
 import { signUp } from './signUp.mjs';
 import { cookie2NamePrefix } from '../const.mjs';
 import { genSessionID } from './genSessionID.mjs';
-import { fetchConfig } from './fetchConfig.mjs';
 import { updateProfile } from './updateProfile.mjs';
 import { checkSessionId } from './checkSessionId.mjs';
 import { getTType } from './amfaUtils.mjs';
 import { getTotp } from './totp/getToken.mjs';
 import { validateTotp } from './totp/verifyOtp.mjs';
 import { getAsmSalt } from './totp/getKms.mjs';
-import { amfaBrandings } from '../../postdeployment/config.mjs';
 import { checkPasswordExpiration, createPWDHashHistory } from './passwordhash.mjs';
 
 const cookieEnabledHeaders = {
@@ -76,7 +74,8 @@ const transUAttr = async (email, userAttributes, allowed_otp_methods, asm_provid
   return otpData;
 }
 
-export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
+export const amfaSteps = async (event, headers, cognito, step,
+  amfaBrandings, amfaPolicies, amfaConfigs, dynamodb) => {
   const response = (statusCode, body) => {
 
     return {
@@ -99,8 +98,6 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
   }
 
   try {
-    const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
-    const amfaPolicies = await fetchConfig('amfaPolicies', dynamodb);
     // API vars saved in node.js property file in the back-end node.js
     const salt = await getAsmSalt(); // Pull this from a property file. All MFA services will use this same salt to read and write the one_time_token-Cookie.
     const asmurl = amfaConfigs.asmurl;  // Url of the Adaptive MFA Server.
@@ -481,7 +478,7 @@ export const amfaSteps = async (event, headers, cognito, step, dynamodb) => {
           //This puts ASM into an otp state for the user, then you can send a mobile TOTP.
           // On the second verification, the auth api call is sending otpp=1, but it should be otpp=0 becuase we want ASM to push the otp immediately to the selected channel.
           // otpp = event.otptype === 't' && ['pwdreset2', 'selfservice2'].includes(step) ? 1 : 0;
-          otpp = event.otptype === 't' ? 1: 0;
+          otpp = event.otptype === 't' ? 1 : 0;
           sfl = 7;
           postURL = asmurl + '/extAuthenticate.kv?l=' + l + '&sfl=' + sfl + '&u=' + u + '&apti=' + apti + '&uIp=' + uIp + '&otpm=' + otpm + '&p=' + p + '&tType=' + tType + '&otpp=' + otpp + '&nsf=' + nsf + '&igd=' + igd + '&a=' + a;
         }

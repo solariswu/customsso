@@ -35,7 +35,7 @@ export class AmfaStack extends Stack {
       const ddb = new AmfaServcieDDB(this, tenant.awsaccount, tenant.region, tenant.tenantId);
 
       const apigateway = new TenantApiGateway(this, props.apiCertificate,
-        props.hostedZone, tenant.awsaccount, tenant.region, tenant.tenantId, ddb);
+        props.hostedZone, tenant.awsaccount, tenant.region, tenant.tenantId, ddb, tenant.serviceName);
       const tenantUserPool = new TenantUserPool(this, apigateway.configTable,
         tenant.region, tenant.tenantId, tenant.magicstring,
         tenant.callbackUrls,

@@ -53,7 +53,7 @@ const validateInputParams = (payload) => {
         payload.apti && payload.authParam);
     case 'emailverificationverifyotp':
       if (!C_OTP_TYPES.includes(payload.otptype)) return false;
-      if (payload.otptype === 't' && validateTOTP(payload.otpcode)) return false; 
+      if (payload.otptype === 't' && validateTOTP(payload.otpcode)) return false;
       if (payload.otptype !== 't' && validateOTP(payload.otpcode)) return false;
       return (payload.email && payload.otpcode && payload.otptype &&
         payload.apti && payload.authParam && payload.attributes && payload.password);
@@ -106,15 +106,14 @@ export const handler = async (event) => {
     if (payload && validateInputParams(payload)) {
       const amfaBrandings = await fetchConfig('amfaBrandings', dynamodb);
       const amfaPolicies = await fetchConfig('amfaPolicies', dynamodb);
+      const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
 
       switch (payload.phase) {
         case 'admindeletetotp':
-          const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
           return await deleteTotp(headers, payload.email, amfaConfigs,
             requestId, client, true, dynamodb, amfaBrandings.email_logo_url, true);
         case 'admindeleteuser':
           {
-            const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
             console.log('asm delete user payload', payload);
             const results = await Promise.allSettled([
               asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin),
@@ -125,7 +124,7 @@ export const handler = async (event) => {
             console.log('admin delete user promises result:', results);
           }
           return responseWithRequestId(200, 'OKay', requestId)
-          case 'adminupdateuser':
+        case 'adminupdateuser':
           console.log('admin update user - otptypes', payload.otptype, ' newProfileValue')
           await notifyProfileChange(payload.email,
             payload.otptype, payload.newProfileValue,
@@ -141,7 +140,6 @@ export const handler = async (event) => {
         case 'registotp':
           const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
           if (isValidUuid) {
-            const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
             return await registotp(headers, payload, amfaConfigs,
               requestId, amfaBrandings.email_logo_url, client, dynamodb);
           }
@@ -152,7 +150,6 @@ export const handler = async (event) => {
             const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
             console.log('isValidUuid', isValidUuid);
             if (isValidUuid) {
-              const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
               return await deleteTotp(headers, payload.email, amfaConfigs,
                 requestId, client, true, dynamodb, amfaBrandings.email_logo_url, false);
             }
@@ -184,7 +181,8 @@ export const handler = async (event) => {
           console.log('phase username ListUser Result ', res);
 
           if (res && res.Users && res.Users.length > 0) {
-            const stepOneResponse = await amfaSteps(payload, headers, client, payload.phase, dynamodb);
+            const stepOneResponse = await amfaSteps(payload, headers, client,
+              payload.phase, amfaBrandings, amfaPolicies, amfaConfigs, dynamodb);
             return stepOneResponse;
           }
           else {
@@ -193,7 +191,8 @@ export const handler = async (event) => {
             return responseWithRequestId(202, 'Your identity requires password login.', requestId);
           }
         default:
-          const stepResponse = await amfaSteps(payload, headers, client, payload.phase, dynamodb);
+          const stepResponse = await amfaSteps(payload, headers, client, payload.phase,
+            amfaBrandings, amfaPolicies, amfaConfigs, dynamodb);
           return stepResponse;
       }
     } else {
