@@ -18,6 +18,10 @@ const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGIO
 const C_OTP_TYPES = ['e', 'ae', 's', 'v', 't'];
 
 const validateInputParams = (payload) => {
+  if (payload.phase === 'admingetsecretinfo') {
+    // no email info need to check
+    return (payload.tenantid)
+  }
   if (!payload.email || validateEmail(payload.email)) return false;
   // check required params here
   switch (payload.phase) {
@@ -25,8 +29,6 @@ const validateInputParams = (payload) => {
     case 'admindeleteuser':
     case 'adminupdateuser':
       return (payload.email);
-    case 'admingetsecretinfo':
-      return (payload.tenantid);
     case 'username':
       return (payload.email && payload.apti && payload.authParam);
     case 'password':
