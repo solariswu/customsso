@@ -106,8 +106,8 @@ export const amfaBrandings =
 
 export const amfaLegals =
 {
-    terms_of_service: "New User terms and conditions",
-    privacy_policy: "service privacy policy here",
+    "terms_of_service": "https://downloads.apersona.com/demos/WeaveAI-Ts-Cs.html",
+    "privacy_policy": "https://downloads.apersona.com/demos/WeaveAI-Privacy.html"
 }
 
 export const amfaTenants = [
