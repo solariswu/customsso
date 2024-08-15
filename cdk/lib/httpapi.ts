@@ -6,7 +6,7 @@ import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, PublicHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGatewayDomain } from "aws-cdk-lib/aws-route53-targets";
-import { Vpc, SubnetType, IpAddresses, NatGatewayProvider, CfnEIP} from 'aws-cdk-lib/aws-ec2';
+import { Vpc, SubnetType, IpAddresses, NatGatewayProvider, CfnEIP } from 'aws-cdk-lib/aws-ec2';
 
 import { Duration, aws_ec2 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -144,6 +144,11 @@ export class TenantApiGateway {
           // SERVICE_NAME: this.serviceName,
         },
         timeout: Duration.minutes(5),
+        vpc: this.vpc,
+        // 👇 place lambda in Private Subnets
+        vpcSubnets: {
+          subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+        },
       }
     );
 
