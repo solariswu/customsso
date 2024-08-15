@@ -151,11 +151,11 @@ const App = () => {
 
    const Timer = () => {
       return (
-         <div className='about-customizable' style={{ textAlign: 'center' }}>
+         // <div className='about-customizable' style={{ textAlign: 'center' }}>
             <span className='legalText-customizable'>
                {time}
             </span>
-         </div>
+         // </div>
       )
    }
 
@@ -208,6 +208,7 @@ const App = () => {
                </a>
                &nbsp;
                <a href={config?.legal.terms_of_service} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Terms of Service</a>
+               {' - '}<Timer />
             </span>
             {
                config.enable_google_recaptcha && <div >
@@ -264,7 +265,6 @@ const App = () => {
                      <Route path="/timeout" element={<TimeOut updatetimer={pauseTimer} />} />
                      <Route path="*" element={<NoMatch />} />
                   </Routes>
-                  <Timer />
                   <Footer />
                   {config?.enable_have_i_been_pwned && <PwnedPWDModal key={'pwned'} />}
                </div>
