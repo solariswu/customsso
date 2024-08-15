@@ -97,11 +97,11 @@ export const amfaConfigs = {
 
 export const amfaBrandings =
 {
-    service_name: "ASTARICS",
-    logo_url: "https://downloads.apersona.com/logos/astarics_logo.png",
-    email_logo_url: "https://downloads.apersona.com/logos/astarics_logo.png",
+    service_name: "WeaveAI",
+    logo_url: "https://downloads.apersona.com/logos/WeaveAILogo.png",
+    email_logo_url: "https://downloads.apersona.com/logos/WeaveAILogo.png",
     brand_base_color: "#009AD0",
-    consent_content: 'By signing up, I accept the <a href="https://example.com" target="_blank">privacy policy</a> and the <a href="https://example2.com" target="_blank"> terms &amp; conditions</a>',
+    consent_content: 'By signing up, I accept the <a href="https://downloads.apersona.com/demos/WeaveAI-Privacy.html" target="_blank">privacy policy</a> and the <a href="https://downloads.apersona.com/demos/WeaveAI-Ts-Cs.html" target="_blank"> terms &amp; conditions</a>',
 }
 
 export const amfaLegals =

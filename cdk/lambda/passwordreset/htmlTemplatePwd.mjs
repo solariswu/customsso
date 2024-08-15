@@ -1,4 +1,4 @@
-const HTML_TEMPLATE_PWD = (user, logoUrl, isByAdmin, serviceName) => {
+const HTML_TEMPLATE_PWD = (user, logoUrl, serviceName, isByAdmin) => {
 
 	return `
 		<!DOCTYPE html >

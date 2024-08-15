@@ -13,7 +13,7 @@ export const handler = async (event, context, callback) => {
       event.request.userAttributes.given_name, event.request.userAttributes.email,
       event.request.usernameParameter, event.request.codeParameter, amfaBrandings
     );
-    event.response.emailSubject = `${process.env.SERVICE_NAME}: New Account Invitation`;
+    event.response.emailSubject = `${amfaBrandings.service_name}: New Account Invitation`;
   }
 
   if (event.triggerSource === 'CustomMessage_ForgotPassword') {
@@ -23,7 +23,7 @@ export const handler = async (event, context, callback) => {
       event.request.userAttributes.given_name, event.request.userAttributes.email,
       event.request.usernameParameter, event.request.codeParameter, amfaBrandings
     );
-    event.response.emailSubject = `${process.env.SERVICE_NAME}: Your password has been reset for security reasons`;
+    event.response.emailSubject = `${amfaBrandings.service_name}: Your password has been reset for security reasons`;
   }
 
   console.info("EVENT\n" + JSON.stringify(event, null, 2));

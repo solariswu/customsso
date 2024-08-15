@@ -278,7 +278,7 @@ export const amfaSteps = async (event, headers, cognito, step,
         return response(400, 'Your entry was not valid, please try again.');
       }
 
-      await updateProfile(event.email, event.otptype, '', amfaBrandings.email_logo_url, cognito);
+      await updateProfile(event.email, event.otptype, '', amfaBrandings.email_logo_url, amfaBrandings.service_name, cognito);
       return response(200, 'OK');
 
     }
@@ -526,7 +526,9 @@ export const amfaSteps = async (event, headers, cognito, step,
                 // update profile
                 await updateProfile(event.email,
                   event.otptype, event.otpaddr,
-                  amfaBrandings.email_logo_url, cognito);
+                  amfaBrandings.email_logo_url,
+                  amfaBrandings.service_name,
+                  cognito);
                 return response(200, 'OK');
               }
               else {

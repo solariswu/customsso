@@ -4,7 +4,7 @@ import {
 
 import { notifyProfileChange } from './mailer.mjs';
 
-export const updateProfile = async (email, otptype, profile, logoUrl, cognitoClient) => {
+export const updateProfile = async (email, otptype, profile, logoUrl, serviceName, cognitoClient) => {
 	console.log('updateProfile', email, otptype, profile, logoUrl);
 	let UserAttributes = [];
 	const profileTypes = {
@@ -48,6 +48,6 @@ export const updateProfile = async (email, otptype, profile, logoUrl, cognitoCli
 
 	await cognitoClient.send(param);
 
-	await notifyProfileChange(email, [profileTypes[otptype]], [profile], logoUrl, false);
+	await notifyProfileChange(email, [profileTypes[otptype]], [profile], logoUrl, serviceName, false);
 
 }

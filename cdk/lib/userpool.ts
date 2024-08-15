@@ -43,7 +43,7 @@ export class TenantUserPool {
 
   constructor(scope: Construct, configTable: Table, region: string | undefined, tenantId: string | undefined,
     magicString: string, callbackUrls: string[], logoutUrls: string[],
-    spPortalUrl: string | undefined, serviceName: string) {
+    spPortalUrl: string | undefined) {
     this.scope = scope;
     this.region = region;
     this.tenantId = tenantId ? tenantId : '';
@@ -55,7 +55,7 @@ export class TenantUserPool {
     this.hostedUIClient = this.addHostedUIAppClient(callbackUrls, logoutUrls);
     this.hostedUIClient.node.addDependency(this.oidcProvider);
     this.userpoolDomain = this.addHostedUIDomain();
-    this.addCustomMessageLambdaTrigger(configTable, spPortalUrl, serviceName);
+    this.addCustomMessageLambdaTrigger(configTable, spPortalUrl);
 
     this.clientCredentialsClient = this.addClientCredentialClient();
   }
@@ -246,9 +246,9 @@ export class TenantUserPool {
     );
   };
 
-  private addCustomMessageLambdaTrigger(configTable, spPortalUrl, serviceName) {
+  private addCustomMessageLambdaTrigger(configTable, spPortalUrl) {
     const lambdaFn = createCustomMessageLambda(
-      this.scope, configTable, this.tenantId, spPortalUrl, serviceName
+      this.scope, configTable, this.tenantId, spPortalUrl
     );
     this.userpool.addTrigger(
       UserPoolOperation.CUSTOM_MESSAGE,

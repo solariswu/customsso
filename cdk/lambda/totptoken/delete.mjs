@@ -5,12 +5,12 @@ import { notifyProfileChange } from './mailer.mjs';
 
 const fetchConfig = async (configType, dynamodb) => {
 
-    const params = {
-      TableName: process.env.AMFACONFIG_TABLE,
-      Key: {
-        configtype: {S: configType},
-      },
-    };
+	const params = {
+		TableName: process.env.AMFACONFIG_TABLE,
+		Key: {
+			configtype: { S: configType },
+		},
+	};
 	const getItemCommand = new GetItemCommand(params);
 	const results = await dynamodb.send(getItemCommand);
 
@@ -20,7 +20,7 @@ const fetchConfig = async (configType, dynamodb) => {
 
 	const result = JSON.parse(results.Item.value.S);
 
-	console.log (`get ${configType}:`, result);
+	console.log(`get ${configType}:`, result);
 	return result;
 
 }
@@ -62,9 +62,9 @@ export const deleteResData = async (payload, dynamodb, cognito) => {
 			console.log('error', error);
 		}
 
-		const amfaBrandings = await fetchConfig ('amfaBrandings', dynamodb);
+		const amfaBrandings = await fetchConfig('amfaBrandings', dynamodb);
 
-		await notifyProfileChange(email, ['Mobile TOTP'], [null], amfaBrandings.email_logo_url, true)
+		await notifyProfileChange(email, ['Mobile TOTP'], [null], amfaBrandings.email_logo_url, amfaBrandings.service_name, true)
 
 		return 1
 	}

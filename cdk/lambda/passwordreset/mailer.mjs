@@ -20,7 +20,7 @@ const mailer = async (mailDetails, smtpConfig) => {
 
 }
 
-export const notifyPasswordChange = async (email, logoUrl, isByAdmin = false) => {
+export const notifyPasswordChange = async (email, logoUrl, serviceName, isByAdmin = false) => {
 	const message = `Hi ${email},\n\n` +
 		` The password on your account has recently been reset${isByAdmin ? ' by Admin' : ''}.\n\n` +
 		` If you are not sure you or your administrator performed this password reset, then you should contact your administrator immediately or change your password yourself.\n`;
@@ -30,7 +30,7 @@ export const notifyPasswordChange = async (email, logoUrl, isByAdmin = false) =>
 		to: email, // receiver email
 		subject: "Your password has been reset.", // Subject line
 		text: message,
-		html: HTML_TEMPLATE_PWD(email, logoUrl, isByAdmin, process.env.SERVICE_NAME),
+		html: HTML_TEMPLATE_PWD(email, logoUrl, serviceName, isByAdmin),
 	}
 
 	const smtpConfigs = await getSMTP();
@@ -55,7 +55,7 @@ export const notifyPasswordChange = async (email, logoUrl, isByAdmin = false) =>
 
 }
 
-export const notifyProfileChange = async (email, types, newProfileValues, logoUrl, isByAdmin = false) => {
+export const notifyProfileChange = async (email, types, newProfileValues, logoUrl, serviceName, isByAdmin = false) => {
 	if (types.length === 0) {
 		console.log('error, mailer, No changed OTP type found, input type:', types);
 		return;
@@ -73,7 +73,7 @@ export const notifyProfileChange = async (email, types, newProfileValues, logoUr
 		to: email, // receiver email
 		subject: "Your profile has been updated", // Subject line
 		text: message + messageMfaList,
-		html: HTML_TEMPLATE(email, types, newProfileValues, logoUrl, isByAdmin, process.env.SERVICE_NAME),
+		html: HTML_TEMPLATE(email, types, newProfileValues, logoUrl, serviceName, isByAdmin),
 	}
 
 	const smtpConfigs = await getSMTP();

@@ -40,11 +40,11 @@ const templateTail = (username, code) => `
     <div style="display:none;">${username}-${code}</div>
     </div></body></html>`;
 
-const templateInviteBody = (name, email, username) => `
+const templateInviteBody = (name, email, username, serviceName) => `
   <div class="email-body">
     <p>Hi ${name ? name : username}&#44</p>
     <br/>
-    <p>${process.env.SERVICE_NAME} has created a new account for you.</p>
+    <p>${serviceName} has created a new account for you.</p>
     <p>Your login id is ${email}. Please use it to login and set up your new account.</span></p>
   </div>`;
 
@@ -55,7 +55,7 @@ const templateInviteButton = (login_url) => `
 
 export const templateInvite = (name, email, username, code, configs) =>
   templateHead(configs.email_logo_url) +
-  templateInviteBody(name, email, username, code) +
+  templateInviteBody(name, email, username, configs.service_name) +
   templateInviteButton(process.env.APP_URL) +
   templateTail(username, code);
 

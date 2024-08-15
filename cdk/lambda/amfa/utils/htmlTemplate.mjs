@@ -1,4 +1,4 @@
-const HTML_TEMPLATE = (user, types, values, logoUrl, isByAdmin, serviceName) => {
+const HTML_TEMPLATE = (user, types, values, logoUrl, serviceName, isByAdmin) => {
 	let diff = `<p>Your following MFA value${types.length > 1 ? 's' : ''} has been changed${isByAdmin ? ' by Admin' : ''}.</p>`;
 
 	for (let index = 0; index < types.length; index++) {

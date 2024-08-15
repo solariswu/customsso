@@ -230,7 +230,7 @@ export const handler = async (event) => {
                     await clearUserThreatState(username, config);
 
                     const amfaBrandings = await fetchConfig('amfaBrandings');
-                    await notifyPasswordChange(username, amfaBrandings.email_logo_url, false)
+                    await notifyPasswordChange(username, amfaBrandings.email_logo_url, amfaBrandings.service_name, false)
 
                     return {
                         statusCode: 200,
@@ -248,7 +248,7 @@ export const handler = async (event) => {
                 await clearUserThreatState(username, config);
 
                 const amfaBrandings = await fetchConfig('amfaBrandings');
-                await notifyPasswordChange(username, amfaBrandings.email_logo_url, false)
+                await notifyPasswordChange(username, amfaBrandings.email_logo_url, amfaBrandings.service_name, false)
 
                 return {
                     statusCode: 200,

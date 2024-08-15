@@ -19,7 +19,7 @@ const mailer = async (mailDetails, smtpConfig) => {
 
 }
 
-export const notifyProfileChange = async (email, types, newProfileValues, logoUrl, isByAdmin = false) => {
+export const notifyProfileChange = async (email, types, newProfileValues, logoUrl, serviceName, isByAdmin = false) => {
 	if (types.length === 0) {
 		console.log('error, mailer, No changed OTP type found, input type:', types);
 		return;
@@ -37,7 +37,7 @@ export const notifyProfileChange = async (email, types, newProfileValues, logoUr
 		to: email, // receiver email
 		subject: "Your profile has been updated", // Subject line
 		text: message+messageMfaList,
-		html: HTML_TEMPLATE(email, types, newProfileValues, logoUrl, isByAdmin, process.env.SERVICE_NAME),
+		html: HTML_TEMPLATE(email, types, newProfileValues, logoUrl, serviceName, isByAdmin),
 	}
 
 	const smtpConfigs = await getSMTP();

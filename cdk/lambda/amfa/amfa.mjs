@@ -113,14 +113,14 @@ export const handler = async (event) => {
       switch (payload.phase) {
         case 'admindeletetotp':
           return await deleteTotp(headers, payload.email, amfaConfigs,
-            requestId, client, true, dynamodb, amfaBrandings.email_logo_url, true);
+            requestId, client, true, dynamodb, amfaBrandings.email_logo_url, amfaBrandings.service_name, true);
         case 'admindeleteuser':
           {
             console.log('asm delete user payload', payload);
             const results = await Promise.allSettled([
               asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin),
               deleteTotp(headers, payload.email, amfaConfigs,
-                requestId, client, false, dynamodb, amfaBrandings.email_logo_url, true),
+                requestId, client, false, dynamodb, amfaBrandings.email_logo_url, amfaBrandings.service_name, true),
               deletePwdHashByUser(payload.email, dynamodb, amfaConfigs),
             ])
             console.log('admin delete user promises result:', results);
@@ -130,7 +130,7 @@ export const handler = async (event) => {
           console.log('admin update user - otptypes', payload.otptype, ' newProfileValue')
           await notifyProfileChange(payload.email,
             payload.otptype, payload.newProfileValue,
-            amfaBrandings.email_logo_url, true);
+            amfaBrandings.email_logo_url, amfaBrandings.serviceName, true);
           return;
         case 'admingetsecretinfo':
           console.log('admin get secret of tenants', payload.tenantid);
@@ -143,7 +143,7 @@ export const handler = async (event) => {
           const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
           if (isValidUuid) {
             return await registotp(headers, payload, amfaConfigs,
-              requestId, amfaBrandings.email_logo_url, client, dynamodb);
+              requestId, amfaBrandings.email_logo_url, amfaBrandings.service_naem, client, dynamodb);
           }
           break;
         case 'removeProfile':
@@ -153,7 +153,7 @@ export const handler = async (event) => {
             console.log('isValidUuid', isValidUuid);
             if (isValidUuid) {
               return await deleteTotp(headers, payload.email, amfaConfigs,
-                requestId, client, true, dynamodb, amfaBrandings.email_logo_url, false);
+                requestId, client, true, dynamodb, amfaBrandings.email_logo_url, amfaBrandings.service_name, false);
             }
           }
           break;

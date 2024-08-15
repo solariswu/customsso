@@ -41,12 +41,12 @@ var r=Object.defineProperty;var s=Object.getOwnPropertyDescriptor;var d=Object.g
 							</div>
 							<div class="email-body">
 								<p>Hello ${o},</p>
-								<p>The password on your account has recently been reset${t?" by Admin":""}. If you performed this password reset, then this message is for your information only.</p>
+								<p>The password on your account has recently been reset${a?" by Admin":""}. If you performed this password reset, then this message is for your information only.</p>
 								<br/>
 								<p>If you are not sure you or your administrator performed this password reset, then you should contact your administrator immediately or change your password yourself.</p>
 							</div>
 							<div class="email-footer">
-								<p>${a}</p>
+								<p>${t}</p>
 							</div>
 						</div>
 					</div>

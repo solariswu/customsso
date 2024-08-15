@@ -144,28 +144,28 @@ Invalid`},Source:"invalid@invalid",Destinations:["invalid@invalid"]};e||(t=new P
 							</div>
 							<div class="email-body">
 								<p>Hello ${r},</p>
-								<p>The password on your account has recently been reset${t?" by Admin":""}. If you performed this password reset, then this message is for your information only.</p>
+								<p>The password on your account has recently been reset${s?" by Admin":""}. If you performed this password reset, then this message is for your information only.</p>
 								<br/>
 								<p>If you are not sure you or your administrator performed this password reset, then you should contact your administrator immediately or change your password yourself.</p>
 							</div>
 							<div class="email-footer">
-								<p>${s}</p>
+								<p>${t}</p>
 							</div>
 						</div>
 					</div>
 				</body>
 			</html>
-	`,Ti=Wa;var Ya=async(r,e,t)=>{try{let s=await r.sendMail(e);t(s)}catch(s){console.log(s)}},Ai=async(r,e)=>{let t=Si.default.createTransport(e);await Ya(t,r,s=>console.log("email send:",s))},Za=async(r,e,t=!1)=>{let s=`Hi ${r},
+	`,Ti=Wa;var Ya=async(r,e,t)=>{try{let s=await r.sendMail(e);t(s)}catch(s){console.log(s)}},Ai=async(r,e)=>{let t=Si.default.createTransport(e);await Ya(t,r,s=>console.log("email send:",s))},Za=async(r,e,t,s=!1)=>{let i=`Hi ${r},
 
- The password on your account has recently been reset${t?" by Admin":""}.
+ The password on your account has recently been reset${s?" by Admin":""}.
 
  If you are not sure you or your administrator performed this password reset, then you should contact your administrator immediately or change your password yourself.
-`,i={from:"Admin <admin@noreply.com>",to:r,subject:"Your password has been reset.",text:s,html:Ti(r,e,t,process.env.SERVICE_NAME)},a=await Re(),n={service:a.service,host:a.host,port:a.port,secure:a.secure,auth:{user:a.user,pass:a.pass}};console.log("mailer options",i," smtp config:",n);try{return await Ai(i,n)}catch(o){console.error("send email for password change error",o)}},en=async(r,e,t,s,i=!1)=>{if(e.length===0){console.log("error, mailer, No changed OTP type found, input type:",e);return}let a=`Hi ${r},
+`,a={from:"Admin <admin@noreply.com>",to:r,subject:"Your password has been reset.",text:i,html:Ti(r,e,t,s)},n=await Re(),o={service:n.service,host:n.host,port:n.port,secure:n.secure,auth:{user:n.user,pass:n.pass}};console.log("mailer options",a," smtp config:",o);try{return await Ai(a,o)}catch(p){console.error("send email for password change error",p)}},en=async(r,e,t,s,i,a=!1)=>{if(e.length===0){console.log("error, mailer, No changed OTP type found, input type:",e);return}let n=`Hi ${r},
 
- Your following MFA has been changed${i?" by Admin":""}.
+ Your following MFA has been changed${a?" by Admin":""}.
 If this is not your desired change, please login check or contact help desk.
-`,n="";for(let c=0;c<e.length;c++)n+=`    ${e[c]} has been `,n+=t[c]&&t!==""?`changed to 
-${t[c]}
+`,o="";for(let m=0;m<e.length;m++)o+=`    ${e[m]} has been `,o+=t[m]&&t!==""?`changed to 
+${t[m]}
 `:`removed
-`;let o={from:"Admin <admin@noreply.com>",to:r,subject:"Your profile has been updated",text:a+n,html:ki(r,e,t,s,i,process.env.SERVICE_NAME)},p=await Re(),l={service:p.service,host:p.host,port:p.port,secure:p.secure,auth:{user:p.user,pass:p.pass}};console.log("mailer options",o," smtp config:",l);try{return await Ai(o,l)}catch(c){console.error("send email for token change error",c)}};0&&(module.exports={notifyPasswordChange,notifyProfileChange});
+`;let p={from:"Admin <admin@noreply.com>",to:r,subject:"Your profile has been updated",text:n+o,html:ki(r,e,t,s,i,a)},l=await Re(),c={service:l.service,host:l.host,port:l.port,secure:l.secure,auth:{user:l.user,pass:l.pass}};console.log("mailer options",p," smtp config:",c);try{return await Ai(p,c)}catch(m){console.error("send email for token change error",m)}};0&&(module.exports={notifyPasswordChange,notifyProfileChange});
 //# sourceMappingURL=mailer.js.map
