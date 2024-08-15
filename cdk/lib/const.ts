@@ -9,3 +9,5 @@ export const AMFAIdPName = 'apersona';
 
 export const resourceName = 'amfa';
 export const totpScopeName = 'totptoken';
+
+export const AMFAUserPoolName = 'aPersona-AWS-aMFA-UserPool';

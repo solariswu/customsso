@@ -21,7 +21,7 @@ import { RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Duration } from 'aws-cdk-lib';
 
 
-import { AMFAIdPName, resourceName, totpScopeName, RootDomainName } from './const';
+import { AMFAIdPName, resourceName, totpScopeName, RootDomainName, AMFAUserPoolName } from './const';
 import { createAuthChallengeFn, createCustomMessageLambda } from './lambda';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 
@@ -63,8 +63,8 @@ export class TenantUserPool {
   private createUserPool = () => {
     this.totpScope = new ResourceServerScope({ scopeName: totpScopeName, scopeDescription: totpScopeName });
 
-    const myuserpool = new UserPool(this.scope, `amfa-userpool}`, {
-      userPoolName: `amfaUserPool`,
+    const myuserpool = new UserPool(this.scope, `amfa-userpool`, {
+      userPoolName: AMFAUserPoolName,
       // use self sign-in is disable by default
       selfSignUpEnabled: true,
       signInAliases: {
@@ -217,7 +217,7 @@ export class TenantUserPool {
         },
         identifiers: ['apersona'],
         name: AMFAIdPName,
-        scopes: ['openid email phone aws.cognito.signin.user.admin profile'],
+        scopes: ['openid profile'],
       }
     );
   };
