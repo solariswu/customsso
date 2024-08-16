@@ -126,7 +126,6 @@ export const checkPasswordExpiration = async (username, dynamodb, config) => {
 
 			return ((setupTime/1000 + config.passwords_expire_days * 24 * 60 * 60) <= timeNow)
 		}
-		return true;
 	}
 	return false;
 }

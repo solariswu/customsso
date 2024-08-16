@@ -162,13 +162,18 @@ export const amfaSteps = async (event, headers, cognito, step,
       userAttributes = user.Attributes.reduce((acc, curr) => {
         acc[curr.Name] = curr.Value;
         return acc;
-      });
+      }, {});
 
       if (step === 'confirmOTPAddress') {
+        console.log('now checking confirmOTPAddress, userAttributes:', userAttributes);
         let result = false;
+        console.log('event.otptype:', event.otptype);
         switch (event.otptype) {
           case 'e':
+            console.log('event.otpaddr:', event.otpaddr.toLowerCase().trim());
+            console.log("userAttributes['email']:", userAttributes['email'].toLowerCase().trim());
             result = event.otpaddr.toLowerCase().trim() === userAttributes['email']?.toLowerCase().trim();
+            console.log('result:', result);
             break;
           case 'ae':
             result = event.otpaddr.toLowerCase().trim() === userAttributes['custom:alter-email']?.toLowerCase().trim();

@@ -129,6 +129,7 @@ const CONTENT = () => {
 					}
 					break;
 				case 401:
+					// 'You took too long or entered your otp wrong too many times.',
 					navigate('/otpmethods', {
 						state: {
 							email,
