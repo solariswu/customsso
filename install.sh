@@ -18,6 +18,12 @@ if [ -z "$ROOT_HOSTED_ZONE_ID" ]; then
     exit 1
 fi
 
+DOMAINNAME=$(aws route53 get-hosted-zone --id $ROOT_HOSTED_ZONE_ID | jq -r .HostedZone.Name)
+if [ "$DOMAINNAME" != "$ROOT_DOMAIN_NAME""." ]; then
+    echo "ROOT_DOMAIN_NAME and ROOT_HOSTED_ZONE_ID does not match"
+    exit 1
+fi
+
 if aws sts get-caller-identity >/dev/null; then
 
     source ~/.bashrc
