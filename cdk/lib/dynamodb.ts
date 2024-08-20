@@ -43,6 +43,7 @@ export class AmfaServcieDDB {
 
 	private createAmfaConfigTable() {
 		const table = new Table(this.scope, `amfa-config-${this.tenantId}`, {
+			tableName: `amfa-${this.account}-${this.region}-configtable`,
 			partitionKey: { name: 'configtype', type: AttributeType.STRING },
 			billingMode: BillingMode.PAY_PER_REQUEST,
 		});
