@@ -50,7 +50,9 @@ export class AmfaStack extends Stack {
       createPostDeploymentLambda(this, apigateway.configTable, apigateway.tenantTable, tenantUserPool.userpool.userPoolId, tenant.region, tenant.tenantId);
 
       // output
-      new CfnOutput(this, 'Amfa_UserPoolId', { value: tenantUserPool.userpool.userPoolId, });
+      new CfnOutput(this, 'Amfa_UserPoolId', {
+        value: tenantUserPool.userpool.userPoolId, exportName: 'useridppoolid',
+      });
       new CfnOutput(this, 'Amfa_UserPoolClientId', { value: tenantUserPool.hostedUIClient.userPoolClientId, });
       new CfnOutput(this, 'Amfa_OauthDomain', { value: `https://${process.env.TENANT_ID}-apersona.auth.${process.env.CDK_DEPLOY_REGION}.amazoncognito.com`, });
       new CfnOutput(this, 'Amfa_StaticIPaddress', { value: apigateway.eip.attrPublicIp, });
