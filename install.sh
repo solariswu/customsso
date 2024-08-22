@@ -123,39 +123,48 @@ if aws sts get-caller-identity >/dev/null; then
         cd $APERSONAADM_REPO_NAME
 
         export ADMINPORTAL_DOMAIN_NAME="adminportal.""$ROOT_DOMAIN_NAME"
-        ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 create-hosted-zone --name $ADMINPORTAL_DOMAIN_NAME --caller-reference $RANDOM | jq .HostedZone.Id)
-        ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID%?}
-        NAME_SERVERS=$(aws route53 get-hosted-zone --id $ADMINPORTAL_HOSTED_ZONE_ID | jq .DelegationSet.NameServers)
+        ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 list-hosted-zones | jq .HostedZones| jq 'map(select(.Name=="adminportal.apersona4.aws-amplify.dev."))'.[].Id)
+        if [ -z "$ADMINPORTAL_HOSTED_ZONE_ID" ]; then
+            echo "Creating hosted zone for $ADMINPORTAL_DOMAIN_NAME"
+            ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 create-hosted-zone --name $ADMINPORTAL_DOMAIN_NAME --caller-reference $RANDOM | jq .HostedZone.Id)
+            ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID%?}
+            NAME_SERVERS=$(aws route53 get-hosted-zone --id $ADMINPORTAL_HOSTED_ZONE_ID | jq .DelegationSet.NameServers)
+
+            $(rm -rf ns_record.json)
+
+            echo " {                         " >> ns_record.json
+            echo "  \"Changes\": [{          " >> ns_record.json
+            echo "  \"Action\": \"CREATE\",  " >> ns_record.json
+            echo "  \"ResourceRecordSet\": { " >> ns_record.json
+            echo "  \"Name\": \"$ADMINPORTAL_DOMAIN_NAME\", " >> ns_record.json
+            echo "  \"Type\": \"NS\",        " >> ns_record.json
+            echo "  \"TTL\": 300,            " >> ns_record.json
+            echo "  \"ResourceRecords\": [   " >> ns_record.json
+
+            count=0
+            for NAME_SERVER in $NAME_SERVERS; do
+                if [ $count = 1 ] || [ $count = 2 ] || [ $count = 3 ]; then
+                        echo "  { \"Value\": ${NAME_SERVER%?}}, "  >> ns_record.json
+                fi
+                if [ $count = 4 ]; then
+                        echo "  { \"Value\": $NAME_SERVER} "  >> ns_record.json
+                fi
+                ((count++))
+            done
+
+            echo "                       ]   " >> ns_record.json
+            echo "  }}]                      " >> ns_record.json
+            echo " }                         " >> ns_record.json
+
+            RESULT=$(aws route53 change-resource-record-sets --hosted-zone-id $ROOT_HOSTED_ZONE_ID --change-batch file://ns_record.json)
+            $(rm -rf ns_record.json)
+        else
+            echo "Hosted zone for $ADMINPORTAL_DOMAIN_NAME already exists"
+            ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID%?}
+        fi
+
         export ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID#*zone/}
-
-        $(rm -rf ns_record.json)
-
-        echo " {                         " >> ns_record.json
-        echo "  \"Changes\": [{          " >> ns_record.json
-        echo "  \"Action\": \"CREATE\",  " >> ns_record.json
-        echo "  \"ResourceRecordSet\": { " >> ns_record.json
-        echo "  \"Name\": \"$ADMINPORTAL_DOMAIN_NAME\", " >> ns_record.json
-        echo "  \"Type\": \"NS\",        " >> ns_record.json
-        echo "  \"TTL\": 300,            " >> ns_record.json
-        echo "  \"ResourceRecords\": [   " >> ns_record.json
-
-        count=0
-        for NAME_SERVER in $NAME_SERVERS; do
-            if [ $count = 1 ] || [ $count = 2 ] || [ $count = 3 ]; then
-                    echo "  { \"Value\": ${NAME_SERVER%?}}, "  >> ns_record.json
-            fi
-            if [ $count = 4 ]; then
-                    echo "  { \"Value\": $NAME_SERVER} "  >> ns_record.json
-            fi
-            ((count++))
-        done
-
-        echo "                       ]   " >> ns_record.json
-        echo "  }}]                      " >> ns_record.json
-        echo " }                         " >> ns_record.json
-
-        RESULT=$(aws route53 change-resource-record-sets --hosted-zone-id $ROOT_HOSTED_ZONE_ID --change-batch file://ns_record.json)
-        echo "NS RECORD ""$RESULT"
+        echo "Admin Portal Hosted Zone ID is $ADMINPORTAL_HOSTED_ZONE_ID"
 
         npm install
         npm run build
