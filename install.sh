@@ -117,7 +117,7 @@ if aws sts get-caller-identity >/dev/null; then
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/us-east-1
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION || (unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP)
         unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP
-        npx cdk deploy "$@" --all
+        npx cdk deploy "$@" --all --outputs-file apersona_idp_deploy_outputs.json
 
         cd ..
         cd $APERSONAADM_REPO_NAME
