@@ -11,8 +11,7 @@ const client = new SecretsManagerClient({
 export const getSecret = async () => {
 	const response = await client.send(
 		new GetSecretValueCommand({
-			SecretId: `amfa/${process.env.TENANT_ID}/secret`,
-			VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
+			SecretId: process.env.SECRECT_NAME,
 		})
 	);
 	const secret = JSON.parse(response.SecretString);
@@ -28,8 +27,7 @@ export const getAsmSalt = async () => {
 export const getSMTP = async () => {
 	const response = await client.send(
 		new GetSecretValueCommand({
-			SecretId: `amfa/${process.env.TENANT_ID}/smtp`,
-			VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
+			SecretId: process.env.SMTPSECRECT_NAME,
 		})
 	);
 	const secret = JSON.parse(response.SecretString);

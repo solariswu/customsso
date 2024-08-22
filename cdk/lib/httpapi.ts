@@ -14,8 +14,9 @@ import { Construct } from 'constructs';
 import { RootDomainName, resourceName, totpScopeName } from "./const";
 
 import * as path from 'path';
-import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
+import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
 import { AmfaServcieDDB } from './dynamodb';
+import { AmfaSecrets } from './secretmanager';
 
 export class TenantApiGateway {
   scope: Construct;
@@ -43,7 +44,8 @@ export class TenantApiGateway {
   // samlproxyinstanceid: string;
 
   constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
-    account: string | undefined, region: string | undefined, tenantId: string | undefined, ddb: AmfaServcieDDB) {
+    account: string | undefined, region: string | undefined, tenantId: string | undefined,
+    ddb: AmfaServcieDDB, amfaSecrets: AmfaSecrets) {
     this.scope = scope;
     this.certificate = certificate;
     this.hostedZone = hostedZone;
@@ -59,9 +61,9 @@ export class TenantApiGateway {
       allowOrigins: [`https://${this.tenantId}.${RootDomainName}`, `https://*.${this.tenantId}.${RootDomainName}`],
     };
 
-    this.secret = Secret.fromSecretNameV2(scope, `${tenantId}-secret`, `amfa/${tenantId}/secret`);
-    this.smtpSecret = Secret.fromSecretNameV2(scope, `${tenantId}-smtpsecret`, `amfa/${tenantId}/smtp`);
-    this.asmSecret = Secret.fromSecretNameV2(scope, `${tenantId}-asmportalauthsecret`, `amfa/${tenantId}/tenantAuthToken`)
+    this.secret = amfaSecrets.secret;
+    this.smtpSecret = amfaSecrets.smtpSecret;
+    this.asmSecret = amfaSecrets.asmSecret;
 
     // DB for storing custom auth session data
     this.authCodeTable = ddb.authCodeTable;
@@ -127,7 +129,7 @@ export class TenantApiGateway {
 
   private createPwdResetLambda(tenantId: string, userpool: UserPool, sessionIdTable: Table, pwdHashTable: Table, configTable: Table) {
     const lambdaName = 'passwordreset';
-    const myLambda = new Function(
+    const pwdResetLambda = new Function(
       this.scope,
       `${lambdaName}-${tenantId}`,
       {
@@ -141,7 +143,9 @@ export class TenantApiGateway {
           AMFACONFIG_TABLE: configTable.tableName,
           TENANT_ID: this.tenantId ? this.tenantId : '',
           ALLOW_ORIGIN: `${this.tenantId}.${RootDomainName}`,
-          // SERVICE_NAME: this.serviceName,
+          SECRECT_NAME: this.secret.secretName,
+          ASMSECRET_NAME: this.asmSecret.secretName,
+          SMTPSECRET_NAME: this.smtpSecret.secretName,
         },
         timeout: Duration.minutes(5),
         vpc: this.vpc,
@@ -152,7 +156,7 @@ export class TenantApiGateway {
       }
     );
 
-    myLambda.role?.attachInlinePolicy(
+    pwdResetLambda.role?.attachInlinePolicy(
       new Policy(this.scope, `${lambdaName}-iampolicy`, {
         statements: [
           new PolicyStatement({
@@ -198,7 +202,7 @@ export class TenantApiGateway {
       })
     );
 
-    return myLambda;
+    return pwdResetLambda;
   }
 
   private createFeConfigLambda(configTable: Table) {
@@ -360,7 +364,9 @@ export class TenantApiGateway {
           TOTPTOKEN_TABLE: totpTokenTable.tableName,
           PWD_HISTORY_TABLE: pwdhashTable.tableName,
           USERPOOL_DOMAIN: userpoolDomain.domainName,
-          // SERVICE_NAME: this.serviceName,
+          SECRECT_NAME: this.secret.secretName,
+          ASMSECRET_NAME: this.asmSecret.secretName,
+          SMTPSECRET_NAME: this.smtpSecret.secretName,
         },
         timeout: Duration.minutes(5),
         // 👇 place lambda in the VPC

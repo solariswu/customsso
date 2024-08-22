@@ -18,18 +18,41 @@ if [ -z "$ROOT_HOSTED_ZONE_ID" ]; then
     exit 1
 fi
 
-DOMAINNAME=$(aws route53 get-hosted-zone --id $ROOT_HOSTED_ZONE_ID | jq -r .HostedZone.Name)
-if [ "$DOMAINNAME" != "$ROOT_DOMAIN_NAME""." ]; then
-    echo "ROOT_DOMAIN_NAME and ROOT_HOSTED_ZONE_ID does not match"
+if [ -z "$SMTP_HOST" ] || [ -z "$SMTP_USER" ] || [ -z "$SMTP_PASS" ] || [ -z "$SMTP_SECURE" ] [ -z "$SMTP_PORT" ]; then
+    echo "SMTP info is not complete, please fill all SMTP_xxx values in config.sh"
+    exit 1
+fi
+
+if [ -z "$MOBILE_TOKEN_KEY" ] || [ -z "$MOBILE_TOKEN_SALT" ]; then
+    echo "MOBILE_TOKEN setting is not complete, please fill all MOBILE_TOKEN_xxx values in config.sh"
+    exit 1
+fi
+
+if [ -z "$ASM_SALT" ] ; then
+    echo "ASM_SALT is not set, please set ASM_SALT in config.sh"
+    exit 1
+fi
+
+if [ -z "$TENANT_AUTH_TOKEN" ] ; then
+    echo "TENANT_AUTH_TOKEN is not set, please set TENANT_AUTH_TOKEN in config.sh"
     exit 1
 fi
 
 if aws sts get-caller-identity >/dev/null; then
+    DOMAINNAME=$(aws route53 get-hosted-zone --id $ROOT_HOSTED_ZONE_ID | jq -r .HostedZone.Name)
+    if [ "$DOMAINNAME" != "$ROOT_DOMAIN_NAME""." ]; then
+        echo "ROOT_DOMAIN_NAME and ROOT_HOSTED_ZONE_ID does not match"
+        exit 1
+    fi
+
+    APERSONAIDP_REPO_NAME=customsso
+    APERSONAADM_REPO_NAME=cognito-userpool-myraadmin
 
     source ~/.bashrc
     NODE_OPTIONS=--max-old-space-size=8192
 
     echo "install application dependency libs"
+    cd $APERSONAIDP_REPO_NAME
     npm install
 
     if [ -z "$SP_PORTAL_URL" ]; then
@@ -68,7 +91,6 @@ if aws sts get-caller-identity >/dev/null; then
     echo "export const recaptcha_key = '$RECAPTCHA_KEY'" >> src/const.js
 
     npm run build
-    npm run lambda-build
 
     echo ""
     echo "**********************************"
@@ -96,6 +118,50 @@ if aws sts get-caller-identity >/dev/null; then
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION || (unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP)
         unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP
         npx cdk deploy "$@" --all
+
+        cd ..
+        cd $APERSONAADM_REPO_NAME
+
+        export ADMINPORTAL_DOMAIN_NAME="adminportal.""$ROOT_DOMAIN_NAME"
+        ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 create-hosted-zone --name $ADMINPORTAL_DOMAIN_NAME --caller-reference $RANDOM | jq .HostedZone.Id)
+        ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID%?}
+        NAME_SERVERS=$(aws route53 get-hosted-zone --id $ADMINPORTAL_HOSTED_ZONE_ID | jq .DelegationSet.NameServers)
+        export ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID#*zone/}
+
+        $(rm -rf ns_record.json)
+
+        echo " {                         " >> ns_record.json
+        echo "  \"Changes\": [{          " >> ns_record.json
+        echo "  \"Action\": \"CREATE\",  " >> ns_record.json
+        echo "  \"ResourceRecordSet\": { " >> ns_record.json
+        echo "  \"Name\": \"$ADMINPORTAL_DOMAIN_NAME\", " >> ns_record.json
+        echo "  \"Type\": \"NS\",        " >> ns_record.json
+        echo "  \"TTL\": 300,            " >> ns_record.json
+        echo "  \"ResourceRecords\": [   " >> ns_record.json
+
+        count=0
+        for NAME_SERVER in $NAME_SERVERS; do
+            if [ $count = 1 ] || [ $count = 2 ] || [ $count = 3 ]; then
+                    echo "  { \"Value\": ${NAME_SERVER%?}}, "  >> ns_record.json
+            fi
+            if [ $count = 4 ]; then
+                    echo "  { \"Value\": $NAME_SERVER} "  >> ns_record.json
+            fi
+            ((count++))
+        done
+
+        echo "                       ]   " >> ns_record.json
+        echo "  }}]                      " >> ns_record.json
+        echo " }                         " >> ns_record.json
+
+        RESULT=$(aws route53 change-resource-record-sets --hosted-zone-id $ROOT_HOSTED_ZONE_ID --change-batch file://ns_record.json)
+        echo "NS RECORD ""$RESULT"
+
+        npm install
+        npm run build
+        npm run cdk-build
+
+        npx cdk deploy "$@" --all
         echo "Deploy finished"
         echo "***************"
     fi
@@ -103,5 +169,3 @@ if aws sts get-caller-identity >/dev/null; then
 else
     echo -e "${RED} You must execute this script from an EC2 instance which have an Admin Role attached${NC}"
 fi
-
-unset TENANT_ID && unset ROOT_DOMAIN_NAME && unset ROOT_HOSTED_ZONE_ID && unset SP_PORTAL_URL && unset EXTRA_APP_URL && unset RECAPTCHA_KEY && unset RECAPTCHA_SECRET

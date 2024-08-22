@@ -101,7 +101,7 @@ Invalid`},Source:"invalid@invalid",Destinations:["invalid@invalid"]};e||(t=new P
 					</div>
 				</body>
 			</html>
-	`},ki=Xa;var F=require("@aws-sdk/client-secrets-manager"),Ja=new F.SecretsManagerClient({region:process.env.AWS_REGION});var Re=async()=>{let r=await Ja.send(new F.GetSecretValueCommand({SecretId:`amfa/${process.env.TENANT_ID}/smtp`,VersionStage:"AWSCURRENT"}));return JSON.parse(r.SecretString)};var Wa=(r,e,t,s)=>`
+	`},ki=Xa;var F=require("@aws-sdk/client-secrets-manager"),Ja=new F.SecretsManagerClient({region:process.env.AWS_REGION});var Re=async()=>{let r=await Ja.send(new F.GetSecretValueCommand({SecretId:process.env.SMTPSECRET_NAME}));return JSON.parse(r.SecretString)};var Wa=(r,e,t,s)=>`
 		<!DOCTYPE html >
 			<html>
 				<head>

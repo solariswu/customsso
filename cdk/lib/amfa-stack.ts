@@ -12,6 +12,7 @@ import { TenantUserPool } from './userpool';
 import { config } from './config';
 import { createPostDeploymentLambda } from './postdeployment';
 import { AmfaServcieDDB } from './dynamodb';
+import { AmfaSecrets } from './secretmanager';
 
 
 export interface AmfaStackProps extends StackProps {
@@ -30,12 +31,14 @@ export class AmfaStack extends Stack {
     // backend
     // amfa apis
     config.map(tenant => {
-
+      const secrets = new AmfaSecrets (this, tenant.tenantAuthToken,
+        tenant.mobileTokenSalt, tenant.mobileTokenKey, tenant.asmSalt,
+        tenant.smtpHost, tenant.smtpUser, tenant.smtpPass, tenant.smtpPort, tenant.smtpSecure)
       const webapp = new WebApplication(this, props.siteCertificate, props.hostedZone, tenant.tenantId, tenant.awsaccount);
       const ddb = new AmfaServcieDDB(this, tenant.awsaccount, tenant.region, tenant.tenantId);
 
       const apigateway = new TenantApiGateway(this, props.apiCertificate,
-        props.hostedZone, tenant.awsaccount, tenant.region, tenant.tenantId, ddb);
+        props.hostedZone, tenant.awsaccount, tenant.region, tenant.tenantId, ddb, secrets);
       const tenantUserPool = new TenantUserPool(this, apigateway.configTable,
         tenant.region, tenant.tenantId, tenant.magicstring,
         tenant.callbackUrls,
