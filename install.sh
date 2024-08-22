@@ -18,13 +18,38 @@ if [ -z "$ROOT_HOSTED_ZONE_ID" ]; then
     exit 1
 fi
 
-if [ -z "$SMTP_HOST" ] || [ -z "$SMTP_USER" ] || [ -z "$SMTP_PASS" ] || [ -z "$SMTP_SECURE" ] [ -z "$SMTP_PORT" ]; then
-    echo "SMTP info is not complete, please fill all SMTP_xxx values in config.sh"
+if [ -z "$SMTP_HOST" ]; then
+    echo "SMTP_HOST is not set, please set SMTP_HOST in config.sh"
     exit 1
 fi
 
-if [ -z "$MOBILE_TOKEN_KEY" ] || [ -z "$MOBILE_TOKEN_SALT" ]; then
-    echo "MOBILE_TOKEN setting is not complete, please fill all MOBILE_TOKEN_xxx values in config.sh"
+if [ -z "$SMTP_USER" ]; then
+    echo "SMTP_USER is not set, please set SMTP_USER in config.sh"
+    exit 1
+fi
+
+if [ -z "$SMTP_PASS" ]; then
+    echo "SMTP_PASS is not set, please set SMTP_PASS in config.sh"
+    exit 1
+fi
+
+if [ -z "$SMTP_SECURE" ]; then
+    echo "SMTP_SECURE is not set, please set SMTP_SECURE in config.sh"
+    exit 1
+fi
+
+if [ -z "$SMTP_PORT" ]; then
+    echo "SMTP_PORT is not set, please set ROOT_HOSTED_ZONE_ID in config.sh"
+    exit 1
+fi
+
+if [ -z "$MOBILE_TOKEN_KEY" ]; then
+    echo "MOBILE_TOKEN_KEY is not set, please set MOBILE_TOKEN_KEY in config.sh"
+    exit 1
+fi
+
+if [ -z "$MOBILE_TOKEN_SALT" ]; then
+    echo "MOBILE_TOKEN_SALT is not set, please set MOBILE_TOKEN_SALT in config.sh"
     exit 1
 fi
 
