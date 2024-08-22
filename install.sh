@@ -96,7 +96,7 @@ if aws sts get-caller-identity >/dev/null; then
     export CDK_DEPLOY_REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
     export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
 
-    rm delegationRole.json
+    rm -rf delegationRole.json
     echo "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::$CDK_DEPLOY_ACCOUNT:root\"},\"Action\":\"sts:AssumeRole\"}]}" >> delegationRole.json
 
     if ! aws iam get-role --role-name CrossAccountDnsDelegationRole-DO-NOT-DELETE >/dev/null 2>&1; then
@@ -142,7 +142,7 @@ if aws sts get-caller-identity >/dev/null; then
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/us-east-1
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION || (unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP)
         unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP
-        npx cdk deploy "$@" --all --outputs-file apersona_idp_deploy_outputs.json
+        npx cdk deploy "$@" --all --outputs-file ../apersona_idp_deploy_outputs.json
 
         cd ..
         cd $APERSONAADM_REPO_NAME
@@ -195,7 +195,8 @@ if aws sts get-caller-identity >/dev/null; then
         npm run build
         npm run cdk-build
 
-        npx cdk deploy "$@" --all
+        npx cdk deploy "$@" --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
+
         echo "Deploy finished"
         echo "***************"
     fi
