@@ -10,7 +10,7 @@ const client = new SecretsManagerClient({
 export const getSecret = async () => {
 	const response = await client.send(
 		new GetSecretValueCommand({
-			SecretId: process.env.SECRECT_NAME,
+			SecretId: process.env.SECRET_NAME,
 		})
 	);
 	const secret = JSON.parse(response.SecretString);
