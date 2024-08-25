@@ -5,7 +5,7 @@ import {
 } from '@aws-sdk/client-dynamodb';
 
 import { CognitoIdentityProviderClient, CreateGroupCommand } from '@aws-sdk/client-cognito-identity-provider';
-import { amfaPolicies, amfaConfigs, amfaBrandings, amfaLegals, amfaTenants } from './config.mjs';
+import { amfaPolicies, amfaConfigs, amfaBrandings, amfaLegals } from './config.mjs';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 const cognito = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
@@ -46,13 +46,21 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 
 const createTenants = async (dynamodb, userpoolIds) => {
 	console.log('createTenants userpoolIds', userpoolIds);
+
+	let amfaTenants = [];
+	try {
+		amfaTenants = JSON.parse(process.env.AMFA_TENANTS);
+	} catch (error) {
+		console.error('parse amfa tenants failed with:', error);
+	}
+
 	for (let index = 0; index < amfaTenants.length; index++) {
 		try {
 			const element = amfaTenants[index];
 			const params = {
 				Item: {
 					id: {
-						S: element.id,
+						S: element.tenant_id,
 					},
 					name: {
 						S: element.name,
@@ -67,7 +75,7 @@ const createTenants = async (dynamodb, userpoolIds) => {
 						BOOL: element.samlproxy,
 					},
 					samlIdPMetadataUrl: {
-						S: element.samlIdPMetadataUrl,
+						S: `https://amfasaml.aws-amplify.dev/${element.tenant_id}/proxy.xml`,
 					},
 					userpool: {
 						S: userpoolIds[index],

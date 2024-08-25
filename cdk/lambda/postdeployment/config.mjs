@@ -109,14 +109,3 @@ export const amfaLegals =
     "terms_of_service": "https://downloads.apersona.com/demos/WeaveAI-Ts-Cs.html",
     "privacy_policy": "https://downloads.apersona.com/demos/WeaveAI-Privacy.html"
 }
-
-export const amfaTenants = [
-    {
-        id: 'amfa-dev004',
-        name: 'amfa dev004',
-        contact: 'admin@apersona.com',
-        url: 'https://amfa-dev004.amfa.aws-amplify.dev',
-        samlproxy: true,
-        samlIdPMetadataUrl: 'https://amfasaml.aws-amplify.dev/Saml2IDP/proxy.xml'
-    }
-]

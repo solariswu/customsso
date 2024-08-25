@@ -23,6 +23,7 @@ export const createPostDeploymentLambda = (
 	// tenants.map (tenant => userpoolIds.push({ [tenant.tenantId]: tenant.userpoolId }));
 
 	const lambdaName = 'postdeployment';
+	const tenant_id = tenantId || 'default';
 	const initLambda = new TriggerFunction(scope, 'CDKPostDeploymentLambda', {
 		runtime: Runtime.NODEJS_20_X,
 		handler: `${lambdaName}.handler`,
@@ -31,7 +32,13 @@ export const createPostDeploymentLambda = (
 			AMFACONFIG_TABLE: configTable.tableName,
 			AMFATENANT_TABLE: tenantTable.tableName,
 			USERPOOL_IDS: JSON.stringify([userPoolId]),
-			// USERPOOL_IDS: JSON.stringify(userpoolIds),
+			AMFA_TENANTS: JSON.stringify([{
+				tenant_id,
+				name: tenant_id,
+				url: `https://${tenant_id}.${process.env.ROOT_DOMAIN_NAME}`,
+				samlproxy: false,
+				contact: `default@example.com`
+			}]),
 		},
 		timeout: Duration.minutes(5),
 	});
