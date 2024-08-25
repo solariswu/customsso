@@ -201,7 +201,7 @@ if aws sts get-caller-identity >/dev/null; then
         rm -rf src/amfaext.js
         echo "export const AdminPortalUserPoolId="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalUserPoolId' ../apersona_idp_mgt_deploy_outputs.json) >> src/amfaext.js
         echo "export const AdminPortalClientId="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalAppClientId' ../apersona_idp_mgt_deploy_outputs.json) >> src/amfaext.js
-        echo "export const HostedUIURL="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminLoginHostedUIURL' ../apersona_idp_mgt_deploy_outputs.json) >> src/amfaext.js
+        echo "export const AdminHostedUIURL="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminLoginHostedUIURL' ../apersona_idp_mgt_deploy_outputs.json) >> src/amfaext.js
         # deploy admin portal stack again
         npm run build
         npm run cdk-build
