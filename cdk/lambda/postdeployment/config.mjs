@@ -66,8 +66,8 @@ export const amfaPolicies = {
 
 export const amfaConfigs = {
     "COMMENT-File": "This file contains the available primary AWS aPersona Adaptive MFA login settings.",
-    "asmurl": "https://fs.apersonadev2.com:8443/asm",
-    "asm_portal_url": "https://fs.apersonadev2.com:8443/asm_portal",
+    "asmurl": "https://asm-aws-3.apersonadev2.com:8443/asm",
+    "asm_portal_url": "https://asm-aws-3.apersonadev2.com:8443/asm_portal",
     "enable_password_reset": true,
     "enable_self_service": true,
     "enable_self_service_remove_buttons": true,
