@@ -135,7 +135,7 @@ if aws sts get-caller-identity >/dev/null; then
     export CDK_NEW_BOOTSTRAP=1
     export IS_BOOTSTRAP=1
     echo "*************************************************************************************"
-    echo "Now starting deployment of AMFA Controller"
+    echo "Now starting deployment of APERSONA AWS IdP"
     read -p "Confirm to deploy AMFA on Account $(echo -e $BOLD$YELLOW$CDK_DEPLOY_ACCOUNT$NC) in Region $(echo -e $BOLD$YELLOW$CDK_DEPLOY_REGION$NC)? (y/n)" response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         echo "*************************************************************************************"
@@ -196,6 +196,18 @@ if aws sts get-caller-identity >/dev/null; then
         npm run cdk-build
 
         npx cdk deploy "$@" --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
+
+        # update admin frontend config with the deployed userpool id and appclient
+        rm -rf src/amfaext.js
+        echo "export const AdminPortalUserPoolId="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalUserPoolId' ../apersona_idp_mgt_deploy_outputs.json) >> src/amfaext.js
+        echo "export const AdminPortalClientId="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalAppClientId' ../apersona_idp_mgt_deploy_outputs.json) >> src/amfaext.js
+        echo "export const HostedUIURL="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminLoginHostedUIURL' ../apersona_idp_mgt_deploy_outputs.json) >> src/amfaext.js
+        # deploy admin portal stack again
+        npm run build
+        npm run cdk-build
+        rm -rf ../apersona_idp_mgt_deploy_outputs.json
+        npx cdk deploy "$@" --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
+
 
         echo "Deploy finished"
         echo "***************"
