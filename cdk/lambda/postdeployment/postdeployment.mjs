@@ -11,12 +11,20 @@ const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 const cognito = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
 const createAmfaConfigs = async (configType, dynamodb) => {
-	const values = {
+	let values = {
 		'amfaPolicies': amfaPolicies,
 		'amfaConfigs': amfaConfigs,
 		'amfaBrandings': amfaBrandings,
 		'amfaLegals': amfaLegals,
 	};
+	// override default values by installer specified values.
+	if (process.env.ASM_PROVIDER_ID && process.env.ASM_PROVIDER_ID != '') {
+		console.log('update amfaConfig totp asm provider id to value ', process.env.ASM_PROVIDER_ID)
+		values.amfaConfigs.totp.asm_provider_id = parseInt(process.env.ASM_PROVIDER_ID)
+	}
+	else {
+		console.log('no overriding for amfaConfig totp asm provider id')
+	}
 	try {
 		let value = JSON.stringify(values[configType], null, "  ");
 

@@ -3,6 +3,11 @@ unset TENANT_ID && unset ROOT_DOMAIN_NAME && unset ROOT_HOSTED_ZONE_ID && unset 
 
 source ./config.sh
 
+if [ -z "$ASM_PORTAL_URL" ]; then
+    echo "ASM_PORTAL_URL is not set, please set ASM_PORTAL_URL in config.sh"
+    exit 1
+fi
+
 if [ -z "$TENANT_ID" ]; then
     echo "TENANT_ID is not set, please set TENANT_ID in config.sh"
     exit 1
@@ -15,6 +20,11 @@ fi
 
 if [ -z "$ROOT_HOSTED_ZONE_ID" ]; then
     echo "ROOT_HOSTED_ZONE_ID is not set, please set ROOT_HOSTED_ZONE_ID in config.sh"
+    exit 1
+fi
+
+if [ -z "$ASM_INSTAL_KEY" ]; then
+    echo "ASM_INSTAL_KEY is not set, please set ASM_INSTAL_KEY in config.sh"
     exit 1
 fi
 
@@ -53,13 +63,18 @@ if [ -z "$MOBILE_TOKEN_SALT" ]; then
     exit 1
 fi
 
-if [ -z "$ASM_SALT" ] ; then
+if [ -z "$ASM_SALT" ]; then
     echo "ASM_SALT is not set, please set ASM_SALT in config.sh"
     exit 1
 fi
 
-if [ -z "$TENANT_AUTH_TOKEN" ] ; then
+if [ -z "$TENANT_AUTH_TOKEN" ]; then
     echo "TENANT_AUTH_TOKEN is not set, please set TENANT_AUTH_TOKEN in config.sh"
+    exit 1
+fi
+
+if [ -z "$ADMIN_EMAIL" ]; then
+    echo "ADMIN_EMAIL is not set, please set ADMIN_EMAIL in config.sh"
     exit 1
 fi
 
@@ -83,10 +98,10 @@ if aws sts get-caller-identity >/dev/null; then
     if [ -z "$SP_PORTAL_URL" ]; then
         echo "SP_PORTAL_URL is not configured"
         if [ -z "$EXTRA_APP_URL" ]; then
-        echo "EXTRA_APP_URL is not configured too, you would need to manually config userpool callback url later"
+            echo "EXTRA_APP_URL is not configured too, you would need to manually config userpool callback url later"
         else
-        export SP_PORTAL_URL=$EXTRA_APP_URL
-        echo "using EXTRA_APP_URL as default application url"
+            export SP_PORTAL_URL=$EXTRA_APP_URL
+            echo "using EXTRA_APP_URL as default application url"
         fi
     fi
 
@@ -96,8 +111,18 @@ if aws sts get-caller-identity >/dev/null; then
     export CDK_DEPLOY_REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
     export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
 
+    if [ -z "$TENANT_NAME" ]; then
+        echo "TENANT_NAME is not set, using TENANT_ID as TENANT_NAME"
+        TENANT_NAME=$TENANT_ID
+    fi
+
+    registRes = $(curl -X POST "$ASM_PORTAL_URL/newTenantWithDefaults.ap?asmSecretKey=$ASM_INSTAL_KEY&newTenantName=$TENANT_NAME&awsAccountId=$CDK_DEPLOY_ACCOUNT&newTenantAdminEmail=$ADMIN_EMAIL&requestedBy=$INSTALLER_EMAIL")
+    export ASM_PROVIDER_ID=$(echo $registRes | jq -r .newTenantId)
+    export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
+    export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
+
     rm -rf delegationRole.json
-    echo "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::$CDK_DEPLOY_ACCOUNT:root\"},\"Action\":\"sts:AssumeRole\"}]}" >> delegationRole.json
+    echo "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::$CDK_DEPLOY_ACCOUNT:root\"},\"Action\":\"sts:AssumeRole\"}]}" >>delegationRole.json
 
     if ! aws iam get-role --role-name CrossAccountDnsDelegationRole-DO-NOT-DELETE >/dev/null 2>&1; then
         aws iam create-role --role-name CrossAccountDnsDelegationRole-DO-NOT-DELETE --assume-role-policy-document file://delegationRole.json
@@ -108,12 +133,12 @@ if aws sts get-caller-identity >/dev/null; then
     echo "generate AMFA front end config file"
 
     rm -rf src/const.js
-    echo "export const clientName = '$TENANT_ID'" >> src/const.js
-    echo "export const region = '$CDK_DEPLOY_REGION'" >> src/const.js
-    echo "export const applicationUrl = '$SP_PORTAL_URL'" >> src/const.js
-    echo "export const extraAppUrl = '$EXTRA_APP_URL'" >> src/const.js
-    echo "export const apiUrl = 'https:///api.$TENANT_ID.$ROOT_DOMAIN_NAME'" >> src/const.js
-    echo "export const recaptcha_key = '$RECAPTCHA_KEY'" >> src/const.js
+    echo "export const clientName = '$TENANT_ID'" >>src/const.js
+    echo "export const region = '$CDK_DEPLOY_REGION'" >>src/const.js
+    echo "export const applicationUrl = '$SP_PORTAL_URL'" >>src/const.js
+    echo "export const extraAppUrl = '$EXTRA_APP_URL'" >>src/const.js
+    echo "export const apiUrl = 'https:///api.$TENANT_ID.$ROOT_DOMAIN_NAME'" >>src/const.js
+    echo "export const recaptcha_key = '$RECAPTCHA_KEY'" >>src/const.js
 
     npm run build
 
@@ -148,7 +173,7 @@ if aws sts get-caller-identity >/dev/null; then
         cd $APERSONAADM_REPO_NAME
 
         export ADMINPORTAL_DOMAIN_NAME="adminportal.""$ROOT_DOMAIN_NAME"
-        ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 list-hosted-zones | jq .HostedZones| jq 'map(select(.Name=="adminportal.apersona4.aws-amplify.dev."))'.[].Id)
+        ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 list-hosted-zones | jq .HostedZones| jq 'map(select(.Name="$ADMINPORTAL_DOMAIN_NAME."))' | jq -r '.[0]'.Id)
         if [ -z "$ADMINPORTAL_HOSTED_ZONE_ID" ]; then
             echo "Creating hosted zone for $ADMINPORTAL_DOMAIN_NAME"
             ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 create-hosted-zone --name $ADMINPORTAL_DOMAIN_NAME --caller-reference $RANDOM | jq .HostedZone.Id)
@@ -157,35 +182,34 @@ if aws sts get-caller-identity >/dev/null; then
 
             $(rm -rf ns_record.json)
 
-            echo " {                         " >> ns_record.json
-            echo "  \"Changes\": [{          " >> ns_record.json
-            echo "  \"Action\": \"CREATE\",  " >> ns_record.json
-            echo "  \"ResourceRecordSet\": { " >> ns_record.json
-            echo "  \"Name\": \"$ADMINPORTAL_DOMAIN_NAME\", " >> ns_record.json
-            echo "  \"Type\": \"NS\",        " >> ns_record.json
-            echo "  \"TTL\": 300,            " >> ns_record.json
-            echo "  \"ResourceRecords\": [   " >> ns_record.json
+            echo " {                         " >>ns_record.json
+            echo "  \"Changes\": [{          " >>ns_record.json
+            echo "  \"Action\": \"CREATE\",  " >>ns_record.json
+            echo "  \"ResourceRecordSet\": { " >>ns_record.json
+            echo "  \"Name\": \"$ADMINPORTAL_DOMAIN_NAME\", " >>ns_record.json
+            echo "  \"Type\": \"NS\",        " >>ns_record.json
+            echo "  \"TTL\": 300,            " >>ns_record.json
+            echo "  \"ResourceRecords\": [   " >>ns_record.json
 
             count=0
             for NAME_SERVER in $NAME_SERVERS; do
                 if [ $count = 1 ] || [ $count = 2 ] || [ $count = 3 ]; then
-                        echo "  { \"Value\": ${NAME_SERVER%?}}, "  >> ns_record.json
+                    echo "  { \"Value\": ${NAME_SERVER%?}}, " >>ns_record.json
                 fi
                 if [ $count = 4 ]; then
-                        echo "  { \"Value\": $NAME_SERVER} "  >> ns_record.json
+                    echo "  { \"Value\": $NAME_SERVER} " >>ns_record.json
                 fi
                 ((count++))
             done
 
-            echo "                       ]   " >> ns_record.json
-            echo "  }}]                      " >> ns_record.json
-            echo " }                         " >> ns_record.json
+            echo "                       ]   " >>ns_record.json
+            echo "  }}]                      " >>ns_record.json
+            echo " }                         " >>ns_record.json
 
             RESULT=$(aws route53 change-resource-record-sets --hosted-zone-id $ROOT_HOSTED_ZONE_ID --change-batch file://ns_record.json)
             $(rm -rf ns_record.json)
         else
             echo "Hosted zone for $ADMINPORTAL_DOMAIN_NAME already exists"
-            ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID%?}
         fi
 
         export ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID#*zone/}
@@ -199,15 +223,14 @@ if aws sts get-caller-identity >/dev/null; then
 
         # update admin frontend config with the deployed userpool id and appclient
         rm -rf src/amfaext.js
-        echo "export const AdminPortalUserPoolId="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalUserPoolId' ../apersona_idp_mgt_deploy_outputs.json) >> src/amfaext.js
-        echo "export const AdminPortalClientId="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalAppClientId' ../apersona_idp_mgt_deploy_outputs.json) >> src/amfaext.js
-        echo "export const AdminHostedUIURL="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminLoginHostedUIURL' ../apersona_idp_mgt_deploy_outputs.json) >> src/amfaext.js
+        echo "export const AdminPortalUserPoolId="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalUserPoolId' ../apersona_idp_mgt_deploy_outputs.json) >>src/amfaext.js
+        echo "export const AdminPortalClientId="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalAppClientId' ../apersona_idp_mgt_deploy_outputs.json) >>src/amfaext.js
+        echo "export const AdminHostedUIURL="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminLoginHostedUIURL' ../apersona_idp_mgt_deploy_outputs.json) >>src/amfaext.js
         # deploy admin portal stack again
         npm run build
         npm run cdk-build
         rm -rf ../apersona_idp_mgt_deploy_outputs.json
         npx cdk deploy "$@" --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
-
 
         echo "Deploy finished"
         echo "***************"

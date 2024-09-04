@@ -16,6 +16,7 @@ export const createPostDeploymentLambda = (
 	userPoolId: string,
 	region: string | undefined,
 	tenantId: string | undefined,
+	tenantName: string | undefined,
 ) => {
 
 	// todo update multi-tenants later
@@ -34,11 +35,12 @@ export const createPostDeploymentLambda = (
 			USERPOOL_IDS: JSON.stringify([userPoolId]),
 			AMFA_TENANTS: JSON.stringify([{
 				tenant_id,
-				name: tenant_id,
+				name: tenantName,
 				url: `https://${tenant_id}.${process.env.ROOT_DOMAIN_NAME}`,
 				samlproxy: false,
 				contact: `default@example.com`
 			}]),
+			ASM_PROVIDER_ID: process.env.PROVIDER_ID ? process.env.PROVIDER_ID : ''
 		},
 		timeout: Duration.minutes(5),
 	});

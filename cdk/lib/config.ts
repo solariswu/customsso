@@ -22,6 +22,7 @@ export const config = [
 		'awsaccount': process.env.CDK_DEPLOY_ACCOUNT,
 		'region': process.env.CDK_DEPLOY_REGION,
 		tenantId: process.env.TENANT_ID, // lowercase only
+		tenantName: process.env.TENANT_NAME,
 		tenantAuthToken: process.env.TENANT_AUTH_TOKEN,
 		mobileTokenKey: process.env.MOBILE_TOKEN_KEY,
 		mobileTokenSalt: process.env.MOBILE_TOKEN_SALT,

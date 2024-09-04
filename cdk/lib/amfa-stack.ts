@@ -50,7 +50,8 @@ export class AmfaStack extends Stack {
         tenantUserPool.userpoolDomain, tenant.magicstring);
       apigateway.createTotpTokenDBEndpoints(tenantUserPool.userpool);
 
-      createPostDeploymentLambda(this, apigateway.configTable, apigateway.tenantTable, tenantUserPool.userpool.userPoolId, tenant.region, tenant.tenantId);
+      createPostDeploymentLambda(this, apigateway.configTable, apigateway.tenantTable,
+        tenantUserPool.userpool.userPoolId, tenant.region, tenant.tenantId, tenant.tenantName);
 
       // output
       new CfnOutput(this, 'Amfa_UserPoolId', {
