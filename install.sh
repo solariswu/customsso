@@ -49,18 +49,8 @@ if [ -z "$SMTP_SECURE" ]; then
 fi
 
 if [ -z "$SMTP_PORT" ]; then
-    echo "SMTP_PORT is not set, please set ROOT_HOSTED_ZONE_ID in config.sh"
-    exit 1
-fi
-
-if [ -z "$MOBILE_TOKEN_KEY" ]; then
-    echo "MOBILE_TOKEN_KEY is not set, please set MOBILE_TOKEN_KEY in config.sh"
-    exit 1
-fi
-
-if [ -z "$MOBILE_TOKEN_SALT" ]; then
-    echo "MOBILE_TOKEN_SALT is not set, please set MOBILE_TOKEN_SALT in config.sh"
-    exit 1
+    echo "SMTP_PORT is not set, use default value 587"
+    export SMTP_PORT=587
 fi
 
 if [ -z "$ASM_SALT" ]; then
@@ -116,10 +106,25 @@ if aws sts get-caller-identity >/dev/null; then
         TENANT_NAME=$TENANT_ID
     fi
 
-    registRes = $(curl -X POST "$ASM_PORTAL_URL/newTenantWithDefaults.ap?asmSecretKey=$ASM_INSTAL_KEY&newTenantName=$TENANT_NAME&awsAccountId=$CDK_DEPLOY_ACCOUNT&newTenantAdminEmail=$ADMIN_EMAIL&requestedBy=$INSTALLER_EMAIL")
+    registRes=$(curl -X POST "$ASM_PORTAL_URL/newTenantWithDefaults.ap?asmSecretKey=$ASM_INSTAL_KEY&newTenantName=$TENANT_NAME&awsAccountId=$CDK_DEPLOY_ACCOUNT&newTenantAdminEmail=$ADMIN_EMAIL&requestedBy=$INSTALLER_EMAIL")
     export ASM_PROVIDER_ID=$(echo $registRes | jq -r .newTenantId)
     export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
     export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
+
+    if [ -z "$ASM_PROVIDER_ID" ]; then
+        echo "ASM portal newTenant API error, no provider_id, please check your install key and admin email value and contact Apersona for support"
+        exit 1
+    fi
+
+    if [ -z "$MOBILE_TOKEN_SALT" ]; then
+        echo "ASM portal newTenant API error, no mobile token salt, please check your install key and admin email value and contact Apersona for support"
+        exit 1
+    fi
+
+    if [ -z "$MOBILE_TOKEN_KEY" ]; then
+        echo "ASM portal newTenant API error, no mobile token key, please check your install key and admin email value and contact Apersona for support"
+        exit 1
+    fi
 
     rm -rf delegationRole.json
     echo "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::$CDK_DEPLOY_ACCOUNT:root\"},\"Action\":\"sts:AssumeRole\"}]}" >>delegationRole.json
@@ -173,7 +178,7 @@ if aws sts get-caller-identity >/dev/null; then
         cd $APERSONAADM_REPO_NAME
 
         export ADMINPORTAL_DOMAIN_NAME="adminportal.""$ROOT_DOMAIN_NAME"
-        ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 list-hosted-zones | jq .HostedZones| jq 'map(select(.Name="$ADMINPORTAL_DOMAIN_NAME."))' | jq -r '.[0]'.Id)
+        ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 list-hosted-zones | jq .HostedZones | jq 'map(select(.Name="$ADMINPORTAL_DOMAIN_NAME."))' | jq -r '.[0]'.Id)
         if [ -z "$ADMINPORTAL_HOSTED_ZONE_ID" ]; then
             echo "Creating hosted zone for $ADMINPORTAL_DOMAIN_NAME"
             ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 create-hosted-zone --name $ADMINPORTAL_DOMAIN_NAME --caller-reference $RANDOM | jq .HostedZone.Id)

@@ -272,42 +272,6 @@ export class TenantApiGateway {
     return myLambda;
   }
 
-  // needs to move for multi-tenants. samlproxy can't be linked with tenant account
-  private createReloadSamlProxyLambda(tenantId: string, samlproxyinstanceid: string | undefined) {
-    const lambdaName = 'reloadsamlproxy';
-    const myLambda = new Function(
-      this.scope,
-      `${lambdaName}-${this.tenantId}`,
-      {
-        runtime: Runtime.NODEJS_20_X,
-        handler: `${lambdaName}.handler`,
-        code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
-        environment: {
-          SAMLPROXY_INSTANCE_ID: samlproxyinstanceid ? samlproxyinstanceid : '',
-        },
-        timeout: Duration.minutes(5),
-      }
-    );
-
-    myLambda.role?.attachInlinePolicy(
-      new Policy(this.scope, `${this.tenantId}-${lambdaName}-policy`, {
-        statements: [
-          new PolicyStatement({
-            actions: [
-              'ssm:SendCommand',
-            ],
-            resources: [
-              `arn:aws:ec2:${this.region}:${this.account}:instance/${samlproxyinstanceid}`,
-              `arn:aws:ssm:${this.region}::document/AWS-RunShellScript`
-            ],
-          }),
-        ],
-      })
-    );
-
-    return myLambda;
-  }
-
   private createVerifyCaptchaLambda() {
     const lambdaName = 'verifyrecaptcha';
     const myLambda = new Function(
