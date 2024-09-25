@@ -44,7 +44,7 @@ if [ -z "$SMTP_PASS" ]; then
 fi
 
 if [ -z "$SMTP_SECURE" ]; then
-    echo "SMTP_SECURE is not set, please set SMTP_SECURE in config.sh"
+    export SMTP_SECRET="false"
     exit 1
 fi
 
@@ -58,10 +58,7 @@ if [ -z "$ASM_SALT" ]; then
     exit 1
 fi
 
-if [ -z "$TENANT_AUTH_TOKEN" ]; then
-    echo "TENANT_AUTH_TOKEN is not set, please set TENANT_AUTH_TOKEN in config.sh"
-    exit 1
-fi
+export TENANT_AUTH_TOKEN="$ASM_INSTAL_KEY"
 
 if [ -z "$ADMIN_EMAIL" ]; then
     echo "ADMIN_EMAIL is not set, please set ADMIN_EMAIL in config.sh"
@@ -106,7 +103,7 @@ if aws sts get-caller-identity >/dev/null; then
         TENANT_NAME=$TENANT_ID
     fi
 
-    registRes=$(curl -X POST "$ASM_PORTAL_URL/newTenantWithDefaults.ap?asmSecretKey=$ASM_INSTAL_KEY&newTenantName=$TENANT_NAME&awsAccountId=$CDK_DEPLOY_ACCOUNT&newTenantAdminEmail=$ADMIN_EMAIL&requestedBy=$INSTALLER_EMAIL")
+    registRes=$(curl -X POST "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap?asmSecretKey=$ASM_INSTAL_KEY&newTenantName=$TENANT_NAME&awsAccountId=$CDK_DEPLOY_ACCOUNT&newTenantAdminEmail=$ADMIN_EMAIL&requestedBy=$INSTALLER_EMAIL&awsUserPoolFqdn=$ROOT_DOMAIN_NAME&awsRegion=$CDK_DEPLOY_REGION")
     export ASM_PROVIDER_ID=$(echo $registRes | jq -r .newTenantId)
     export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
     export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
