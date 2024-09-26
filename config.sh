@@ -15,10 +15,6 @@ export INSTALLER_EMAIL='' ## example 'devops@apersona5.dev', will use ADMIN_EMAI
 export ROOT_DOMAIN_NAME=''    ## example 'apersona5.dev'
 export ROOT_HOSTED_ZONE_ID='' ## example 'Z0596003151J12345678X'
 
-# AUTH TOKEN values got from APERSONA
-# used to clear password threat mode
-export TENANT_AUTH_TOKEN=''
-
 # Your SMTP server info for sending email to end users
 # stored in AWS Secrets Manager, can be adjusted after installation
 export SMTP_HOST=''   ## example 'email-smtp.us-east-1.amazonaws.com'

@@ -165,12 +165,21 @@ const clearUserThreatState = async (username, config) => {
     console.log ('policyConfig', policyConfig)
     console.log ('defaultPolicyKey', defaultPolicyKey)
 
-    const postURL = `${config.asm_portal_url}/extResetThreat.ap?l=${defaultPolicyKey}&u=${username}&tenantAuthToken=${secretToken}&requestedBy=${process.env.TENANT_ID}-admin@domain.com`;
+    const postURL = `${config.asm_portal_url}/extResetThreat.ap?`;
 
     console.log ('postURL', postURL)
 
     const amfaResponse = await fetch(postURL, {
-        method: "POST"
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            l: defaultPolicyKey,
+            u: username,
+            asmSecretKey: secretToken,
+            requestedBy: `${process.env.TENANT_ID}-admin@domain.com`
+        })
     });
     console.log('asm admin clear user threat statues result', amfaResponse);
 }
