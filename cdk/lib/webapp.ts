@@ -59,11 +59,11 @@ export class WebApplication {
     private createDistribution(bucket: Bucket = this.createS3Bucket()) {
 
         // config Cloudfront read to S3
-        // const originAccessIdentity = new OriginAccessIdentity(
-        //     this.scope,
-        //     'OriginAccessIdentity'
-        // );
-        // bucket.grantRead(originAccessIdentity);
+        const originAccessIdentity = new OriginAccessIdentity(
+            this.scope,
+            'OriginAccessIdentity'
+        );
+        bucket.grantRead(originAccessIdentity);
 
         // set up cloudfront
         const distribution = new Distribution(this.scope, 'Distribution', {
