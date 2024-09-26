@@ -45,7 +45,6 @@ fi
 
 if [ -z "$SMTP_SECURE" ]; then
     export SMTP_SECRET="false"
-    exit 1
 fi
 
 if [ -z "$SMTP_PORT" ]; then
@@ -100,8 +99,10 @@ if aws sts get-caller-identity >/dev/null; then
 
     if [ -z "$TENANT_NAME" ]; then
         echo "TENANT_NAME is not set, using TENANT_ID as TENANT_NAME"
-        TENANT_NAME=$TENANT_ID
+        TENANT_NAME=$(jq -rn --arg x "$TENANT_ID" '$x|@uri')
     fi
+
+    TENANT_NAME=$(jq -rn --arg x "$TENANT_NAME" '$x|@uri')
 
     registRes=$(curl -X POST "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap?asmSecretKey=$ASM_INSTAL_KEY&newTenantName=$TENANT_NAME&awsAccountId=$CDK_DEPLOY_ACCOUNT&newTenantAdminEmail=$ADMIN_EMAIL&requestedBy=$INSTALLER_EMAIL&awsUserPoolFqdn=$ROOT_DOMAIN_NAME&awsRegion=$CDK_DEPLOY_REGION")
     export ASM_PROVIDER_ID=$(echo $registRes | jq -r .newTenantId)

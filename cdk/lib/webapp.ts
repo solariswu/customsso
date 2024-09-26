@@ -6,7 +6,7 @@ import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 import { Bucket, BucketAccessControl } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Distribution, OriginAccessIdentity } from 'aws-cdk-lib/aws-cloudfront';
-import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 
 import { RemovalPolicy, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
@@ -59,11 +59,11 @@ export class WebApplication {
     private createDistribution(bucket: Bucket = this.createS3Bucket()) {
 
         // config Cloudfront read to S3
-        const originAccessIdentity = new OriginAccessIdentity(
-            this.scope,
-            'OriginAccessIdentity'
-        );
-        bucket.grantRead(originAccessIdentity);
+        // const originAccessIdentity = new OriginAccessIdentity(
+        //     this.scope,
+        //     'OriginAccessIdentity'
+        // );
+        // bucket.grantRead(originAccessIdentity);
 
         // set up cloudfront
         const distribution = new Distribution(this.scope, 'Distribution', {
@@ -71,7 +71,7 @@ export class WebApplication {
             domainNames: [`${this.tenantId}.${RootDomainName}`],
             certificate: this.certificate,
             defaultBehavior: {
-                origin: new S3Origin(bucket, { originAccessIdentity }),
+                origin: new S3StaticWebsiteOrigin(bucket),
             },
             errorResponses: [{
                 httpStatus: 403,
