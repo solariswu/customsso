@@ -29,7 +29,7 @@ export const config = [
 		tenantName: process.env.TENANT_NAME,
 		tenantAuthToken: process.env.TENANT_AUTH_TOKEN,
 		mobileTokenKey: process.env.MOBILE_TOKEN_KEY,
-		providerId: process.env.PROVIDER_ID,
+		providerId: process.env.ASM_PROVIDER_ID,
 		mobileTokenSalt: process.env.MOBILE_TOKEN_SALT,
 		asmSalt: process.env.ASM_SALT,
 		smtpHost: process.env.SMTP_HOST,
