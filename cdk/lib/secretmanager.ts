@@ -13,13 +13,14 @@ export class AmfaSecrets {
 	constructor(scope: Construct,
 		tenantAuthToken: string | undefined,
 		mobileTokenSalt: string | undefined, mobileTokenKey: string | undefined,
+		providerId: string | undefined,
 		asmSalt: string | undefined, smtpHost: string | undefined,
 		smtpUser: string | undefined, smtpPass: string | undefined,
 		smtpPort: string | undefined, smtpSecure: string | undefined) {
 
 
 		this.scope = scope;
-		this.secret = this.createSecret(scope, mobileTokenSalt, mobileTokenKey, asmSalt);
+		this.secret = this.createSecret(scope, mobileTokenSalt, mobileTokenKey, providerId, asmSalt);
 		this.smtpSecret = this.createSmtpSecret(scope, smtpHost, smtpUser, smtpPass, smtpPort, smtpSecure);
 		this.asmSecret = this.createAsmSecret(scope, tenantAuthToken);
 	}
@@ -51,13 +52,14 @@ export class AmfaSecrets {
 	}
 
 	private createSecret = (scope: Construct, mobileTokenSalt: string | undefined, mobileTokenKey: string | undefined,
-		asmSalt: string | undefined): Secret => {
+		providerId: string | undefined, asmSalt: string | undefined): Secret => {
 		return new Secret(scope, 'MobileTokenSecret', {
 			secretName: SecretName,
 			secretObjectValue: {
 				Mobile_Token_Key: SecretValue.unsafePlainText(mobileTokenKey ? mobileTokenKey : ''),
 				Mobile_Token_Salt: SecretValue.unsafePlainText(mobileTokenSalt ? mobileTokenSalt : ''),
 				asmSalt: SecretValue.unsafePlainText(asmSalt ? asmSalt : ''),
+				Provider_Id: SecretValue.unsafePlainText(providerId? providerId: ''),
 			},
 		})
 	}

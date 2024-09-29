@@ -2,9 +2,13 @@ const spPortalUrl = process.env.SP_PORTAL_URL;
 const customAppUrl = process.env.EXTRA_APP_URL;
 
 let callbackUrls: string[] = [];
-spPortalUrl ?
-	callbackUrls.push(`${spPortalUrl}/auth-callback`) :
-	callbackUrls.push('https://example.com/login');
+if (spPortalUrl) {
+	callbackUrls.push(`${spPortalUrl}/auth-callback`);
+	callbackUrls.push(`${spPortalUrl}`)
+}
+else {
+	callbackUrls.push('https://example.com/login')
+}
 if (customAppUrl) {
 	callbackUrls.push(customAppUrl);
 }
@@ -25,6 +29,7 @@ export const config = [
 		tenantName: process.env.TENANT_NAME,
 		tenantAuthToken: process.env.TENANT_AUTH_TOKEN,
 		mobileTokenKey: process.env.MOBILE_TOKEN_KEY,
+		providerId: process.env.PROVIDER_ID,
 		mobileTokenSalt: process.env.MOBILE_TOKEN_SALT,
 		asmSalt: process.env.ASM_SALT,
 		smtpHost: process.env.SMTP_HOST,

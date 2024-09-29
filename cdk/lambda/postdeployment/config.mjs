@@ -86,7 +86,7 @@ export const amfaConfigs = {
     "update_profile_force_mobile_token_first_if_registered": true,
     "COMMENT-totp": "This totp information must match the aPersona Adaptive Security Manager Tenant/Client ID and associated salt. salt now is saving in secret manager",
     "totp": {
-        "asm_provider_id": 50,
+        "asm_provider_id": 50, //This would be overrided by deploy variable retrieved. implemented.
     },
     "enable_password_expire": true,
     "passwords_expire_days": 90,

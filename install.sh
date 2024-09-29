@@ -104,10 +104,19 @@ if aws sts get-caller-identity >/dev/null; then
 
     TENANT_NAME=$(jq -rn --arg x "$TENANT_NAME" '$x|@uri')
 
-    registRes=$(curl -X POST "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap?asmSecretKey=$ASM_INSTAL_KEY&newTenantName=$TENANT_NAME&awsAccountId=$CDK_DEPLOY_ACCOUNT&newTenantAdminEmail=$ADMIN_EMAIL&requestedBy=$INSTALLER_EMAIL&awsUserPoolFqdn=$ROOT_DOMAIN_NAME&awsRegion=$CDK_DEPLOY_REGION")
-    export ASM_PROVIDER_ID=$(echo $registRes | jq -r .newTenantId)
-    export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
-    export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
+    export MOBILE_TOKEN_SALT=$(aws secretsmanager get-secret-value --secret-id apersona/finance-abc/secret | jq -r .SecretString | jq -r -c .Mobile_Token_Salt)
+
+    if [ -z "$MOBILE_TOKEN_SALT" ]; then
+        ## already deployed
+        export MOBILE_TOKEN_KEY=$(aws secretsmanager get-secret-value --secret-id apersona/finance-abc/secret | jq -r .SecretString | jq -r -c .Mobile_Token_Key)
+        export ASM_PROVIDER_ID=$(aws secretsmanager get-secret-value --secret-id apersona/finance-abc/secret | jq -r .SecretString | jq -r -c .Provider_Id)
+    else
+        ## not deployed yet
+        registRes=$(curl -X POST "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap?asmSecretKey=$ASM_INSTAL_KEY&newTenantName=$TENANT_NAME&awsAccountId=$CDK_DEPLOY_ACCOUNT&newTenantAdminEmail=$ADMIN_EMAIL&requestedBy=$INSTALLER_EMAIL&awsUserPoolFqdn=$ROOT_DOMAIN_NAME&awsRegion=$CDK_DEPLOY_REGION")
+        export ASM_PROVIDER_ID=$(echo $registRes | jq -r .newTenantId)
+        export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
+        export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
+    fi
 
     if [ -z "$ASM_PROVIDER_ID" ]; then
         echo "ASM portal newTenant API error, no provider_id, please check your install key and admin email value and contact Apersona for support"

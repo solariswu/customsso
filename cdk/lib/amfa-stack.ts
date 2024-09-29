@@ -32,7 +32,7 @@ export class AmfaStack extends Stack {
     // amfa apis
     config.map(tenant => {
       const secrets = new AmfaSecrets (this, tenant.tenantAuthToken,
-        tenant.mobileTokenSalt, tenant.mobileTokenKey, tenant.asmSalt,
+        tenant.mobileTokenSalt, tenant.mobileTokenKey, tenant.providerId, tenant.asmSalt,
         tenant.smtpHost, tenant.smtpUser, tenant.smtpPass, tenant.smtpPort, tenant.smtpSecure)
       const webapp = new WebApplication(this, props.siteCertificate, props.hostedZone, tenant.tenantId, tenant.awsaccount);
       const ddb = new AmfaServcieDDB(this, tenant.awsaccount, tenant.region, tenant.tenantId);
