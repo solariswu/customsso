@@ -108,7 +108,8 @@ if aws sts get-caller-identity >/dev/null; then
 
     if [ -z "$MOBILE_TOKEN_SALT" ]; then
         ## not deployed yet
-        registRes=$(curl -X POST "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap?asmSecretKey=$ASM_INSTAL_KEY&newTenantName=$TENANT_NAME&awsAccountId=$CDK_DEPLOY_ACCOUNT&newTenantAdminEmail=$ADMIN_EMAIL&requestedBy=$INSTALLER_EMAIL&awsUserPoolFqdn=$ROOT_DOMAIN_NAME&awsRegion=$CDK_DEPLOY_REGION")
+        registRes=$(curl -X POST -F "newTenantName=$TENANT_NAME" -F "awsAccountId=$CDK_DEPLOY_ACCOUNT" -F "newTenantAdminEmail=$ADMIN_EMAIL" -F "asmSecretKey=$ASM_INSTAL_KEY" -F "awsUserPoolFqdn=$ROOT_DOMAIN_NAME" -F "awsRegion=$CDK_DEPLOY_REGION" -F "requestedBy=$INSTALLER_EMAIL" "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap")
+        echo "amfa register result: "$registRes
         export ASM_PROVIDER_ID=$(echo $registRes | jq -r .newTenantId)
         export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
         export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
