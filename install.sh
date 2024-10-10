@@ -57,8 +57,6 @@ if [ -z "$ASM_SALT" ]; then
     exit 1
 fi
 
-export TENANT_AUTH_TOKEN="$ASM_INSTAL_KEY"
-
 if [ -z "$ADMIN_EMAIL" ]; then
     echo "ADMIN_EMAIL is not set, please set ADMIN_EMAIL in config.sh"
     exit 1
@@ -113,10 +111,12 @@ if aws sts get-caller-identity >/dev/null; then
         export ASM_PROVIDER_ID=$(echo $registRes | jq -r .newTenantId)
         export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
         export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
+        export TENANT_AUTH_TOKEN=$(echo $registRes | jq -r .asmTenantSecretKey)
     else
             ## already deployed
         export MOBILE_TOKEN_KEY=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/secret" | jq -r .SecretString | jq -r -c .Mobile_Token_Key)
         export ASM_PROVIDER_ID=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/secret" | jq -r .SecretString | jq -r -c .Provider_Id)
+        export TENANT_AUTH_TOKEN=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/asm" | jq -r .SecretString | jq -r -c .tenantAuthToken)
 
     fi
 
