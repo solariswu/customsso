@@ -187,7 +187,7 @@ if aws sts get-caller-identity >/dev/null; then
         cd $APERSONAADM_REPO_NAME
 
         export ADMINPORTAL_DOMAIN_NAME="adminportal.""$ROOT_DOMAIN_NAME"
-        ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 list-hosted-zones | jq .HostedZones | jq 'map(select(.Name=="$ADMINPORTAL_DOMAIN_NAME."))' | jq -r '.[0]'.Id)
+        ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 list-hosted-zones | jq .HostedZones | jq 'map(select(.Name=="'$ADMINPORTAL_DOMAIN_NAME'."))' | jq -r '.[0]'.Id)
         if [ -z "$ADMINPORTAL_HOSTED_ZONE_ID" ] || [ "$ADMINPORTAL_HOSTED_ZONE_ID" = "null" ]; then
             echo "Creating hosted zone for $ADMINPORTAL_DOMAIN_NAME"
             ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 create-hosted-zone --name $ADMINPORTAL_DOMAIN_NAME --caller-reference $RANDOM | jq .HostedZone.Id)
