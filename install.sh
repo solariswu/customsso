@@ -230,7 +230,7 @@ if aws sts get-caller-identity >/dev/null; then
         echo "Admin Portal Hosted Zone ID is $ADMINPORTAL_HOSTED_ZONE_ID"
 
         npm install
-        npm run build
+        # npm run build
         npm run cdk-build
 
         npx cdk deploy "$@" --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
@@ -244,13 +244,13 @@ if aws sts get-caller-identity >/dev/null; then
             echo "Admin Portal deployment failed"
             echo "Some resources are not generated"
         else
-            rm -rf src/amfaext.js
-            echo "export const AdminPortalUserPoolId="$ADMINPORTAL_USERPOOL_ID >>src/amfaext.js
-            echo "export const AdminPortalClientId="$ADMINPORTAL_CLIENT_ID >>src/amfaext.js
-            echo "export const AdminHostedUIURL="$ADMINPORTAL_HOSTEDUI_URL >>src/amfaext.js
-            echo "export const SPPortalUrl='$SP_PORTAL_URL'" >>src/amfaext.js
+            rm -rf public/amfaext.js
+            echo "export const AdminPortalUserPoolId="$ADMINPORTAL_USERPOOL_ID >>public/amfaext.js
+            echo "export const AdminPortalClientId="$ADMINPORTAL_CLIENT_ID >>public/amfaext.js
+            echo "export const AdminHostedUIURL="$ADMINPORTAL_HOSTEDUI_URL >>public/amfaext.js
+            echo "export const SPPortalUrl='$SP_PORTAL_URL'" >>public/amfaext.js
             # deploy admin portal stack again
-            npm run build
+            # npm run build
             npm run cdk-build
             rm -rf ../apersona_idp_mgt_deploy_outputs.json
             npx cdk deploy "$@" --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
