@@ -187,8 +187,8 @@ if aws sts get-caller-identity >/dev/null; then
         cd $APERSONAADM_REPO_NAME
 
         export ADMINPORTAL_DOMAIN_NAME="adminportal.""$ROOT_DOMAIN_NAME"
-        ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 list-hosted-zones | jq .HostedZones | jq 'map(select(.Name="$ADMINPORTAL_DOMAIN_NAME."))' | jq -r '.[0]'.Id)
-        if [ -z "$ADMINPORTAL_HOSTED_ZONE_ID" ]; then
+        ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 list-hosted-zones | jq .HostedZones | jq 'map(select(.Name=="$ADMINPORTAL_DOMAIN_NAME."))' | jq -r '.[0]'.Id)
+        if [ -z "$ADMINPORTAL_HOSTED_ZONE_ID" ] || [ "$ADMINPORTAL_HOSTED_ZONE_ID" = "null" ]; then
             echo "Creating hosted zone for $ADMINPORTAL_DOMAIN_NAME"
             ADMINPORTAL_HOSTED_ZONE_ID=$(aws route53 create-hosted-zone --name $ADMINPORTAL_DOMAIN_NAME --caller-reference $RANDOM | jq .HostedZone.Id)
             ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID%?}
@@ -236,16 +236,25 @@ if aws sts get-caller-identity >/dev/null; then
         npx cdk deploy "$@" --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
 
         # update admin frontend config with the deployed userpool id and appclient
-        rm -rf src/amfaext.js
-        echo "export const AdminPortalUserPoolId="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalUserPoolId' ../apersona_idp_mgt_deploy_outputs.json) >>src/amfaext.js
-        echo "export const AdminPortalClientId="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalAppClientId' ../apersona_idp_mgt_deploy_outputs.json) >>src/amfaext.js
-        echo "export const AdminHostedUIURL="$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminLoginHostedUIURL' ../apersona_idp_mgt_deploy_outputs.json) >>src/amfaext.js
-        echo "export const SPPortalUrl='$SP_PORTAL_URL'" >>src/amfaext.js
-        # deploy admin portal stack again
-        npm run build
-        npm run cdk-build
-        rm -rf ../apersona_idp_mgt_deploy_outputs.json
-        npx cdk deploy "$@" --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
+        ADMINPORTAL_USERPOOL_ID=$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalUserPoolId' ../apersona_idp_mgt_deploy_outputs.json)
+        ADMINPORTAL_CLIENT_ID=$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalClientId' ../apersona_idp_mgt_deploy_outputs.json)
+        ADMINPORTAL_HOSTEDUI_URL=$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminLoginHostedUIURL' ../apersona_idp_mgt_deploy_outputs.json)
+
+        if [ -z "$ADMINPORTAL_USERPOOL_ID" ] || [ -z "$ADMINPORTAL_CLIENT_ID" ] || [ -z "$ADMINPORTAL_HOSTEDUI_URL" ]; then
+            echo "Admin Portal deployment failed"
+            echo "Some resources are not generated"
+        else
+            rm -rf src/amfaext.js
+            echo "export const AdminPortalUserPoolId="$ADMINPORTAL_USERPOOL_ID >>src/amfaext.js
+            echo "export const AdminPortalClientId="$ADMINPORTAL_CLIENT_ID >>src/amfaext.js
+            echo "export const AdminHostedUIURL="$ADMINPORTAL_HOSTEDUI_URL >>src/amfaext.js
+            echo "export const SPPortalUrl='$SP_PORTAL_URL'" >>src/amfaext.js
+            # deploy admin portal stack again
+            npm run build
+            npm run cdk-build
+            rm -rf ../apersona_idp_mgt_deploy_outputs.json
+            npx cdk deploy "$@" --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
+        fi
 
         echo "Deploy finished"
         echo "***************"
