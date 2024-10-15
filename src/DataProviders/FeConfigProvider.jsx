@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { apiUrl } from '../const';
+import { apiUrl } from '/const.js';
 
 
 const Context = React.createContext();

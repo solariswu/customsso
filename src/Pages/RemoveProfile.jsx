@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button } from 'reactstrap';
-import { apiUrl, applicationUrl } from '../const';
+import { apiUrl, applicationUrl } from '/const.js';
 
 import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input';

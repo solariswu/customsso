@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import InfoMsg from '../../Components/InfoMsg';
 import { Button } from 'reactstrap';
 import { useTranslation } from 'react-i18next';
-import { applicationUrl } from '../../const';
+import { applicationUrl } from '/const.js';
 
 
 const LOGIN = () => {

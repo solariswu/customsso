@@ -3,7 +3,7 @@ import {useNavigate, useLocation} from 'react-router-dom';
 
 import {Button} from 'reactstrap';
 
-import {apiUrl, applicationUrl} from '../const';
+import {apiUrl, applicationUrl} from '/const.js';
 import {useFeConfigs} from '../DataProviders/FeConfigProvider';
 import InfoMsg from '../Components/InfoMsg';
 import {useTranslation} from 'react-i18next';

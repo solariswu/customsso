@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { applicationUrl } from "../const";
+import { applicationUrl } from "/const.js";
 import { useTranslation } from "react-i18next";
 
 

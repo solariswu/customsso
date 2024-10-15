@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
-import { apiUrl, applicationUrl } from '../const';
+import { apiUrl, applicationUrl } from '/const.js';
 import { getApti, validateEmail, validatePhoneNumber } from '../Components/utils';
 
 import 'react-phone-number-input/style.css'

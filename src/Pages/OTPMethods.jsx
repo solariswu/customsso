@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Spinner } from 'reactstrap';
 import InfoMsg from '../Components/InfoMsg';
 
-import { apiUrl, applicationUrl } from '../const';
+import { apiUrl, applicationUrl } from '/const.js';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 import { getApti } from '../Components/utils';
 import { useTranslation } from 'react-i18next';

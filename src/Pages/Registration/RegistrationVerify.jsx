@@ -2,7 +2,7 @@ import { useEffect, useState, } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
-import { apiUrl } from '../../const';
+import { apiUrl } from '/const.js';
 
 import 'react-phone-number-input/style.css'
 import InfoMsg from '../../Components/InfoMsg';

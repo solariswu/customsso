@@ -146,15 +146,13 @@ if aws sts get-caller-identity >/dev/null; then
 
     echo "generate AMFA front end config file"
 
-    rm -rf src/const.js
-    echo "export const clientName = '$TENANT_ID'" >>src/const.js
-    echo "export const region = '$CDK_DEPLOY_REGION'" >>src/const.js
-    echo "export const applicationUrl = '$SP_PORTAL_URL'" >>src/const.js
-    echo "export const extraAppUrl = '$EXTRA_APP_URL'" >>src/const.js
-    echo "export const apiUrl = 'https:///api.$TENANT_ID.$ROOT_DOMAIN_NAME'" >>src/const.js
-    echo "export const recaptcha_key = '$RECAPTCHA_KEY'" >>src/const.js
-
-    npm run build
+    rm -rf build/const.js
+    echo "export const clientName = '$TENANT_ID'" >>build/const.js
+    echo "export const region = '$CDK_DEPLOY_REGION'" >>build/const.js
+    echo "export const applicationUrl = '$SP_PORTAL_URL'" >>build/const.js
+    echo "export const extraAppUrl = '$EXTRA_APP_URL'" >>build/const.js
+    echo "export const apiUrl = 'https:///api.$TENANT_ID.$ROOT_DOMAIN_NAME'" >>build/const.js
+    echo "export const recaptcha_key = '$RECAPTCHA_KEY'" >>build/const.js
 
     echo ""
     echo "**********************************"
@@ -237,18 +235,20 @@ if aws sts get-caller-identity >/dev/null; then
 
         # update admin frontend config with the deployed userpool id and appclient
         ADMINPORTAL_USERPOOL_ID=$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalUserPoolId' ../apersona_idp_mgt_deploy_outputs.json)
-        ADMINPORTAL_CLIENT_ID=$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalClientId' ../apersona_idp_mgt_deploy_outputs.json)
+        ADMINPORTAL_CLIENT_ID=$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalAppClientId' ../apersona_idp_mgt_deploy_outputs.json)
         ADMINPORTAL_HOSTEDUI_URL=$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminLoginHostedUIURL' ../apersona_idp_mgt_deploy_outputs.json)
 
         if [ -z "$ADMINPORTAL_USERPOOL_ID" ] || [ -z "$ADMINPORTAL_CLIENT_ID" ] || [ -z "$ADMINPORTAL_HOSTEDUI_URL" ]; then
             echo "Admin Portal deployment failed"
             echo "Some resources are not generated"
         else
-            rm -rf public/amfaext.js
-            echo "export const AdminPortalUserPoolId="$ADMINPORTAL_USERPOOL_ID >>public/amfaext.js
-            echo "export const AdminPortalClientId="$ADMINPORTAL_CLIENT_ID >>public/amfaext.js
-            echo "export const AdminHostedUIURL="$ADMINPORTAL_HOSTEDUI_URL >>public/amfaext.js
-            echo "export const SPPortalUrl='$SP_PORTAL_URL'" >>public/amfaext.js
+            rm -rf dist/amfaext.js
+            echo "export const AdminPortalUserPoolId="$ADMINPORTAL_USERPOOL_ID >>dist/amfaext.js
+            echo "export const AdminPortalClientId="$ADMINPORTAL_CLIENT_ID >>dist/amfaext.js
+            echo "export const AdminHostedUIURL="$ADMINPORTAL_HOSTEDUI_URL >>dist/amfaext.js
+            echo "export const SPPortalUrl='$SP_PORTAL_URL'" >>dist/amfaext.js
+            echo "export const ProjectRegion='$CDK_DEPLOY_REGION'" >>dist/amfaext.js
+            echo "export const AdminPortalDomainName='$ADMINPORTAL_DOMAIN_NAME'" >>dist/amfaext.js
             # deploy admin portal stack again
             # npm run build
             npm run cdk-build

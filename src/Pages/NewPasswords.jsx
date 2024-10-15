@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
-import { apiUrl, applicationUrl } from '../const';
+import { apiUrl, applicationUrl } from '/const.js';
 import { validatePassword, check_pwn_password } from '../Components/utils';
 import PwnedPWDModal from '../Components/PwnedPWDModal';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';

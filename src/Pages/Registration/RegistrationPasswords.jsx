@@ -6,7 +6,7 @@ import { validatePassword, check_pwn_password } from '../../Components/utils';
 import PwnedPWDModal from '../../Components/PwnedPWDModal';
 import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
 import { useTranslation } from 'react-i18next';
-import { applicationUrl } from '../../const';
+import { applicationUrl } from '/const.js';
 
 
 const LOGIN = () => {

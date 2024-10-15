@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button, Modal, ModalFooter, ModalHeader, ModalBody, Spinner } from "reactstrap";
 import PhoneInput from 'react-phone-number-input';
 
-import { apiUrl, applicationUrl } from '../const';
+import { apiUrl, applicationUrl } from '/const.js';
 
 export const OTPDialog = ({ username, otptype, sendOtpConfirmed, open, toggle }) => {
     const [content, setContent] = useState('');

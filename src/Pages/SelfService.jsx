@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
-import { apiUrl, applicationUrl } from '../const';
+import { apiUrl, applicationUrl } from '/const.js';
 import { validateEmail } from '../Components/utils';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';
 import { useTranslation } from 'react-i18next';

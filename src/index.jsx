@@ -7,7 +7,7 @@ import './bootstrap.css';
 import './index.css';
 import App from './App';
 import './i18n.js';
-import {recaptcha_key} from './const.js';
+import {recaptcha_key} from '/const.js';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

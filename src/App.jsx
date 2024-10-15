@@ -12,7 +12,7 @@ import NewPasswords from './Pages/NewPasswords';
 import SelfService from './Pages/SelfService';
 import OTPMethods from './Pages/OTPMethods';
 
-import { applicationUrl } from './const';
+import { applicationUrl } from '/const.js';
 
 import UpdateProfile from './Pages/UpdateProfile';
 import RemoveProfile from './Pages/RemoveProfile';

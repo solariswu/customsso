@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Button, Spinner } from 'reactstrap';
 
-import { apiUrl, applicationUrl } from '../const';
+import { apiUrl, applicationUrl } from '/const.js';
 import InfoMsg from './InfoMsg';
 import { getApti } from './utils';
 import { useFeConfigs } from '../DataProviders/FeConfigProvider';

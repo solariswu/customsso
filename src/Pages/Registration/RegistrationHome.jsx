@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from 'reactstrap';
 
-import { apiUrl, applicationUrl } from '../../const';
+import { apiUrl, applicationUrl } from '/const.js';
 import { getApti, validateEmail } from '../../Components/utils';
 import InfoMsg from '../../Components/InfoMsg';
 import { useFeConfigs } from '../../DataProviders/FeConfigProvider';
