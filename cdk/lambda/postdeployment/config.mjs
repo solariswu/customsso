@@ -1,73 +1,9 @@
-export const amfaPolicies = {
-    "super_admin": {
-        "policy_name": "su-rg83ed78xa38",
-        "rank": 1,
-        "enable_passwordless": false,
-        "permissions": [
-            'e',
-            'ae',
-            'v']
-    },
-    "admin": {
-        "policy_name": "admin-72ja37bc51mz",
-        "rank": 2,
-        "enable_passwordless": false,
-        "permissions": [
-            'e',
-            'ae',
-            's',
-            'v',
-            't'
-        ]
-    },
-    "executive": {
-        "policy_name": "exec-52ws89xs12gz",
-        "rank": 3,
-        "enable_passwordless": true,
-        "permissions": [
-            'e',
-            'ae',
-            's',
-            'v'
-        ]
-    },
-    "user": {
-        "policy_name": "user-63em98az26jq47",
-        "rank": 4,
-        "enable_passwordless": true,
-        "permissions": [
-            'e',
-            'ae',
-            's',
-            'v',
-            't'
-        ]
-    },
-    "password-reset": {
-        "policy_name": "pwd-reset-92wx58dz37"
-    },
-    "self-service": {
-        "policy_name": "update-profile-72vc59zx34"
-    },
-    "user-registration": {
-        "policy_name": "user-registration-34he12cp74"
-    },
-    "default": {
-        "policy_name": "default-72ws81aq67jf",
-        "rank": 50,
-        "enable_passwordless": false,
-        "permissions": [
-            "ae",
-            "e",
-            "t"
-        ],
-    },
-}
+export const amfaPolicies = process.env.ASM_POLICIES;
 
 export const amfaConfigs = {
     "COMMENT-File": "This file contains the available primary AWS aPersona Adaptive MFA login settings.",
-    "asmurl": "https://asm-aws-3.apersonadev2.com:8443/asm",
-    "asm_portal_url": "https://asm-aws-3.apersonadev2.com:8443/asm_portal",
+    "asmurl": process.env.ASM_SERVICE_URL,
+    "asm_portal_url": process.env.ASM_PORTAL_URL,
     "enable_password_reset": true,
     "enable_self_service": true,
     "enable_self_service_remove_buttons": true,

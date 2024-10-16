@@ -8,6 +8,11 @@ if [ -z "$ASM_PORTAL_URL" ]; then
     exit 1
 fi
 
+if [ -z "$ASM_SERVICE_URL" ]; then
+    echo "ASM_SERVICE_URL is not set, please set ASM_SERVICE_URL in config.sh"
+    exit 1
+fi
+
 if [ -z "$TENANT_ID" ]; then
     echo "TENANT_ID is not set, please set TENANT_ID in config.sh"
     exit 1
@@ -112,6 +117,7 @@ if aws sts get-caller-identity >/dev/null; then
         export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
         export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
         export TENANT_AUTH_TOKEN=$(echo $registRes | jq -r .asmTenantSecretKey)
+        export ASM_POLICIES=$(echo $registRes | jq -r .apiKeys)
     else
             ## already deployed
         export MOBILE_TOKEN_KEY=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/secret" | jq -r .SecretString | jq -r -c .Mobile_Token_Key)

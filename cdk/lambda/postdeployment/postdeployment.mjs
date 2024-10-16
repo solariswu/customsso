@@ -17,6 +17,7 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 		'amfaBrandings': amfaBrandings,
 		'amfaLegals': amfaLegals,
 	};
+	console.log('createAmfaConfigs values', values);
 	// override default values by installer specified values.
 	if (process.env.ASM_PROVIDER_ID && process.env.ASM_PROVIDER_ID != '') {
 		console.log('update amfaConfig totp asm provider id to value ', process.env.ASM_PROVIDER_ID)
@@ -25,9 +26,39 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 	else {
 		console.log('no overriding for amfaConfig totp asm provider id')
 	}
-	try {
-		let value = JSON.stringify(values[configType], null, "  ");
 
+	let value = '';
+
+	if (configType === 'amfaPolicies') {
+		value = values[configType];
+		if (value !== '') {
+			try {
+				value = JSON.parse(value);
+				for (const key in value) {
+					const policy = value[key];
+					const child = {}
+					child['policy_name'] = policy;
+					const sp = policy.split('-');
+					child['enable_passwordless'] = true;
+					child['permissions'] = ["e", "ae", "s", "v", "t"];
+					child['rank'] = isNaN(parseInt(sp[1])) ? '' : parseInt(sp[1]);
+					value[key] = child;
+				}
+				value = JSON.stringify(value, null, "  ")
+			}
+			catch (e) {
+				console.log('amfaPolicy parsing error');
+			}
+		}
+	}
+	else {
+		try {
+			value = JSON.stringify(values[configType], null, "  ");
+		} catch (error) {
+			console.log('amfaConfig parsing error')
+		}
+	}
+	try {
 		const params = {
 			Item: {
 				configtype: {

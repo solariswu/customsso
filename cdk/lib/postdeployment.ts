@@ -40,7 +40,10 @@ export const createPostDeploymentLambda = (
 				samlproxy: false,
 				contact: process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL : ''
 			}]),
-			ASM_PROVIDER_ID: process.env.ASM_PROVIDER_ID ? process.env.ASM_PROVIDER_ID : ''
+			ASM_PROVIDER_ID: process.env.ASM_PROVIDER_ID ? process.env.ASM_PROVIDER_ID : '',
+			ASM_POLICIES: process.env.ASM_POLICIES ? process.env.ASM_POLICIES : '',
+			ASM_PORTAL_URL: process.env.ASM_PORTAL_URL ? process.env.ASM_PORTAL_URL : '',
+			ASM_SERVICE_URL: process.env.ASM_SERVICE_URL ? process.env.ASM_SERVICE_URL : '',
 		},
 		timeout: Duration.minutes(5),
 	});
