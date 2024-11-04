@@ -46,6 +46,7 @@ export class AmfaServcieDDB {
 			tableName: `amfa-${this.account}-${this.region}-configtable`,
 			partitionKey: { name: 'configtype', type: AttributeType.STRING },
 			billingMode: BillingMode.PAY_PER_REQUEST,
+			removalPolicy: RemovalPolicy.DESTROY,
 		});
 		return table;
 	}
@@ -65,6 +66,7 @@ export class AmfaServcieDDB {
 			tableName: `amfa-${this.account}-${this.region}-tenanttable`,
 			partitionKey: { name: 'id', type: AttributeType.STRING },
 			billingMode: BillingMode.PAY_PER_REQUEST,
+			removalPolicy: RemovalPolicy.DESTROY,
 		});
 		return table;
 	}

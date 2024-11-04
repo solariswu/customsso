@@ -100,43 +100,62 @@ if aws sts get-caller-identity >/dev/null; then
     export CDK_DEPLOY_REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
     export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
 
-    if [ -z "$TENANT_NAME" ]; then
+    if [[ -z "$TENANT_NAME" || "$TENANT_NAME" = "null" ]]; then
         echo "TENANT_NAME is not set, using TENANT_ID as TENANT_NAME"
         TENANT_NAME=$(jq -rn --arg x "$TENANT_ID" '$x|@uri')
     fi
 
     TENANT_NAME=$(jq -rn --arg x "$TENANT_NAME" '$x|@uri')
 
-    export MOBILE_TOKEN_SALT=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/secret" | jq -r .SecretString | jq -r -c .Mobile_Token_Salt)
+    export MOBILE_TOKEN_SALT=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/secret" 2>/dev/null | jq -r .SecretString | jq -r -c .Mobile_Token_Salt)
 
     if [ -z "$MOBILE_TOKEN_SALT" ]; then
-        ## not deployed yet
-        registRes=$(curl -X POST -F "newTenantName=$TENANT_NAME" -F "awsAccountId=$CDK_DEPLOY_ACCOUNT" -F "newTenantAdminEmail=$ADMIN_EMAIL" -F "asmSecretKey=$ASM_INSTAL_KEY" -F "awsUserPoolFqdn=$ROOT_DOMAIN_NAME" -F "awsRegion=$CDK_DEPLOY_REGION" -F "requestedBy=$INSTALLER_EMAIL" "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap")
-        echo "amfa register result: "$registRes
-        export ASM_PROVIDER_ID=$(echo $registRes | jq -r .newTenantId)
+        registRes=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/install" | jq -r .SecretString | jq -r -c .registRes)
+        echo "amfa install params fetched from previous record: "$registRes
+        if [[ -z "$registRes" || "$registRes" = "null" ]]; then
+            ## never installed
+            ## register to ASM portal
+            registRes=$(curl -X POST -F "newTenantName=$TENANT_NAME" -F "awsAccountId=$CDK_DEPLOY_ACCOUNT" -F "newTenantAdminEmail=$ADMIN_EMAIL" -F "asmSecretKey=$ASM_INSTAL_KEY" -F "awsUserPoolFqdn=$ROOT_DOMAIN_NAME" -F "awsRegion=$CDK_DEPLOY_REGION" -F "requestedBy=$INSTALLER_EMAIL" "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap")
+            echo "new amfa register result: "$registRes
+            export ASM_PROVIDER_ID=$(echo $registRes | jq -r .asmClientId)
+            if [ -z "$ASM_PROVIDER_ID" ] || [ "$ASM_PROVIDER_ID" = "null" ]; then
+                echo "ASM portal newTenant API error, no provider_id, please check your install key and admin email value and contact Apersona for support"
+                exit 1
+            else
+                ## store install params in secretsmanager
+                aws secretsmanager create-secret --region $CDK_DEPLOY_REGION --name "apersona/$TENANT_ID/install" --secret-string "{\"registRes\":\"$registRes\"}" >/dev/null 2>&1
+                echo "install params saved"
+            fi
+        else
+            registRes=${registRes:1:-1}
+        fi
+
+        ## fetch install params
+        echo "debug-"$registRes
+        export ASM_PROVIDER_ID=$(echo $registRes | jq -r .asmClientId)
         export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
         export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
-        export TENANT_AUTH_TOKEN=$(echo $registRes | jq -r .asmTenantSecretKey)
+        export TENANT_AUTH_TOKEN=$(echo $registRes | jq -r .asmClientSecretKey)
         export ASM_POLICIES=$(echo $registRes | jq -r .apiKeys)
     else
-            ## already deployed
+        ## already deployed
         export MOBILE_TOKEN_KEY=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/secret" | jq -r .SecretString | jq -r -c .Mobile_Token_Key)
         export ASM_PROVIDER_ID=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/secret" | jq -r .SecretString | jq -r -c .Provider_Id)
         export TENANT_AUTH_TOKEN=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/asm" | jq -r .SecretString | jq -r -c .tenantAuthToken)
 
     fi
 
-    if [ -z "$ASM_PROVIDER_ID" ]; then
+    if [[ -z "$ASM_PROVIDER_ID" ||  "$ASM_PROVIDER_ID" = "null" ]]; then
         echo "ASM portal newTenant API error, no provider_id, please check your install key and admin email value and contact Apersona for support"
         exit 1
     fi
 
-    if [ -z "$MOBILE_TOKEN_SALT" ]; then
+    if [[ -z "$MOBILE_TOKEN_SALT" || "$MOBILE_TOKEN_SALT" = "null" ]]; then
         echo "ASM portal newTenant API error, no mobile token salt, please check your install key and admin email value and contact Apersona for support"
         exit 1
     fi
 
-    if [ -z "$MOBILE_TOKEN_KEY" ]; then
+    if [[ -z "$MOBILE_TOKEN_KEY" || "$MOBILE_TOKEN_KEY" = "null" ]]; then
         echo "ASM portal newTenant API error, no mobile token key, please check your install key and admin email value and contact Apersona for support"
         exit 1
     fi
@@ -160,7 +179,7 @@ if aws sts get-caller-identity >/dev/null; then
     echo "export const apiUrl = 'https:///api.$TENANT_ID.$ROOT_DOMAIN_NAME'" >>build/const.js
     echo "export const recaptcha_key = '$RECAPTCHA_KEY'" >>build/const.js
 
-    echo ""
+   echo ""
     echo "**********************************"
     echo "Start building...please wait ..."
     npm run cdk-build
@@ -227,7 +246,12 @@ if aws sts get-caller-identity >/dev/null; then
             RESULT=$(aws route53 change-resource-record-sets --hosted-zone-id $ROOT_HOSTED_ZONE_ID --change-batch file://ns_record.json)
             $(rm -rf ns_record.json)
         else
-            echo "Hosted zone for $ADMINPORTAL_DOMAIN_NAME already exists"
+            $ADMINPORTAL_DOMAIN_ID2=$(aws route53 list-hosted-zones | jq .HostedZones | jq 'map(select(.Name=="'$ADMINPORTAL_DOMAIN_NAME'."))' | jq -r '.[1]'.Id)
+            if [ -z "$ADMINPORTAL_DOMAIN_ID2" ] || [ "$ADMINPORTAL_DOMAIN_ID2" = "null" ]; then
+                echo "Hosted zone for $ADMINPORTAL_DOMAIN_NAME already exists"
+            else
+                echo "More than one Hosted zone for $ADMINPORTAL_DOMAIN_NAME are found. Correct this first then re-execute the install script"
+            fi
         fi
 
         export ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID#*zone/}

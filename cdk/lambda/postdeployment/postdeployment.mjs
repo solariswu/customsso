@@ -31,7 +31,7 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 
 	if (configType === 'amfaPolicies') {
 		value = values[configType];
-		if (value !== '') {
+		if (value !== '' && value !== 'null') {
 			try {
 				value = JSON.parse(value);
 				for (const key in value) {
@@ -48,7 +48,11 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 			}
 			catch (e) {
 				console.log('amfaPolicy parsing error');
+				value = '';
 			}
+		}
+		else {
+			value = '';
 		}
 	}
 	else {
@@ -58,6 +62,12 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 			console.log('amfaConfig parsing error')
 		}
 	}
+
+	if (value === '' || value === 'null') {
+		console.log('no value for ', configType);
+		return;
+	}
+
 	try {
 		const params = {
 			Item: {

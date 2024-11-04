@@ -1,4 +1,4 @@
-import { SecretValue } from "aws-cdk-lib";
+import { SecretValue, RemovalPolicy } from "aws-cdk-lib";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Construct } from "constructs";
 import { ASMSecretName, SMTPSecretName, SecretName } from "./const";
@@ -39,6 +39,7 @@ export class AmfaSecrets {
 				user: SecretValue.unsafePlainText(smtpUser ? smtpUser : ''),
 				pass: SecretValue.unsafePlainText(smtpPass ? smtpPass : '')
 			},
+			removalPolicy: RemovalPolicy.DESTROY,
 		})
 	}
 
@@ -48,6 +49,7 @@ export class AmfaSecrets {
 			secretObjectValue: {
 				tenantAuthToken: SecretValue.unsafePlainText(tenantAuthToken ? tenantAuthToken : ''),
 			},
+			removalPolicy: RemovalPolicy.DESTROY,
 		})
 	}
 
@@ -61,6 +63,7 @@ export class AmfaSecrets {
 				asmSalt: SecretValue.unsafePlainText(asmSalt ? asmSalt : ''),
 				Provider_Id: SecretValue.unsafePlainText(providerId? providerId: ''),
 			},
+			removalPolicy: RemovalPolicy.DESTROY,
 		})
 	}
 }
