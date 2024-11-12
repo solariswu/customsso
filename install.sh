@@ -49,7 +49,7 @@ if [ -z "$SMTP_PASS" ]; then
 fi
 
 if [ -z "$SMTP_SECURE" ]; then
-    export SMTP_SECRET="false"
+    export SMTP_SECURE="false"
 fi
 
 if [ -z "$SMTP_PORT" ]; then
@@ -67,6 +67,11 @@ if [ -z "$ADMIN_EMAIL" ]; then
     exit 1
 fi
 
+if [[ -z "INSTALLER_EMAIL" || "INSTALLER_EMAIL" = 'null' || "INSTALLER_EMAIL" = '' ]]; then
+    echo "INSTALLER_EMAIL is not set, using ADMIN_EMAIL as INSTALLER_EMAIL"
+    export INSTALLER_EMAIL=$ADMIN_EMAIL
+fi
+
 if aws sts get-caller-identity >/dev/null; then
     DOMAINNAME=$(aws route53 get-hosted-zone --id $ROOT_HOSTED_ZONE_ID | jq -r .HostedZone.Name)
     if [ "$DOMAINNAME" != "$ROOT_DOMAIN_NAME""." ]; then
@@ -82,7 +87,7 @@ if aws sts get-caller-identity >/dev/null; then
 
     echo "install application dependency libs"
     cd $APERSONAIDP_REPO_NAME
-    npm install
+    npm install >/dev/null 2>&1
 
     if [ -z "$SP_PORTAL_URL" ]; then
         echo "SP_PORTAL_URL is not configured"
@@ -111,27 +116,24 @@ if aws sts get-caller-identity >/dev/null; then
 
     if [ -z "$MOBILE_TOKEN_SALT" ]; then
         registRes=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/install" | jq -r .SecretString | jq -r -c .registRes)
-        echo "amfa install params fetched from previous record: "$registRes
+        # echo "amfa install params fetched from previous record: "$registRes
         if [[ -z "$registRes" || "$registRes" = "null" ]]; then
             ## never installed
             ## register to ASM portal
-            registRes=$(curl -X POST -F "newTenantName=$TENANT_NAME" -F "awsAccountId=$CDK_DEPLOY_ACCOUNT" -F "newTenantAdminEmail=$ADMIN_EMAIL" -F "asmSecretKey=$ASM_INSTAL_KEY" -F "awsUserPoolFqdn=$ROOT_DOMAIN_NAME" -F "awsRegion=$CDK_DEPLOY_REGION" -F "requestedBy=$INSTALLER_EMAIL" "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap")
+            registRes=$(curl -X POST -F "newTenantName=$TENANT_NAME" -F "awsAccountId=$CDK_DEPLOY_ACCOUNT" -F "newTenantAdminEmail=$ADMIN_EMAIL" -F "asmSecretKey=$ASM_INSTAL_KEY" -F "awsUserPoolFqdn=$ROOT_DOMAIN_NAME" -F "awsRegion=$CDK_DEPLOY_REGION" -F "asmTenantInstallerEmail=$INSTALLER_EMAIL" "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap")
             echo "new amfa register result: "$registRes
             export ASM_PROVIDER_ID=$(echo $registRes | jq -r .asmClientId)
-            if [ -z "$ASM_PROVIDER_ID" ] || [ "$ASM_PROVIDER_ID" = "null" ]; then
+            if [[ -z "$ASM_PROVIDER_ID" || "$ASM_PROVIDER_ID" = "null" ]]; then
                 echo "ASM portal newTenant API error, no provider_id, please check your install key and admin email value and contact Apersona for support"
                 exit 1
             else
                 ## store install params in secretsmanager
-                aws secretsmanager create-secret --region $CDK_DEPLOY_REGION --name "apersona/$TENANT_ID/install" --secret-string "{\"registRes\":\"$registRes\"}" >/dev/null 2>&1
+                aws secretsmanager create-secret --region $CDK_DEPLOY_REGION --name "apersona/$TENANT_ID/install" --secret-string "{\"registRes\":$registRes}" >/dev/null 2>&1
                 echo "install params saved"
             fi
-        else
-            registRes=${registRes:1:-1}
         fi
 
         ## fetch install params
-        echo "debug-"$registRes
         export ASM_PROVIDER_ID=$(echo $registRes | jq -r .asmClientId)
         export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
         export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
@@ -145,7 +147,7 @@ if aws sts get-caller-identity >/dev/null; then
 
     fi
 
-    if [[ -z "$ASM_PROVIDER_ID" ||  "$ASM_PROVIDER_ID" = "null" ]]; then
+    if [[ -z "$ASM_PROVIDER_ID" || "$ASM_PROVIDER_ID" = "null" ]]; then
         echo "ASM portal newTenant API error, no provider_id, please check your install key and admin email value and contact Apersona for support"
         exit 1
     fi
@@ -169,7 +171,7 @@ if aws sts get-caller-identity >/dev/null; then
         aws iam attach-role-policy --role-name CrossAccountDnsDelegationRole-DO-NOT-DELETE --policy-arn "arn:aws:iam::$CDK_DEPLOY_ACCOUNT:policy/dns-delegation-policy"
     fi
 
-    echo "generate AMFA front end config file"
+    ## echo "generate AMFA front end config file"
 
     rm -rf build/const.js
     echo "export const clientName = '$TENANT_ID'" >>build/const.js
@@ -179,7 +181,7 @@ if aws sts get-caller-identity >/dev/null; then
     echo "export const apiUrl = 'https:///api.$TENANT_ID.$ROOT_DOMAIN_NAME'" >>build/const.js
     echo "export const recaptcha_key = '$RECAPTCHA_KEY'" >>build/const.js
 
-   echo ""
+    echo ""
     echo "**********************************"
     echo "Start building...please wait ..."
     npm run cdk-build
@@ -205,6 +207,28 @@ if aws sts get-caller-identity >/dev/null; then
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION || (unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP)
         unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP
         npx cdk deploy "$@" --all --outputs-file ../apersona_idp_deploy_outputs.json
+
+        mobileTokenApiClientId=$(jq -rc '.[].AmfamobileTokenApiClientId' ../apersona_idp_deploy_outputs.json)
+        mobileTokenApiClientSecret=$(jq -rc '.[].AmfamobileTokenApiClientSecret' ../apersona_idp_deploy_outputs.json)
+        mobileTokenAuthEndpointUri=$(jq -rc '.[].AmfamobileTokenAuthEndpointUri' ../apersona_idp_deploy_outputs.json)
+        mobileTokenApiEndpointUri=$(jq -rc '.[].AmfamobileTokenApiEndpointUri' ../apersona_idp_deploy_outputs.json)
+
+        mobileTokenAuthEndpointUri=$(jq -rn --arg x "$mobileTokenAuthEndpointUri" '$x|@uri')
+        mobileTokenApiEndpointUri=$(jq -rn --arg x "$mobileTokenApiEndpointUri" '$x|@uri')
+
+        installParam=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/install" | jq -r .SecretString | jq -r -c .registRes)
+        asmClientSecretKey=$(echo $installParam | jq -r .asmClientSecretKey)
+
+        echo "update asm tenant mobile token details"
+        ## echo "debug - : curl -X POST \"$ASM_PORTAL_URL/updateAsmClientMobileTokenDetails.ap\" -H \"Content-Type:application/json\" -d \"{\\\"mobileTokenApiClientId\\\":\\\"$mobileTokenApiClientId\\\",\\\"mobileTokenApiClientSecret\\\":\\\"$mobileTokenApiClientSecret\\\",\\\"mobileTokenAuthEndpointUri\\\":\\\"$mobileTokenAuthEndpointUri\\\",\\\"asmClientSecretKey\\\":\\\"$asmClientSecretKey\\\",\\\"mobileTokenApiEndpointUri\\\":\\\"$mobileTokenApiEndpointUri\\\",\\\"asmClientId\\\":$ASM_PROVIDER_ID}\""
+
+        passSecretRes=$(curl -X POST "$ASM_PORTAL_URL/updateAsmClientMobileTokenDetails.ap" -H "Content-Type:application/json" -d "{\"mobileTokenApiClientId\":\"$mobileTokenApiClientId\",\"mobileTokenApiClientSecret\":\"$mobileTokenApiClientSecret\",\"mobileTokenAuthEndpointUri\":\"$mobileTokenAuthEndpointUri\",\"asmClientSecretKey\":\"$asmClientSecretKey\",\"mobileTokenApiEndpointUri\":\"$mobileTokenApiEndpointUri\",\"asmClientId\":$ASM_PROVIDER_ID}" 2>/dev/null)        updateMobSecStatsCode=$(echo $passSecretRes | jq -r .code)
+        if [ "$updateMobSecStatsCode" != "200" ]; then
+            echo "update mobile token details error - "$passSecretRes
+            exit 1
+        else
+            echo "update mobile token details success"
+        fi
 
         cd ..
         cd $APERSONAADM_REPO_NAME
@@ -246,7 +270,7 @@ if aws sts get-caller-identity >/dev/null; then
             RESULT=$(aws route53 change-resource-record-sets --hosted-zone-id $ROOT_HOSTED_ZONE_ID --change-batch file://ns_record.json)
             $(rm -rf ns_record.json)
         else
-            $ADMINPORTAL_DOMAIN_ID2=$(aws route53 list-hosted-zones | jq .HostedZones | jq 'map(select(.Name=="'$ADMINPORTAL_DOMAIN_NAME'."))' | jq -r '.[1]'.Id)
+            ADMINPORTAL_DOMAIN_ID2=$(aws route53 list-hosted-zones | jq .HostedZones | jq 'map(select(.Name=="'$ADMINPORTAL_DOMAIN_NAME'."))' | jq -r '.[1]'.Id)
             if [ -z "$ADMINPORTAL_DOMAIN_ID2" ] || [ "$ADMINPORTAL_DOMAIN_ID2" = "null" ]; then
                 echo "Hosted zone for $ADMINPORTAL_DOMAIN_NAME already exists"
             else
@@ -257,7 +281,7 @@ if aws sts get-caller-identity >/dev/null; then
         export ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID#*zone/}
         echo "Admin Portal Hosted Zone ID is $ADMINPORTAL_HOSTED_ZONE_ID"
 
-        npm install
+        npm install >/dev/null 2>&1
         # npm run build
         npm run cdk-build
 

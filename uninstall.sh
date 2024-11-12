@@ -47,7 +47,7 @@ if aws sts get-caller-identity >/dev/null; then
             while [[ "$StackStatus" != 'DELETE_COMPLETE' && "$StackStatus" != 'DELETE_FAILED' ]]; do
                 if [ $i == 0 ]; then
                     StackStatus=$(aws cloudformation list-stacks 2>/dev/null | jq .StackSummaries | jq 'map(select(.StackName=="'SSO-CUPStack'"))' | jq -r ".[0]".StackStatus)
-                    echo -n "$StackStatus ${spin[$i]}"
+                    echo -ne "\r$StackStatus ${spin[$i]}"
                 fi
                 echo -ne "\b${spin[$i]}"
                 sleep 0.3
@@ -64,6 +64,62 @@ if aws sts get-caller-identity >/dev/null; then
             echo "Admin portal service not found"
         fi
 
+        if aws cloudformation describe-stacks --stack-name APICertificateStack >/dev/null 2>&1; then
+
+            # aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa --recursive >/dev/null 2>&1
+            aws cloudformation delete-stack --stack-name APICertificateStack >/dev/null 2>&1
+
+            echo "[deleting certificate stack]}"
+            StackStatus=''
+            i=0
+            while [[ "$StackStatus" != 'DELETE_COMPLETE' && "$StackStatus" != 'DELETE_FAILED' ]]; do
+                if [ $i == 0 ]; then
+                    StackStatus=$(aws cloudformation list-stacks 2>/dev/null | jq .StackSummaries | jq 'map(select(.StackName=="'APICertificateStack'"))' | jq -r ".[0]".StackStatus)
+                    echo -ne "\r$StackStatus ${spin[$i]}"
+                fi
+                echo -ne "\b${spin[$i]}"
+                sleep 0.3
+                i=$((i + 1))
+                i=$((i % 4))
+            done
+            if [[ "$StackStatus" == 'DELETE_FAILED' || -z "$StackStatus" ]]; then
+                echo -e "certificate stack uninstall \b${RED}failed${NC}"
+                exit 1
+            else
+                echo "Certificate service uninstalled"
+            fi
+        else
+            echo "Certificate service not found"
+        fi
+
+        if aws cloudformation describe-stacks --region us-east-1 --stack-name CertStack222 >/dev/null 2>&1; then
+
+            # aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa --recursive >/dev/null 2>&1
+            aws cloudformation delete-stack --region us-east-1 --stack-name CertStack222 >/dev/null 2>&1
+
+            echo "[deleting certificate stack]}"
+            StackStatus=''
+            i=0
+            while [[ "$StackStatus" != 'DELETE_COMPLETE' && "$StackStatus" != 'DELETE_FAILED' ]]; do
+                if [ $i == 0 ]; then
+                    StackStatus=$(aws cloudformation list-stacks --region us-east-1 2>/dev/null | jq .StackSummaries | jq 'map(select(.StackName=="'CertStack222'"))' | jq -r ".[0]".StackStatus)
+                    echo -ne "\r$StackStatus ${spin[$i]}"
+                fi
+                echo -ne "\b${spin[$i]}"
+                sleep 0.3
+                i=$((i + 1))
+                i=$((i % 4))
+            done
+            if [[ "$StackStatus" == 'DELETE_FAILED' || -z "$StackStatus" ]]; then
+                echo -e "certificate stack uninstall \b${RED}failed${NC}"
+                exit 1
+            else
+                echo "CertStack222 uninstalled"
+            fi
+        else
+            echo "CertStack222 not found"
+        fi
+
         #check whether AMFAStack exists
         if aws cloudformation describe-stacks --stack-name AmfaStack >/dev/null 2>&1; then
             aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID --recursive >/dev/null 2>&1
@@ -72,9 +128,9 @@ if aws sts get-caller-identity >/dev/null; then
             StackStatus=''
             i=0
             while [[ "$StackStatus" != 'DELETE_COMPLETE' && "$StackStatus" != 'DELETE_FAILED' ]]; do
-               if [ $i == 0 ]; then
-                   StackStatus=$(aws cloudformation list-stacks 2>/dev/null | jq .StackSummaries | jq 'map(select(.StackName=="'AmfaStack'"))' | jq -r ".[0]".StackStatus)
-                    echo -n "$StackStatus ${spin[$i]} "
+                if [ $i == 0 ]; then
+                    StackStatus=$(aws cloudformation list-stacks 2>/dev/null | jq .StackSummaries | jq 'map(select(.StackName=="'AmfaStack'"))' | jq -r ".[0]".StackStatus)
+                    echo -ne "\r$StackStatus ${spin[$i]} "
                 fi
                 echo -ne "\b${spin[$i]}"
                 sleep 0.3
@@ -91,10 +147,43 @@ if aws sts get-caller-identity >/dev/null; then
             echo "AMFA service not found"
         fi
 
-                ## delete secrets for re-install
+        if aws cloudformation describe-stacks --region us-east-1 --stack-name CertificateStack >/dev/null 2>&1; then
+
+            # aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa --recursive >/dev/null 2>&1
+            aws cloudformation delete-stack --region us-east-1 --stack-name CertificateStack >/dev/null 2>&1
+
+            echo "[deleting certificate stack]}"
+            StackStatus=''
+            i=0
+            while [[ "$StackStatus" != 'DELETE_COMPLETE' && "$StackStatus" != 'DELETE_FAILED' ]]; do
+                if [ $i == 0 ]; then
+                    StackStatus=$(aws cloudformation list-stacks --region us-east-1 2>/dev/null | jq .StackSummaries | jq 'map(select(.StackName=="'CertificateStack'"))' | jq -r ".[0]".StackStatus)
+                    echo -ne "\r$StackStatus ${spin[$i]}"
+                fi
+                echo -ne "\b${spin[$i]}"
+                sleep 0.3
+                i=$((i + 1))
+                i=$((i % 4))
+            done
+            if [[ "$StackStatus" == 'DELETE_FAILED' || -z "$StackStatus" ]]; then
+                echo -e "certificate stack uninstall \b${RED}failed${NC}"
+                exit 1
+            else
+                echo "CertificateStack uninstalled"
+            fi
+        else
+            echo "CertificateStack not found"
+        fi
+
+        ## delete secrets for re-install
         aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/asm --force-delete-without-recovery >/dev/null 2>&1
         aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/smtp --force-delete-without-recovery >/dev/null 2>&1
         aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/secret --force-delete-without-recovery >/dev/null 2>&1
+
+        ## delete dynamodb tables for re-install
+        aws dynamodb delete-table --table-name amfa-$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-configtable >/dev/null 2>&1
+        ## shall be deleted only when all tenants deleted in multi-tenants, good for single tenant now.
+        aws dynamodb delete-table --table-name amfa-$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-tenanttable >/dev/null 2>&1
 
         echo "*************************************************************************************"
         echo "uninstall finished"

@@ -39,14 +39,16 @@ export class TenantUserPool {
   totpScope: ResourceServerScope;
   resouceServer: UserPoolResourceServer;
   userpoolDomain: UserPoolDomain;
+  rootDomainName: string | undefined;
 
 
   constructor(scope: Construct, configTable: Table, region: string | undefined, tenantId: string | undefined,
     magicString: string, callbackUrls: string[], logoutUrls: string[],
-    spPortalUrl: string | undefined) {
+    spPortalUrl: string | undefined, rootDomainName: string | undefined) {
     this.scope = scope;
     this.region = region;
     this.tenantId = tenantId ? tenantId : '';
+    this.rootDomainName = rootDomainName ? rootDomainName : '';
 
     this.userpool = this.createUserPool();
     this.customAuthClient = this.addCustomAuthClient();
@@ -55,6 +57,7 @@ export class TenantUserPool {
     this.hostedUIClient = this.addHostedUIAppClient(callbackUrls, logoutUrls);
     this.hostedUIClient.node.addDependency(this.oidcProvider);
     this.userpoolDomain = this.addHostedUIDomain();
+    this.userpoolDomain.node.addDependency(this.userpool);
     this.addCustomMessageLambdaTrigger(configTable, spPortalUrl);
 
     this.clientCredentialsClient = this.addClientCredentialClient();
@@ -186,6 +189,14 @@ export class TenantUserPool {
     const customauthUrl = `https://${this.tenantId}.${RootDomainName}`;
     const serviceApiUrl = `https://api.${this.tenantId}.${RootDomainName}`;
 
+    const str = this.rootDomainName?.replace(/\./g, '').toLowerCase();
+    let hash = 0
+    if (str) {
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0
+      }
+    }
+
     return new UserPoolIdentityProviderOidc(
       this.scope,
       'Amfa-OIDCProvider',
@@ -213,7 +224,7 @@ export class TenantUserPool {
           authorization: `${customauthUrl}/oauth2/authorize`,
           jwksUri: `${issuerUrl}/.well-known/jwks.json`,
           token: `${serviceApiUrl}/oauth2/token`,
-          userInfo: `https://${this.tenantId}-apersona.auth.${this.region}.amazoncognito.com/oauth2/userInfo`,
+          userInfo: `https://${this.tenantId}-${(hash >>> 0).toString(36)}.auth.${this.region}.amazoncognito.com/oauth2/userInfo`,
         },
         identifiers: ['apersona'],
         name: AMFAIdPName,
@@ -258,9 +269,17 @@ export class TenantUserPool {
 
   private addHostedUIDomain(
   ) {
+    const str = this.rootDomainName?.replace(/\./g, '').toLowerCase();
+    let hash = 0
+    if (str) {
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0
+      }
+    }
+
     return this.userpool.addDomain('amfaHostedUI-domain', {
       cognitoDomain: {
-        domainPrefix: `${this.tenantId}-apersona`,
+        domainPrefix: `${this.tenantId}-${(hash >>> 0).toString(36)}`,
       },
     });
   };

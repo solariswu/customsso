@@ -43,7 +43,8 @@ export class AmfaStack extends Stack {
         tenant.region, tenant.tenantId, tenant.magicstring,
         tenant.callbackUrls,
         tenant.logoutUrls,
-        tenant.spPortalUrl);
+        tenant.spPortalUrl,
+        process.env.ROOT_DOMAIN_NAME);
       apigateway.createOAuthEndpoints(tenantUserPool.customAuthClient, tenantUserPool.userpool/*, tenant.samlproxyinstanceid*/);
       apigateway.createAmfaApiEndpoints(tenantUserPool.userpool, tenantUserPool.customAuthClient,
         tenantUserPool.clientCredentialsClient, tenantUserPool.hostedUIClient.userPoolClientId,
@@ -53,13 +54,17 @@ export class AmfaStack extends Stack {
       createPostDeploymentLambda(this, apigateway.configTable, apigateway.tenantTable,
         tenantUserPool.userpool.userPoolId, tenant.region, tenant.tenantId, tenant.tenantName);
 
+      const oauthFullDomain = `https://${tenantUserPool.userpoolDomain.domainName}.auth.${process.env.CDK_DEPLOY_REGION}.amazoncognito.com`;
       // output
-      new CfnOutput(this, 'Amfa_UserPoolId', {
-        value: tenantUserPool.userpool.userPoolId, exportName: 'useridppoolid',
-      });
+      new CfnOutput(this, 'Amfa_UserPoolId', { value: tenantUserPool.userpool.userPoolId, exportName: 'useridppoolid', });
       new CfnOutput(this, 'Amfa_UserPoolClientId', { value: tenantUserPool.hostedUIClient.userPoolClientId, });
-      new CfnOutput(this, 'Amfa_OauthDomain', { value: `https://${process.env.TENANT_ID}-apersona.auth.${process.env.CDK_DEPLOY_REGION}.amazoncognito.com`, });
+      new CfnOutput(this, 'Amfa_OauthDomain', { value: oauthFullDomain, });
       new CfnOutput(this, 'Amfa_StaticIPaddress', { value: apigateway.eip.attrPublicIp, });
+      new CfnOutput(this, 'Amfa_mobileTokenApiClientId', { value: tenantUserPool.clientCredentialsClient.userPoolClientId, });
+      new CfnOutput(this, 'Amfa_mobileTokenApiClientSecret', { value: tenantUserPool.clientCredentialsClient.userPoolClientSecret.unsafeUnwrap(), });
+      new CfnOutput(this, 'Amfa_mobileTokenAuthEndpointUri', { value: `${oauthFullDomain}/oauth2/token`, });
+      new CfnOutput(this, 'Amfa_mobileTokenApiEndpointUri', { value: `https://api.${process.env.TENANT_ID}.${process.env.ROOT_DOMAIN_NAME}/totptoken`, });
+
     })
 
 

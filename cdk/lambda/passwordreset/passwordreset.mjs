@@ -177,7 +177,7 @@ const clearUserThreatState = async (username, config) => {
         body: JSON.stringify({
             l: defaultPolicyKey,
             u: username,
-            asmSecretKey: secretToken,
+            asmClientSecretKey: secretToken,
             requestedBy: `${process.env.TENANT_ID}-admin@domain.com`
         })
     });
