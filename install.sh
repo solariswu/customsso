@@ -112,53 +112,36 @@ if aws sts get-caller-identity >/dev/null; then
 
     TENANT_NAME=$(jq -rn --arg x "$TENANT_NAME" '$x|@uri')
 
-    export MOBILE_TOKEN_SALT=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/secret" 2>/dev/null | jq -r .SecretString | jq -r -c .Mobile_Token_Salt)
+    registRes=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/install" | jq -r .SecretString | jq -r -c .registRes)
+    echo "amfa install params fetched from previous record: "$registRes
+    if [[ -z "$registRes" || "$registRes" = "null" ]]; then
+        ## never installed
+        ## register to ASM portal
+        registRes=$(curl -X POST -F "newTenantName=$TENANT_NAME" -F "awsAccountId=$CDK_DEPLOY_ACCOUNT" -F "newTenantAdminEmail=$ADMIN_EMAIL" -F "asmSecretKey=$ASM_INSTAL_KEY" -F "awsUserPoolFqdn=$ROOT_DOMAIN_NAME" -F "awsRegion=$CDK_DEPLOY_REGION" -F "asmTenantInstallerEmail=$INSTALLER_EMAIL" "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap")
+        echo "No previous install params found. New amfa register result retrieved: "$registRes
 
-    if [ -z "$MOBILE_TOKEN_SALT" ]; then
-        registRes=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/install" | jq -r .SecretString | jq -r -c .registRes)
-        # echo "amfa install params fetched from previous record: "$registRes
-        if [[ -z "$registRes" || "$registRes" = "null" ]]; then
-            ## never installed
-            ## register to ASM portal
-            registRes=$(curl -X POST -F "newTenantName=$TENANT_NAME" -F "awsAccountId=$CDK_DEPLOY_ACCOUNT" -F "newTenantAdminEmail=$ADMIN_EMAIL" -F "asmSecretKey=$ASM_INSTAL_KEY" -F "awsUserPoolFqdn=$ROOT_DOMAIN_NAME" -F "awsRegion=$CDK_DEPLOY_REGION" -F "asmTenantInstallerEmail=$INSTALLER_EMAIL" "$ASM_PORTAL_URL/newTenantAssignmentWithDefaults.ap")
-            echo "new amfa register result: "$registRes
-            export ASM_PROVIDER_ID=$(echo $registRes | jq -r .asmClientId)
-            if [[ -z "$ASM_PROVIDER_ID" || "$ASM_PROVIDER_ID" = "null" ]]; then
-                echo "ASM portal newTenant API error, no provider_id, please check your install key and admin email value and contact Apersona for support"
-                exit 1
-            else
-                ## store install params in secretsmanager
-                aws secretsmanager create-secret --region $CDK_DEPLOY_REGION --name "apersona/$TENANT_ID/install" --secret-string "{\"registRes\":$registRes}" >/dev/null 2>&1
-                echo "install params saved"
-            fi
+        ## get provider id
+        export ASM_PROVIDER_ID=$(echo $registRes | jq -r .asmClientId)
+        if [[ -z "$ASM_PROVIDER_ID" || "$ASM_PROVIDER_ID" = "null" ]]; then
+            ## assignment error
+            echo "ASM portal newTenant API error, no provider_id, please check your install key and admin email value and contact Apersona for support"
+            exit 1
         fi
 
-        ## fetch install params
-        export ASM_PROVIDER_ID=$(echo $registRes | jq -r .asmClientId)
-        export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
-        export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
-        export TENANT_AUTH_TOKEN=$(echo $registRes | jq -r .asmClientSecretKey)
-        export ASM_POLICIES=$(echo $registRes | jq -r .apiKeys)
-    else
-        ## already deployed
-        export MOBILE_TOKEN_KEY=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/secret" | jq -r .SecretString | jq -r -c .Mobile_Token_Key)
-        export ASM_PROVIDER_ID=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/secret" | jq -r .SecretString | jq -r -c .Provider_Id)
-        export TENANT_AUTH_TOKEN=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/asm" | jq -r .SecretString | jq -r -c .tenantAuthToken)
-
+        ## assignment success, store install params in secretsmanager
+        aws secretsmanager create-secret --region $CDK_DEPLOY_REGION --name "apersona/$TENANT_ID/install" --secret-string "{\"registRes\":$registRes}" >/dev/null 2>&1
+        echo "install params saved"
     fi
 
-    if [[ -z "$ASM_PROVIDER_ID" || "$ASM_PROVIDER_ID" = "null" ]]; then
-        echo "ASM portal newTenant API error, no provider_id, please check your install key and admin email value and contact Apersona for support"
-        exit 1
-    fi
+    ## fetch install params
+    export ASM_PROVIDER_ID=$(echo $registRes | jq -r .asmClientId)
+    export MOBILE_TOKEN_KEY=$(echo $registRes | jq -r .mobileTokenKey)
+    export MOBILE_TOKEN_SALT=$(echo $registRes | jq -r .mobileTokenSalt)
+    export TENANT_AUTH_TOKEN=$(echo $registRes | jq -r .asmClientSecretKey)
+    export ASM_POLICIES=$(echo $registRes | jq -r .apiKeys)
 
-    if [[ -z "$MOBILE_TOKEN_SALT" || "$MOBILE_TOKEN_SALT" = "null" ]]; then
-        echo "ASM portal newTenant API error, no mobile token salt, please check your install key and admin email value and contact Apersona for support"
-        exit 1
-    fi
-
-    if [[ -z "$MOBILE_TOKEN_KEY" || "$MOBILE_TOKEN_KEY" = "null" ]]; then
-        echo "ASM portal newTenant API error, no mobile token key, please check your install key and admin email value and contact Apersona for support"
+    if [[ -z "$ASM_PROVIDER_ID" || "$ASM_PROVIDER_ID" = "null" || -z "$MOBILE_TOKEN_SALT" || "$MOBILE_TOKEN_SALT" = "null" || -z "$MOBILE_TOKEN_KEY" || "$MOBILE_TOKEN_KEY" = "null"  ]]; then
+        echo "ASM assignment error, please check your install key and admin email value and contact Apersona for support"
         exit 1
     fi
 
@@ -222,7 +205,8 @@ if aws sts get-caller-identity >/dev/null; then
         echo "update asm tenant mobile token details"
         ## echo "debug - : curl -X POST \"$ASM_PORTAL_URL/updateAsmClientMobileTokenDetails.ap\" -H \"Content-Type:application/json\" -d \"{\\\"mobileTokenApiClientId\\\":\\\"$mobileTokenApiClientId\\\",\\\"mobileTokenApiClientSecret\\\":\\\"$mobileTokenApiClientSecret\\\",\\\"mobileTokenAuthEndpointUri\\\":\\\"$mobileTokenAuthEndpointUri\\\",\\\"asmClientSecretKey\\\":\\\"$asmClientSecretKey\\\",\\\"mobileTokenApiEndpointUri\\\":\\\"$mobileTokenApiEndpointUri\\\",\\\"asmClientId\\\":$ASM_PROVIDER_ID}\""
 
-        passSecretRes=$(curl -X POST "$ASM_PORTAL_URL/updateAsmClientMobileTokenDetails.ap" -H "Content-Type:application/json" -d "{\"mobileTokenApiClientId\":\"$mobileTokenApiClientId\",\"mobileTokenApiClientSecret\":\"$mobileTokenApiClientSecret\",\"mobileTokenAuthEndpointUri\":\"$mobileTokenAuthEndpointUri\",\"asmClientSecretKey\":\"$asmClientSecretKey\",\"mobileTokenApiEndpointUri\":\"$mobileTokenApiEndpointUri\",\"asmClientId\":$ASM_PROVIDER_ID}" 2>/dev/null)        updateMobSecStatsCode=$(echo $passSecretRes | jq -r .code)
+        passSecretRes=$(curl -X POST "$ASM_PORTAL_URL/updateAsmClientMobileTokenDetails.ap" -H "Content-Type:application/json" -d "{\"mobileTokenApiClientId\":\"$mobileTokenApiClientId\",\"mobileTokenApiClientSecret\":\"$mobileTokenApiClientSecret\",\"mobileTokenAuthEndpointUri\":\"$mobileTokenAuthEndpointUri\",\"asmClientSecretKey\":\"$asmClientSecretKey\",\"mobileTokenApiEndpointUri\":\"$mobileTokenApiEndpointUri\",\"asmClientId\":$ASM_PROVIDER_ID}" 2>/dev/null)
+        updateMobSecStatsCode=$(echo $passSecretRes | jq -r .code)
         if [ "$updateMobSecStatsCode" != "200" ]; then
             echo "update mobile token details error - "$passSecretRes
             exit 1

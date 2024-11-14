@@ -25,6 +25,8 @@ const validateInputParams = (payload) => {
   if (!payload.email || validateEmail(payload.email)) return false;
   // check required params here
   switch (payload.phase) {
+    case 'adminchecklicense':
+      return (payload.email);
     case 'admindeletetotp':
     case 'admindeleteuser':
     case 'adminupdateuser':
@@ -111,6 +113,17 @@ export const handler = async (event) => {
       const amfaConfigs = await fetchConfig('amfaConfigs', dynamodb);
 
       switch (payload.phase) {
+        case 'adminchecklicense':
+          if (amfaConfigs.asmurl && amfaPolicies['default']) {
+            console.log('check license payload', payload);
+            console.log('check license asmurl', amfaConfigs.asmurl, ' l value', amfaPolicies['default'].policy_name)
+            return await fetch(`${amfaConfigs.asmurl}/checkLic.kv?l=${amfaPolicies['default'].policy_name}&u=${payload.email}`, {
+              method: "POST"
+            });
+          }
+          else {
+            return responseWithRequestId(422, error, requestId);
+          }
         case 'admindeletetotp':
           return await deleteTotp(headers, payload.email, amfaConfigs,
             requestId, client, true, dynamodb, amfaBrandings.email_logo_url, amfaBrandings.service_name, true);
@@ -130,7 +143,7 @@ export const handler = async (event) => {
           console.log('admin update user - otptypes', payload.otptype, ' newProfileValue')
           await notifyProfileChange(payload.email,
             payload.otptype, payload.newProfileValue,
-            amfaBrandings.email_logo_url, amfaBrandings.serviceName, true);
+            amfaBrandings.email_logo_url, amfaBrandings.service_name, true);
           return;
         case 'admingetsecretinfo':
           console.log('admin get secret of tenants', payload.tenantid);

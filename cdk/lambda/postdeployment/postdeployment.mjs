@@ -10,6 +10,16 @@ import { amfaPolicies, amfaConfigs, amfaBrandings, amfaLegals } from './config.m
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 const cognito = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
+const createUserGroup = async (GroupName) => {
+	const userpoolIds = JSON.parse(process.env.USERPOOL_IDS);
+
+	const param = {
+		GroupName,
+		UserPoolId: userpoolIds[0],
+	}
+	await cognito.send(new CreateGroupCommand(param));
+}
+
 const createAmfaConfigs = async (configType, dynamodb) => {
 	let values = {
 		'amfaPolicies': amfaPolicies,
@@ -43,6 +53,15 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 					child['permissions'] = ["e", "ae", "s", "v", "t"];
 					child['rank'] = isNaN(parseInt(sp[1])) ? '' : parseInt(sp[1]);
 					value[key] = child;
+
+					if (key !== 'default' && !(key.includes('-'))) {
+						try {
+							await createUserGroup(key)
+						} catch (error) {
+							console.error('create policy user group failed with:', error)
+							console.error('RequestId: ' + error.requestId);
+						}
+					}
 				}
 				value = JSON.stringify(value, null, "  ")
 			}
