@@ -115,11 +115,19 @@ export const handler = async (event) => {
       switch (payload.phase) {
         case 'adminchecklicense':
           if (amfaConfigs.asmurl && amfaPolicies['default']) {
-            console.log('check license payload', payload);
-            console.log('check license asmurl', amfaConfigs.asmurl, ' l value', amfaPolicies['default'].policy_name)
-            return await fetch(`${amfaConfigs.asmurl}/checkLic.kv?l=${amfaPolicies['default'].policy_name}&u=${payload.email}`, {
+            console.log('check license, posting to', `${amfaConfigs.asmurl}/checkLic.kv?l=${amfaPolicies['default'].policy_name}&u=${payload.email}`)
+            const checkRes = await fetch(`${amfaConfigs.asmurl}/checkLic.kv?l=${amfaPolicies['default'].policy_name}&u=${payload.email}`, {
               method: "POST"
             });
+            console.log('check license result', checkRes);
+            let data = {}
+            try {
+              data = await checkRes.json();
+            }
+            catch (err) {
+              console.error('check license result error', err, ' checkRes', checkRes)
+            }
+            return responseWithRequestId(data?.code, 'OK', requestId);
           }
           else {
             return responseWithRequestId(422, error, requestId);

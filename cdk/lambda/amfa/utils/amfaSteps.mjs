@@ -328,7 +328,7 @@ export const amfaSteps = async (event, headers, cognito, step,
     let l = amfaPolicies[ug].policy_name ? encodeURI(amfaPolicies[ug].policy_name) : '';
 
     if (step.startsWith('pwdreset')) {
-      l = amfaPolicies['password-reset'].policy_name ? encodeURI(amfaPolicies['password-reset'].policy_name) : '';
+      l = amfaPolicies['pwd-reset'].policy_name ? encodeURI(amfaPolicies['pwd-reset'].policy_name) : '';
     }
 
     if (step.startsWith('selfservice') || step.startsWith('updateProfile')) {
