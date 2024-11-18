@@ -63,6 +63,7 @@ const CONTENT = ({ updatetimer }) => {
 					}
 					break;
 				case 401:
+				case 501:
 					const resultMsg401 = await res.json();
 					if (resultMsg401.message) {
 						navigate('/registration_email', { state: { email, apti, msg: resultMsg401.message } });
