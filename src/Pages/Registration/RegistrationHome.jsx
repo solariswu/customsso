@@ -20,9 +20,9 @@ const LOGIN = () => {
   const [token, setToken] = useState(null);
 
   const [isLoading, setLoading] = useState(false);
-  const [msg, setMsg] = useState({ msg: '', type: '' });
+  const [msg, setMsg] = useState();
   const [consent, setConsent] = useState(false);
-  const [email, setEmail] = useState(location.state ? location.state.email : '');
+  const [email, setEmail] = useState('');
 
   const { t } = useTranslation();
 
@@ -81,6 +81,17 @@ const LOGIN = () => {
 
   useEffect(() => {
     document.title = 'Registration';
+
+    if (location.state) {
+
+      if (location.state.email) {
+        setEmail(location.state.email);
+      }
+
+      if (location.state.msg) {
+        setMsg({ msg: location.state.msg, type: location.state.type });
+      }
+    }
 
     handleReCaptchaVerify();
 
