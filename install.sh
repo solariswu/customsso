@@ -189,7 +189,7 @@ if aws sts get-caller-identity >/dev/null; then
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/us-east-1
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION || (unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP)
         unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP
-        npx cdk deploy "$@" --all --outputs-file ../apersona_idp_deploy_outputs.json
+        npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_deploy_outputs.json
 
         mobileTokenApiClientId=$(jq -rc '.[].AmfamobileTokenApiClientId' ../apersona_idp_deploy_outputs.json)
         mobileTokenApiClientSecret=$(jq -rc '.[].AmfamobileTokenApiClientSecret' ../apersona_idp_deploy_outputs.json)
@@ -269,7 +269,7 @@ if aws sts get-caller-identity >/dev/null; then
         # npm run build
         npm run cdk-build
 
-        npx cdk deploy "$@" --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
+        npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
 
         # update admin frontend config with the deployed userpool id and appclient
         ADMINPORTAL_USERPOOL_ID=$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalUserPoolId' ../apersona_idp_mgt_deploy_outputs.json)
@@ -291,7 +291,7 @@ if aws sts get-caller-identity >/dev/null; then
             # npm run build
             npm run cdk-build
             rm -rf ../apersona_idp_mgt_deploy_outputs.json
-            npx cdk deploy "$@" --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
+            npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
         fi
 
         echo "Deploy finished"
