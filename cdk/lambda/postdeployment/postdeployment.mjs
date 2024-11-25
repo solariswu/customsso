@@ -4,7 +4,11 @@ import {
 	PutItemCommand,
 } from '@aws-sdk/client-dynamodb';
 
-import { CognitoIdentityProviderClient, CreateGroupCommand } from '@aws-sdk/client-cognito-identity-provider';
+import {
+	CognitoIdentityProviderClient, CreateGroupCommand,
+	DescribeUserPoolCommand, UpdateUserPoolCommand
+} from '@aws-sdk/client-cognito-identity-provider';
+
 import { amfaPolicies, amfaConfigs, amfaBrandings, amfaLegals } from './config.mjs';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
@@ -111,6 +115,36 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 	}
 }
 
+const switchUserpoolTierToLite = async (UserPoolId) => {
+
+	const describeUserPoolRes = await cognito.send(new DescribeUserPoolCommand({
+		UserPoolId
+	}));
+
+	const userPool = describeUserPoolRes.UserPool;
+	if (!userPool) {
+		throw new Error('UserPool not found');
+	}
+
+	if (userPool.UserPoolTier === 'LITE') {
+		console.log('UserPool already in LITE tier');
+		return;
+	}
+
+	userPool.UserPoolTier = 'LITE';
+	delete userPool.CreationDate;
+	delete userPool.LastModifiedDate;
+	delete userPool.EstimatedNumberOfUsers;
+	delete userPool.Id;
+	delete userPool.Status;
+
+	const param = {
+		UserPoolId,
+		...userPool,
+	}
+
+	return cognito.send(new UpdateUserPoolCommand(param));
+}
 
 const createTenants = async (dynamodb, userpoolIds) => {
 	console.log('createTenants userpoolIds', userpoolIds);
@@ -188,4 +222,11 @@ export const handler = async (event) => {
 		console.error('parse userpool ids failed with:', err);
 	}
 
+	try {
+		const userpoolIds = JSON.parse(process.env.USERPOOL_IDS);
+		await switchUserpoolTierToLite(userpoolIds[0]);
+	} catch (err) {
+		console.error('switch userpool tier to lite failed with:', err);
+		console.error('RequestId: ' + error.requestId);
+	}
 };

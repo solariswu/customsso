@@ -66,9 +66,17 @@ export const createPostDeploymentLambda = (
 				new PolicyStatement({
 					actions: [
 						'cognito-idp:CreateGroup',
+						'cognito-idp:DescribeUserPool',
+						'cognito-idp:UpdateUserPool'
 					],
 					resources: [`arn:aws:cognito-idp:${region}:*:userpool/${userPoolId}`],
 					// resources,
+				}),
+				new PolicyStatement({
+					actions: [
+						'iam:PassRole'
+					],
+					resources: [`arn:aws:iam::*:role/AmfaStack-amfauserpoolsmsRole*`],
 				}),
 			],
 		})
