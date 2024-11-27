@@ -37,7 +37,7 @@ export const createPostDeploymentLambda = (
 				tenant_id,
 				name: tenantName,
 				url: `https://${tenant_id}.${process.env.ROOT_DOMAIN_NAME}`,
-				samlproxy: false,
+				samlproxy: true,
 				contact: process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL : ''
 			}]),
 			ASM_PROVIDER_ID: process.env.ASM_PROVIDER_ID ? process.env.ASM_PROVIDER_ID : '',

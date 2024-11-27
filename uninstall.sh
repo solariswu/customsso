@@ -148,8 +148,8 @@ if aws sts get-caller-identity >/dev/null; then
         fi
 
         ## userpool deleted, remove saml proxy backend file
-        samlproxyClientId=$(jq -rc '."SSO-CUPStack".SAMLProxyAppClientID' ../apersona_idp_mgt_deploy_outputs.json)
-        deleteSamlProxyRes=$(curl -X DELETE "https://api.samlproxy.amfa.aws-amplify.dev/samlproxy/$TENANT_ID" -d "{\"uninstall\":\"True\", \"clientId\":\"$samlproxyClientId\"}" 2>/dev/null)
+        samlproxyClientId=$(jq -rc '."SSO-CUPStack".SAMLProxyAppClientID' apersona_idp_mgt_deploy_outputs.json)
+        deleteSamlProxyRes=$(curl -X DELETE "https://api.samlproxy.apersona.com/samlproxy/$TENANT_ID" -d "{\"uninstall\":\"True\", \"clientId\":\"$samlproxyClientId\"}" 2>/dev/null)
 
         if aws cloudformation describe-stacks --region us-east-1 --stack-name CertificateStack >/dev/null 2>&1; then
 
