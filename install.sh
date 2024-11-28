@@ -1,4 +1,18 @@
 #!/bin/bash
+
+RED='\033[0;31m'
+BOLD="\033[1m"
+YELLOW="\033[38;5;11m"
+NC='\033[0m' # No Color
+
+echo "$(<aPersona_ASM-and-aPersona_Identity_Mgr_Ts_Cs.11-27-2024.txt )"
+
+echo ""
+read -p "Please review and agree to the above $(echo -e $BOLD$YELLOW)aPersona Terms and Conditions$(echo -e $NC)? (y/n)" responsetc
+if ! [[ "$responsetc" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    exit 1
+fi
+
 unset TENANT_ID && unset ROOT_DOMAIN_NAME && unset ROOT_HOSTED_ZONE_ID && unset SP_PORTAL_URL && unset EXTRA_APP_URL && unset RECAPTCHA_KEY && unset RECAPTCHA_SECRET
 
 source ./config.sh
@@ -173,11 +187,6 @@ if aws sts get-caller-identity >/dev/null; then
 
     #bootstrap CDK account and region
     # set -e
-
-    RED='\033[0;31m'
-    BOLD="\033[1m"
-    YELLOW="\033[38;5;11m"
-    NC='\033[0m' # No Color
 
     export CDK_NEW_BOOTSTRAP=1
     export IS_BOOTSTRAP=1

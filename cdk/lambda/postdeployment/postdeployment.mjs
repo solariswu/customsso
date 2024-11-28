@@ -177,7 +177,7 @@ const createTenants = async (dynamodb, userpoolIds) => {
 						BOOL: element.samlproxy,
 					},
 					samlIdPMetadataUrl: {
-						S: `https://samlproxy.apersona.com/samlproxy/${element.tenant_id}/proxy.xml`,
+						S: `https://samlproxy.apersona.com/Saml2IDP/proxy.xml`,
 					},
 					userpool: {
 						S: userpoolIds[index],
