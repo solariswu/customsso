@@ -120,8 +120,8 @@ if aws sts get-caller-identity >/dev/null; then
     export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
 
     if [[ -z "$TENANT_NAME" || "$TENANT_NAME" = "null" ]]; then
-        echo "TENANT_NAME is not set, using TENANT_ID as TENANT_NAME"
-        TENANT_NAME=$(jq -rn --arg x "$TENANT_ID" '$x|@uri')
+        echo "TENANT_NAME is not set, using TENANT_ID.ROOT_DOMAIN_NAME as TENANT_NAME"
+        TENANT_NAME=$(jq -rn --arg x "$TENANT_ID.$ROOT_DOMAIN_NAME" '$x|@uri')
     fi
 
     TENANT_NAME=$(jq -rn --arg x "$TENANT_NAME" '$x|@uri')
