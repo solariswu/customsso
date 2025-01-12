@@ -34,7 +34,9 @@ export const amfaConfigs = {
 export const amfaBrandings =
 {
     service_name: "WeaveAI",
+    "COMMENT-NOTE logo size": "250x50",
     logo_url: "https://downloads.apersona.com/logos/WeaveAILogo.png",
+    "COMMENT-NOTE email_logo size": "250x50",
     email_logo_url: "https://downloads.apersona.com/logos/WeaveAILogo.png",
     brand_base_color: "#31528B",
     consent_content: 'By signing up, I accept the <a href="https://downloads.apersona.com/demos/WeaveAI-Privacy.html" target="_blank">privacy policy</a> and the <a href="https://downloads.apersona.com/demos/WeaveAI-Ts-Cs.html" target="_blank"> terms &amp; conditions</a>',
