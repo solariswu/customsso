@@ -22,8 +22,11 @@ import { Duration } from 'aws-cdk-lib';
 
 
 import { AMFAIdPName, resourceName, totpScopeName, RootDomainName, AMFAUserPoolName } from './const';
-import { createAuthChallengeFn, createCustomMessageLambda } from './lambda';
+import { createAuthChallengeFn, createCustomMessageLambda, createCustomEmailSenderLambda } from './lambda';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
+import { Key } from 'aws-cdk-lib/aws-kms';
+import { Effect, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 
 export class TenantUserPool {
   scope: Construct;
@@ -40,17 +43,22 @@ export class TenantUserPool {
   resouceServer: UserPoolResourceServer;
   userpoolDomain: UserPoolDomain;
   rootDomainName: string | undefined;
+  customSenderKey: Key;
+
 
 
   constructor(scope: Construct, configTable: Table, region: string | undefined, tenantId: string | undefined,
     magicString: string, callbackUrls: string[], logoutUrls: string[],
-    spPortalUrl: string | undefined, rootDomainName: string | undefined) {
+    spPortalUrl: string | undefined, rootDomainName: string | undefined, smtpScrets: Secret) {
     this.scope = scope;
     this.region = region;
     this.tenantId = tenantId ? tenantId : '';
     this.rootDomainName = rootDomainName ? rootDomainName : '';
 
+    this.customSenderKey = this.createCustomSenderKey();
     this.userpool = this.createUserPool();
+    this.userpool.node.addDependency(this.customSenderKey);
+
     this.customAuthClient = this.addCustomAuthClient();
     this.addCustomAuthLambdaTriggers(magicString);
     this.oidcProvider = this.createOIDCProvider();
@@ -58,9 +66,28 @@ export class TenantUserPool {
     this.hostedUIClient.node.addDependency(this.oidcProvider);
     this.userpoolDomain = this.addHostedUIDomain();
     this.userpoolDomain.node.addDependency(this.userpool);
-    this.addCustomMessageLambdaTrigger(configTable, spPortalUrl);
+    // this.addCustomMessageLambdaTrigger(configTable, spPortalUrl);
 
+    this.addCustomEmailSenderLambdaTrigger(configTable, spPortalUrl, smtpScrets);
     this.clientCredentialsClient = this.addClientCredentialClient();
+  }
+
+  private createCustomSenderKey = () => {
+    let newKey = new Key(this.scope, 'customSenderKey', {
+      enableKeyRotation: true,
+      description: 'customSenderKey',
+    });
+
+    newKey.addToResourcePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        principals: [new ServicePrincipal('cognito-idp.amazonaws.com')],
+        actions: ['kms:CreateGrant', 'kms:Encrypt'],
+        resources: ['*'],
+      })
+    );
+
+    return newKey
   }
 
   private createUserPool = () => {
@@ -103,6 +130,7 @@ export class TenantUserPool {
       mfa: Mfa.OPTIONAL,
       // forgotPassword recovery method, phone by default
       accountRecovery: AccountRecovery.EMAIL_ONLY,
+      customSenderKmsKey: this.customSenderKey,
     });
 
     this.resouceServer = myuserpool.addResourceServer('AMFAResourceServer', {
@@ -263,6 +291,19 @@ export class TenantUserPool {
     );
     this.userpool.addTrigger(
       UserPoolOperation.CUSTOM_MESSAGE,
+      lambdaFn
+    );
+  }
+
+  private addCustomEmailSenderLambdaTrigger(configTable, spPortalUrl, smtpScrets) {
+    const lambdaFn = createCustomEmailSenderLambda(
+      this.scope, configTable, this.tenantId, spPortalUrl, smtpScrets
+    );
+
+    this.customSenderKey.grantDecrypt(lambdaFn);
+
+    this.userpool.addTrigger(
+      UserPoolOperation.CUSTOM_EMAIL_SENDER,
       lambdaFn
     );
   }

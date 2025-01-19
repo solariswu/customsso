@@ -35,14 +35,9 @@ const templateHead = (email_logo_url) => `  <html>
     <div class="email">
       `;
 
-// Non visiable contains mandatory values for custom message cup lambda
-const templateTail = (username, code) => `
-    <div style="display:none;">${username}-${code}</div>
-    </div></body></html>`;
-
-const templateInviteBody = (name, email, username, serviceName) => `
+const templateInviteBody = (name, email, serviceName) => `
   <div class="email-body">
-    <p>Hi ${name ? name : username}&#44</p>
+    <p>Hi ${name ? name : email}&#44</p>
     <br/>
     <p>${serviceName} has created a new account for you.</p>
     <p>Your login id is ${email}. Please use it to login and set up your new account.</span></p>
@@ -53,11 +48,10 @@ const templateInviteButton = (login_url) => `
       <a href="${login_url}" style="text-decoration: none; color: #fff;padding: 0.5em 1.5em; background-color:#06AA6D; border-radius: 0.3em"> Login </a>
     </div >`;
 
-export const templateInvite = (name, email, username, code, configs) =>
+export const templateInvite = (name, email, configs) =>
   templateHead(configs.email_logo_url) +
-  templateInviteBody(name, email, username, configs.service_name) +
-  templateInviteButton(process.env.APP_URL) +
-  templateTail(username, code);
+  templateInviteBody(name, email, configs.service_name) +
+  templateInviteButton(process.env.APP_URL)
 
 const templateResetButton = (login_url) => `
     <div style="text-align: center; font-size: 12pt; padding: 1em">
@@ -71,8 +65,7 @@ const templateResetBody = (name, email) => `
     <p>The next time you login, you will be required to update your password.</p>
 `;
 
-export const templateReset = (name, email, username, code, configs) =>
+export const templateReset = (name, email,configs) =>
   templateHead(configs.email_logo_url) +
-  templateResetBody(name, email, code) +
-  templateResetButton(process.env.APP_URL) +
-  templateTail(username, code);
+  templateResetBody(name, email) +
+  templateResetButton(process.env.APP_URL)

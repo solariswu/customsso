@@ -189,6 +189,16 @@ if aws sts get-caller-identity >/dev/null; then
         ## shall be deleted only when all tenants deleted in multi-tenants, good for single tenant now.
         aws dynamodb delete-table --table-name amfa-$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-tenanttable >/dev/null 2>&1
 
+        ## clean cross region exporter parameters
+        Params=$(aws ssm describe-parameters --parameter-filters "Key=Name,Option=Contains,Values=/AmfaStack/" --region $CDK_DEPLOY_REGION | jq .Parameters | jq .[].Name)
+        for param_name in $Params; do
+            aws ssm delete-parameter --name $param_name --region $CDK_DEPLOY_REGION >/dev/null 2>&1
+        done
+        Params=$(aws ssm describe-parameters --parameter-filters "Key=Name,Option=Contains,Values=/SSO-CUPStack/" --region $CDK_DEPLOY_REGION | jq .Parameters | jq .[].Name)
+        for param_name in $Params; do
+            aws ssm delete-parameter --name $param_name --region $CDK_DEPLOY_REGION >/dev/null 2>&1
+        done
+
         echo "*************************************************************************************"
         echo "uninstall finished"
         echo "***************"
