@@ -5,6 +5,16 @@ BOLD="\033[1m"
 YELLOW="\033[38;5;11m"
 NC='\033[0m' # No Color
 
+echo "-----------------------------------"
+echo "aPersona Identity Manager Installer"
+echo "-----------------------------------"
+echo "This script will install aPersona Identity Manager on your AWS account."
+echo ""
+read -p "It may take between 30 to 45 min to complete. $(echo -e $BOLD$YELLOW)Continue$(echo -e $NC)? (y/n)" responseins
+if ! [[ "$responseins" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    exit 1
+fi
+
 echo "$(<aPersona_ASM-and-aPersona_Identity_Mgr_Ts_Cs.11-27-2024.txt )"
 
 echo ""

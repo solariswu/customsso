@@ -9,7 +9,7 @@ import { asmDeleteUser } from './utils/asmDeleteUser.mjs';
 import { notifyProfileChange } from './utils/mailer.mjs';
 import { deletePwdHashByUser } from './utils/passwordhash.mjs';
 import { headers, responseWithRequestId } from './utils/amfaUtils.mjs';
-import { adminGetSecrets } from './utils/admingetsecrets.mjs';
+import { adminGetSecrets, adminSetSmtp } from './utils/admingetsecrets.mjs';
 import { validateEmail, validateTOTP, validateOTP, validatePhoneNumber } from './utils/inputValidate.mjs';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
@@ -18,7 +18,7 @@ const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGIO
 const C_OTP_TYPES = ['e', 'ae', 's', 'v', 't'];
 
 const validateInputParams = (payload) => {
-  if (payload.phase === 'admingetsecretinfo') {
+  if (payload.phase === 'admingetsecretinfo' || payload.phase === 'adminupdatesmtp') {
     // no email info need to check
     return (payload.tenantid)
   }
@@ -153,9 +153,16 @@ export const handler = async (event) => {
             payload.otptype, payload.newProfileValue,
             amfaBrandings.email_logo_url, amfaBrandings.service_name, true);
           return;
+        case 'adminupdatesmtp':
+          console.log('admin update smtp', payload);
+          const updateSmtpResult = await adminSetSmtp(payload);
+          if (updateSmtpResult) {
+            return responseWithRequestId(200, 'OK', requestId)
+          }
+          return responseWithRequestId(404, payload.tenantid, requestId);
         case 'admingetsecretinfo':
           console.log('admin get secret of tenants', payload.tenantid);
-          const result = /*await*/ adminGetSecrets(payload.tenantid);
+          const result = await adminGetSecrets(payload.tenantid);
           if (result) {
             return responseWithRequestId(200, result, requestId)
           }

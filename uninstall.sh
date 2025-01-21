@@ -25,8 +25,11 @@ if aws sts get-caller-identity >/dev/null; then
     YELLOW="\033[38;5;11m"
     NC='\033[0m' # No Color
 
-    echo "*************************************************************************************"
-    echo "Now starting uninstall AMFA Controller"
+    echo "-------------------------------------"
+    echo "aPersona Identity Manager Uninstaller"
+    echo "-------------------------------------"
+    echo "aPersona Identity Services may take between 45 min to 1 hr 30 min to complete."
+    echo ""
     read -p "Confirm to uninstall AMFA on Account $(echo -e $BOLD$YELLOW$CDK_DEPLOY_ACCOUNT$NC) in Region $(echo -e $BOLD$YELLOW$CDK_DEPLOY_REGION$NC)? (y/n)" response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
 

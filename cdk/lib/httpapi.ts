@@ -383,19 +383,26 @@ export class TenantApiGateway {
         ],
       });
 
-    const policyKms =
+    const policyKmsRead =
       new PolicyStatement({
-        actions: ['secretsmanager:GetSecretValue'],
+        actions: ['secretsmanager:GetSecretValue', 'secretsmanager:UpdateSecret'],
         resources: [
           this.secret.secretArn + '*',
           this.smtpSecret.secretArn + '*',
         ],
       });
 
+      const policyKmsWrite =
+      new PolicyStatement({
+        actions: ['secretsmanager:UpdateSecret'],
+        resources: [
+          this.smtpSecret.secretArn + '*',
+        ],
+      });
 
     myLambda.role?.attachInlinePolicy(
       new Policy(this.scope, `amfa-${lambdaName}-lambda-policy`, {
-        statements: [policyStatementCognito, policyStatementDB, policyKms],
+        statements: [policyStatementCognito, policyStatementDB, policyKmsRead, policyKmsWrite],
       })
     );
 
