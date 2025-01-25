@@ -1,6 +1,6 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { fetchConfig } from './fetchConfig.mjs';
-import { notifyPasswordChange } from './mailer.mjs';
+import { notifyPasswordChange, sendUserInvitation } from './mailer.mjs';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 

@@ -5,6 +5,7 @@ BOLD="\033[1m"
 YELLOW="\033[38;5;11m"
 NC='\033[0m' # No Color
 
+echo ""
 echo "-----------------------------------"
 echo "aPersona Identity Manager Installer"
 echo "-----------------------------------"
@@ -15,6 +16,8 @@ if ! [[ "$responseins" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     exit 1
 fi
 
+echo ""
+echo ""
 echo "$(<aPersona_ASM-and-aPersona_Identity_Mgr_Ts_Cs.11-27-2024.txt )"
 
 echo ""
@@ -91,6 +94,11 @@ if [ -z "$ADMIN_EMAIL" ]; then
     exit 1
 fi
 
+if [ -z "$TENANT_NAME" ]; then
+    echo "TENANT_NAME is not set, please set TENANT_NAME in config.sh"
+    exit 1
+fi
+
 if [[ -z "INSTALLER_EMAIL" || "INSTALLER_EMAIL" = 'null' || "INSTALLER_EMAIL" = '' ]]; then
     echo "INSTALLER_EMAIL is not set, using ADMIN_EMAIL as INSTALLER_EMAIL"
     export INSTALLER_EMAIL=$ADMIN_EMAIL
@@ -129,10 +137,10 @@ if aws sts get-caller-identity >/dev/null; then
     export CDK_DEPLOY_REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
     export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
 
-    if [[ -z "$TENANT_NAME" || "$TENANT_NAME" = "null" ]]; then
-        echo "TENANT_NAME is not set, using TENANT_ID.ROOT_DOMAIN_NAME as TENANT_NAME"
-        TENANT_NAME=$(jq -rn --arg x "$TENANT_ID.$ROOT_DOMAIN_NAME" '$x|@uri')
-    fi
+    # if [[ -z "$TENANT_NAME" || "$TENANT_NAME" = "null" ]]; then
+    #     echo "TENANT_NAME is not set, using TENANT_ID.ROOT_DOMAIN_NAME as TENANT_NAME"
+    #     TENANT_NAME=$(jq -rn --arg x "$TENANT_ID.$ROOT_DOMAIN_NAME" '$x|@uri')
+    # fi
 
     TENANT_NAME=$(jq -rn --arg x "$TENANT_NAME" '$x|@uri')
 

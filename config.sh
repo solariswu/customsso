@@ -7,9 +7,9 @@ export ASM_INSTAL_KEY='' ## example '1234567890' the key received by admin email
 # deployment tenant info, required
 export TENANT_ID=''   ## example 'amfa-dev006'
 export ADMIN_EMAIL='' ## example 'myTenant006@apersona5.dev'
+export TENANT_NAME='' ## example 'Company_Name', Use _ for spaces.
 
 # optional
-export TENANT_NAME=''     ## example 'myTenant006', will use TENANT_ID if not set.
 export INSTALLER_EMAIL='' ## example 'devops@apersona5.dev', will use ADMIN_EMAIL if not set.
 
 # DNS domain and hosted zone id, required

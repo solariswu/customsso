@@ -23,15 +23,15 @@ export const notifyPasswordChange = async (user, email, configs) => {
 		` The password on your account has recently been reset.\n\n` +
 		` If you are not sure you or your administrator performed this password reset, then you should contact your administrator immediately or change your password yourself.\n`;
 
+	const smtpConfigs = await getSMTP();
+
 	const options = {
-		from: "Admin <admin@noreply.com>", // sender address
+		from: `Admin <${smtpConfigs.user}>`, // sender address
 		to: email, // receiver email
 		subject: "Your password has been reset.", // Subject line
 		text: message,
 		html: templateReset(user, email, configs)
 	}
-
-	const smtpConfigs = await getSMTP();
 
 	const smtp = {
 		service: smtpConfigs.service,
@@ -59,15 +59,15 @@ export const sendUserInvitation = async (user, email, configs) => {
 		` Your login id is ${email}. Please use it to login and set up your new account.\n` +
 		` The login Url is ${process.env.APP_URL}`;
 
+	const smtpConfigs = await getSMTP();
+
 	const options = {
-		from: "Admin <admin@noreply.com>", // sender address
+		from: `Admin <${smtpConfigs.user}>`, // sender address
 		to: email, // receiver email
-		subject: `${serviceName}: New Account Invitation`, // Subject line
+		subject: `${configs.service_name}: New Account Invitation`, // Subject line
 		text: message,
 		html: templateInvite(user, email, configs),
 	}
-
-	const smtpConfigs = await getSMTP();
 
 	const smtp = {
 		service: smtpConfigs.service,

@@ -25,15 +25,15 @@ export const notifyPasswordChange = async (email, logoUrl, serviceName, isByAdmi
 		` The password on your account has recently been reset${isByAdmin ? ' by Admin' : ''}.\n\n` +
 		` If you are not sure you or your administrator performed this password reset, then you should contact your administrator immediately or change your password yourself.\n`;
 
+	const smtpConfigs = await getSMTP();
+
 	const options = {
-		from: "Admin <admin@noreply.com>", // sender address
+		from: `Admin <${smtpConfigs.user}>`, // sender address
 		to: email, // receiver email
 		subject: "Your password has been reset.", // Subject line
 		text: message,
 		html: HTML_TEMPLATE_PWD(email, logoUrl, serviceName, isByAdmin),
 	}
-
-	const smtpConfigs = await getSMTP();
 
 	const smtp = {
 		service: smtpConfigs.service,
@@ -68,15 +68,16 @@ export const notifyProfileChange = async (email, types, newProfileValues, logoUr
 		messageMfaList += `    ${types[index]} has been `;
 		messageMfaList += newProfileValues[index] && newProfileValues !== '' ? `changed to \n${newProfileValues[index]}\n` : `removed\n`;
 	}
+
+	const smtpConfigs = await getSMTP();
+
 	const options = {
-		from: "Admin <admin@noreply.com>", // sender address
+		from: `Admin <${smtpConfigs.user}>`, // sender address
 		to: email, // receiver email
 		subject: "Your profile has been updated", // Subject line
 		text: message + messageMfaList,
 		html: HTML_TEMPLATE(email, types, newProfileValues, logoUrl, serviceName, isByAdmin),
 	}
-
-	const smtpConfigs = await getSMTP();
 
 	const smtp = {
 		service: smtpConfigs.service,
