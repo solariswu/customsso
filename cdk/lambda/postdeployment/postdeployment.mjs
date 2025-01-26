@@ -173,6 +173,12 @@ const createTenants = async (dynamodb, userpoolIds) => {
 					url: {
 						S: element.url,
 					},
+					enduserspurl: {
+						S:element.endUserSpUrl,
+					},
+					extraappurl: {
+						S:element.extraAppUrl,
+					},
 					samlproxy: {
 						BOOL: element.samlproxy,
 					},

@@ -37,6 +37,8 @@ export const createPostDeploymentLambda = (
 				tenant_id,
 				name: tenantName,
 				url: `https://${tenant_id}.${process.env.ROOT_DOMAIN_NAME}`,
+				endUserSpUrl: process.env.SP_PORTAL_URL ? process.env.SP_PORTAL_URL : '',
+				extraAppUrl: process.env.EXTRA_APP_URL ? process.env.EXTRA_APP_URL : '',
 				samlproxy: true,
 				contact: process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL : ''
 			}]),
