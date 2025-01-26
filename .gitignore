@@ -28,4 +28,3 @@ cdk.out
 .DS_Store
 *_bak.sh
 *.map
-cdk/lambda/*/dist

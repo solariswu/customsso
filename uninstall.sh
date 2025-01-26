@@ -194,7 +194,14 @@ if aws sts get-caller-identity >/dev/null; then
         ## shall be deleted only when all tenants deleted in multi-tenants, good for single tenant now.
         aws dynamodb delete-table --table-name amfa-$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-tenanttable >/dev/null 2>&1
 
-        ## todo: add totptoken and passwordhash table name in cdk output json and delete them here.
+        ## get totptoken and passwordhash table name in cdk output json and delete them here.
+        totptokenTable=$(jq -rc '."AmfaStack".AmfaTotpTokenTable' apersona_idp_deploy_outputs.json)
+        aws dynamodb delete-table --table-name totptokenTable >/dev/null 2>&1
+
+        pwdHashTable=$(jq -rc '."AmfaStack".AmfaPwdHashTable' apersona_idp_deploy_outputs.json)
+        aws dynamodb delete-table --table-name pwdHashTable >/dev/null 2>&1
+
+        ## todo: delete subdomain DNS record here
 
         ## clean cross region exporter parameters
         Params=$(aws ssm describe-parameters --parameter-filters "Key=Name,Option=Contains,Values=/AmfaStack/" --region $CDK_DEPLOY_REGION | jq .Parameters | jq .[].Name)
