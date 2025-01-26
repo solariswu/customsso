@@ -187,11 +187,14 @@ if aws sts get-caller-identity >/dev/null; then
         aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/asm --force-delete-without-recovery >/dev/null 2>&1
         aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/smtp --force-delete-without-recovery >/dev/null 2>&1
         aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/secret --force-delete-without-recovery >/dev/null 2>&1
+        aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/install --force-delete-without-recovery >/dev/null 2>&1
 
         ## delete dynamodb tables for re-install
         aws dynamodb delete-table --table-name amfa-$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-configtable >/dev/null 2>&1
         ## shall be deleted only when all tenants deleted in multi-tenants, good for single tenant now.
         aws dynamodb delete-table --table-name amfa-$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-tenanttable >/dev/null 2>&1
+
+        ## todo: add totptoken and passwordhash table name in cdk output json and delete them here.
 
         ## clean cross region exporter parameters
         Params=$(aws ssm describe-parameters --parameter-filters "Key=Name,Option=Contains,Values=/AmfaStack/" --region $CDK_DEPLOY_REGION | jq .Parameters | jq .[].Name)
@@ -203,9 +206,17 @@ if aws sts get-caller-identity >/dev/null; then
             aws ssm delete-parameter --name $param_name --region $CDK_DEPLOY_REGION >/dev/null 2>&1
         done
 
+        ## get userpool ids first
+        userpoolId=$(jq -rc '."AmfaStack".AmfaUserPoolId' apersona_idp_deploy_outputs.json)
+        adminuserpoolId=$(jq -rc '."SSO-CUPStack".AdminPortalUserPoolId' apersona_idp_mgt_deploy_outputs.json)
+
+        rm -rf *.json *.txt *.sh cognito-userpool-myraadmin customsso
+
         echo "*************************************************************************************"
         echo "uninstall finished"
         echo "***************"
+
+        echo "Note: End User UserPool("$userpoolId") and Admin Userpool("$adminportal") are not deleted, please delete it manually in the console if needs."
     fi
     unset NODE_OPTIONS
 else
