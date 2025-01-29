@@ -11,8 +11,8 @@ APERSONAADM_REPO_NAME=cognito-userpool-myraadmin
 amfaName=$(jq -rc '.name' $APERSONAIDP_REPO_NAME/package.json)
 amfaVersion=$(jq -rc '.version' $APERSONAIDP_REPO_NAME/package.json)
 
-adPortalName=$(jq -rc '.name' $APERSONAIDP_REPO_NAME/package.json)
-adPortalVersion=$(jq -rc '.version' $APERSONAIDP_REPO_NAME/package.json)
+adPortalName=$(jq -rc '.name' $APERSONAADM_REPO_NAME/package.json)
+adPortalVersion=$(jq -rc '.version' $APERSONAADM_REPO_NAME/package.json)
 
 echo ""
 echo "-----------------------------------"
@@ -20,8 +20,8 @@ echo "aPersona Identity Manager Installer"
 echo "-----------------------------------"
 echo "This script will install aPersona Identity Manager on your AWS account."
 echo ""
-echo "aPersona Identity Manager - "$amfaName" - version "$amfaVersion
-echo "aPersona admin Portal - "$adPortalName" - version "$adPortalVersion
+echo "aPersona Identity Manager - "$amfaName" - v"$amfaVersion
+echo "aPersona admin Portal - "$adPortalName" - v"$adPortalVersion
 echo ""
 echo ""
 
