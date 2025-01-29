@@ -5,12 +5,26 @@ BOLD="\033[1m"
 YELLOW="\033[38;5;11m"
 NC='\033[0m' # No Color
 
+APERSONAIDP_REPO_NAME=customsso
+APERSONAADM_REPO_NAME=cognito-userpool-myraadmin
+
+amfaName=$(jq -rc '.name' $APERSONAIDP_REPO_NAME/package.json)
+amfaVersion=$(jq -rc '.version' $APERSONAIDP_REPO_NAME/package.json)
+
+adPortalName=$(jq -rc '.name' $APERSONAIDP_REPO_NAME/package.json)
+adPortalVersion=$(jq -rc '.version' $APERSONAIDP_REPO_NAME/package.json)
+
 echo ""
 echo "-----------------------------------"
 echo "aPersona Identity Manager Installer"
 echo "-----------------------------------"
 echo "This script will install aPersona Identity Manager on your AWS account."
 echo ""
+echo "aPersona Identity Manager - "$amfaName" - version "$amfaVersion
+echo "aPersona admin Portal - "$adPortalName" - version "$adPortalVersion
+echo ""
+echo ""
+
 read -p "It may take between 30 to 45 min to complete. $(echo -e $BOLD$YELLOW)Continue$(echo -e $NC)? (y/n)" responseins
 if ! [[ "$responseins" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     exit 1
