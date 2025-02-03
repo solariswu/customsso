@@ -12,7 +12,7 @@
 	  "update_profile_app_verify1_message": "Access requires 2 verifications. Verification Step 1. Choose contact method:",
 	  "update_profile_app_verify2_message": "Access requires 2 verifications. Verification Step 2. Choose contact method:",
 	  "update_profile_app_verify_retreive_message": "A verification code has been sent to you. Please retrieve it, enter it below and click Verify.",
-	  "update_provile_app_portal_header": "Update Profile: Verify Methods",
+	  "update_profile_app_portal_header": "Update Profile: Verify Methods",
 	  "registration_app_main_page_header": "Registration",
 	  "registration_app_main_page_input_email": "Enter your email address",
 	  "registration_app_password_input_new_password": "Enter a new password",

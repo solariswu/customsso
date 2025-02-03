@@ -295,7 +295,7 @@ const OTPMethods = () => {
 
     return (
         <div>
-            <span><h4>{t('update_provile_app_portal_header')}</h4></span>
+            <span><h4>{t('update_profile_app_portal_header')}</h4></span>
             {
                 showOTP &&
                 <span className='idpDescription-customizable' style={{ color: '#4E95D9' }}>
