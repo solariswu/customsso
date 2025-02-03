@@ -113,7 +113,7 @@ if [ -z "$TENANT_NAME" ]; then
     exit 1
 fi
 
-if [[ -z "INSTALLER_EMAIL" || "INSTALLER_EMAIL" = 'null' || "INSTALLER_EMAIL" = '' ]]; then
+if [[ -z "$INSTALLER_EMAIL" || "$INSTALLER_EMAIL" = 'null' || "$INSTALLER_EMAIL" = '' ]]; then
     echo "INSTALLER_EMAIL is not set, using ADMIN_EMAIL as INSTALLER_EMAIL"
     export INSTALLER_EMAIL=$ADMIN_EMAIL
 fi
@@ -158,7 +158,7 @@ if aws sts get-caller-identity >/dev/null; then
 
     TENANT_NAME=$(jq -rn --arg x "$TENANT_NAME" '$x|@uri')
 
-    registRes=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/install" | jq -r .SecretString | jq -r -c .registRes)
+    registRes=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/install" 2>/dev/null | jq -r .SecretString | jq -r -c .registRes )
     echo "amfa install params fetched from previous record: "$registRes
     if [[ -z "$registRes" || "$registRes" = "null" ]]; then
         ## never installed
@@ -313,7 +313,7 @@ if aws sts get-caller-identity >/dev/null; then
         npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
 
         # update admin frontend config with the deployed userpool id and appclient
-        ADMINPORTAL_USERPOOL_ID=$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalUserPoolId' ../apersona_idp_mgt_deploy_outputs.json)
+        ADMINPORTAL_USERPOOL_ID=$(jq -r 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalUserPoolId' ../apersona_idp_mgt_deploy_outputs.json)
         ADMINPORTAL_CLIENT_ID=$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminPortalAppClientId' ../apersona_idp_mgt_deploy_outputs.json)
         ADMINPORTAL_HOSTEDUI_URL=$(jq 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.AdminLoginHostedUIURL' ../apersona_idp_mgt_deploy_outputs.json)
 
@@ -322,7 +322,7 @@ if aws sts get-caller-identity >/dev/null; then
             echo "Some resources are not generated"
         else
             rm -rf dist/amfaext.js
-            echo "export const AdminPortalUserPoolId="$ADMINPORTAL_USERPOOL_ID >>dist/amfaext.js
+            echo "export const AdminPortalUserPoolId=\""$ADMINPORTAL_USERPOOL_ID"\"" >>dist/amfaext.js
             echo "export const AdminPortalClientId="$ADMINPORTAL_CLIENT_ID >>dist/amfaext.js
             echo "export const AdminHostedUIURL="$ADMINPORTAL_HOSTEDUI_URL >>dist/amfaext.js
             echo "export const SPPortalUrl='$SP_PORTAL_URL'" >>dist/amfaext.js
@@ -333,6 +333,8 @@ if aws sts get-caller-identity >/dev/null; then
             npm run cdk-build
             rm -rf ../apersona_idp_mgt_deploy_outputs.json
             npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
+
+            aws cognito-idp admin-create-user --username $ADMIN_EMAIL --user-attributes Name=email,Value=$ADMIN_EMAIL Name=email_verified,Value=true --desired-delivery-mediums EMAIL --user-pool-id $ADMINPORTAL_USERPOOL_ID >/dev/null 2>&1
         fi
 
         echo "Deploy finished"
