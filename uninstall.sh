@@ -261,7 +261,7 @@ if aws sts get-caller-identity >/dev/null; then
         asmClientSecretKey=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.asmClientSecretKey')
         asmSecretKey=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.asmSecretKeyNew')
         ## debug
-        passSecretRes=$(curl -X POST "$ASM_PORTAL_URL/deleteAsmClient.ap?requestedBy=$INSTALLER_EMAIL&asmSecretKey=$asmSecretKey&asmClientSecretKey=$asmClientSecretKey&asmClientId=$ASM_PROVIDER_ID" -H "Accept:application/json"
+        passSecretRes=$(curl -X POST "$ASM_PORTAL_URL/deleteAsmClient.ap?requestedBy=$INSTALLER_EMAIL&asmSecretKey=$asmSecretKey&asmClientSecretKey=$asmClientSecretKey&asmClientId=$ASM_PROVIDER_ID" -H "Accept:application/json")
         echo "asm portal delete tenant result: "$passSecretRes
 
         ## delete secrets for re-install
