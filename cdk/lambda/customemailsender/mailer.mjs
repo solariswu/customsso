@@ -13,6 +13,9 @@ const sendEmail = async (transporter, mailDetails, callback) => {
 
 const mailer = async (mailDetails, smtpConfig) => {
 
+	smtpConfig.secure = (smtpConfig.secure === 'false' || smtpConfig.secure === false) ? false : true;
+	console.log('mailer options', mailDetails, ' smtp config:', smtpConfig)
+
 	const transporter = nodemailer.createTransport(smtpConfig);
 	await sendEmail(transporter, mailDetails, (info) => console.log('email send:', info))
 
