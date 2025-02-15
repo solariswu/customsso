@@ -44,6 +44,7 @@ export const getSMTP = async () => {
 	);
 
 	const secret = JSON.parse(response.SecretString);
+	secret.secure = secret.secure === 'true' || secret.secure === true ? true : false
 	console.log('get smtp secret response', secret);
 
 	return secret;
