@@ -34,7 +34,7 @@ export class AmfaStack extends Stack {
       const secrets = new AmfaSecrets (this, tenant.tenantAuthToken,
         tenant.mobileTokenSalt, tenant.mobileTokenKey, tenant.providerId, tenant.asmSalt,
         tenant.smtpHost, tenant.smtpUser, tenant.smtpPass, tenant.smtpPort, tenant.smtpSecure)
-      const webapp = new WebApplication(this, props.siteCertificate, props.hostedZone, tenant.tenantId, tenant.awsaccount);
+      const webapp = new WebApplication(this, props.siteCertificate, props.hostedZone, tenant.tenantId, tenant.awsaccount, false);
       const ddb = new AmfaServcieDDB(this, tenant.awsaccount, tenant.region, tenant.tenantId);
 
       const apigateway = new TenantApiGateway(this, props.apiCertificate,
@@ -56,6 +56,8 @@ export class AmfaStack extends Stack {
         tenantUserPool.userpool.userPoolId, tenant.region, tenant.tenantId, tenant.tenantName);
 
       const oauthFullDomain = `https://${tenantUserPool.userpoolDomain.domainName}.auth.${process.env.CDK_DEPLOY_REGION}.amazoncognito.com`;
+
+      const spPortalWebApp = new WebApplication(this, props.apiCertificate, props.hostedZone, tenant.tenantId, tenant.awsaccount, true);
       // output
       new CfnOutput(this, 'Amfa_UserPoolId', { value: tenantUserPool.userpool.userPoolId, exportName: 'useridppoolid', });
       new CfnOutput(this, 'Amfa_UserPoolClientId', { value: tenantUserPool.hostedUIClient.userPoolClientId, });

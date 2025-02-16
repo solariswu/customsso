@@ -1,4 +1,5 @@
 export const amfaPolicies = process.env.ASM_POLICIES;
+export const serviceName = 'CompanyName'
 
 export const amfaConfigs = {
     "COMMENT-File": "This file contains the available primary AWS aPersona Adaptive MFA login settings.",
@@ -18,7 +19,7 @@ export const amfaConfigs = {
         "t"
     ],
     "user_registration_default_group": "user",
-    "mobile_token_svc_name": "WeaveAI AMFA",
+    "mobile_token_svc_name": serviceName,
     "update_profile_force_mobile_token_first_if_registered": true,
     "COMMENT-totp": "This totp information must match the aPersona Adaptive Security Manager Tenant/Client ID and associated salt. salt now is saving in secret manager",
     "totp": {
@@ -33,13 +34,15 @@ export const amfaConfigs = {
 
 export const amfaBrandings =
 {
-    service_name: "WeaveAI",
+    service_name: serviceName,
     "COMMENT-NOTE logo size": "250x50",
-    logo_url: "https://downloads.apersona.com/logos/WeaveAILogo.png",
+    logo_url: "https://downloads.apersona.com/logos/logo-here_250x50.png",
     "COMMENT-NOTE email_logo size": "250x50",
-    email_logo_url: "https://downloads.apersona.com/logos/WeaveAILogo.png",
-    brand_base_color: "#31528B",
-    consent_content: 'By signing up, I accept the <a href="https://downloads.apersona.com/demos/WeaveAI-Privacy.html" target="_blank">privacy policy</a> and the <a href="https://downloads.apersona.com/demos/WeaveAI-Ts-Cs.html" target="_blank"> terms &amp; conditions</a>',
+    email_logo_url: "https://downloads.apersona.com/logos/logo-here_250x50.png",
+    brand_base_color: "#7D8CA3",
+    consent_content: 'By signing up, I accept the  <a href=\"[https://downloads.apersona.com/demos/compnay-privacy.html](https://downloads.apersona.com/demos/WeaveAI-Privacy.html\)" target=\"_blank\">privacy policy</a> and the <a href=\"[https://downloads.apersona.com/demos/company-Ts-Cs.html](https://downloads.apersona.com/demos/WeaveAI-Ts-Cs.html\)" target=\"_blank\"> terms &amp; conditions</a>',
+    "COMMENT-NOTE fav_icon size": "16x16 png",
+    favicon_url: 'https://downloads.apersona.com/logos/favicon.png',
 }
 
 export const amfaLegals =

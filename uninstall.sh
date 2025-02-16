@@ -91,7 +91,6 @@ if aws sts get-caller-identity >/dev/null; then
 
         if aws cloudformation describe-stacks --stack-name APICertificateStack >/dev/null 2>&1; then
 
-            # aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa --recursive >/dev/null 2>&1
             aws cloudformation delete-stack --stack-name APICertificateStack >/dev/null 2>&1
 
             echo "[deleting AdminPortal API cert stack]"
@@ -119,7 +118,6 @@ if aws sts get-caller-identity >/dev/null; then
 
         if aws cloudformation describe-stacks --region us-east-1 --stack-name CertStack222 >/dev/null 2>&1; then
 
-            # aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa --recursive >/dev/null 2>&1
             aws cloudformation delete-stack --region us-east-1 --stack-name CertStack222 >/dev/null 2>&1
 
             echo "[deleting AdminPortal FE cert stack]"
@@ -147,7 +145,8 @@ if aws sts get-caller-identity >/dev/null; then
 
         #check whether AMFAStack exists
         if aws cloudformation describe-stacks --stack-name AmfaStack >/dev/null 2>&1; then
-            aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID --recursive >/dev/null 2>&1
+            aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-amfa --recursive >/dev/null 2>&1
+            aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login --recursive >/dev/null 2>&1
             aws cloudformation delete-stack --stack-name AmfaStack >/dev/null 2>&1
             echo -n "[deleting AMFA stack] ${spin[0]}"
             StackStatus=''
@@ -179,7 +178,6 @@ if aws sts get-caller-identity >/dev/null; then
 
         if aws cloudformation describe-stacks --region us-east-1 --stack-name CertificateStack >/dev/null 2>&1; then
 
-            # aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa --recursive >/dev/null 2>&1
             aws cloudformation delete-stack --region us-east-1 --stack-name CertificateStack >/dev/null 2>&1
 
             echo "[deleting AMFA cert stack]"

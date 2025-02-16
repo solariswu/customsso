@@ -29,7 +29,6 @@ export SMTP_PORT=''   ## example '587', default value is '587'
 # extra app url is extra application that will integrate with AWS IdP ASM Login
 # can be removed if not use service providers portal or extra application.
 # can be manually added in AWS Userpool Console after installation.
-export SP_PORTAL_URL='' ## example 'https://apersona.netlify.app'
 export EXTRA_APP_URL='' ## example 'https://amfa.netlify.app/'
 
 # google captcha key and secret. Leave them empty as '' if not uses.

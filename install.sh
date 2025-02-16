@@ -135,15 +135,7 @@ if aws sts get-caller-identity >/dev/null; then
     cd $APERSONAIDP_REPO_NAME
     npm install >/dev/null 2>&1
 
-    if [ -z "$SP_PORTAL_URL" ]; then
-        echo "SP_PORTAL_URL is not configured"
-        if [ -z "$EXTRA_APP_URL" ]; then
-            echo "EXTRA_APP_URL is not configured too, you would need to manually config userpool callback url later"
-        else
-            export SP_PORTAL_URL=$EXTRA_APP_URL
-            echo "using EXTRA_APP_URL as default application url"
-        fi
-    fi
+    export SP_PORTAL_URL="https://login."$TENANT_ID"."$ROOT_DOMAIN_NAME
 
     #get region and account by EC2 info
     TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
@@ -232,6 +224,11 @@ if aws sts get-caller-identity >/dev/null; then
         unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP
         npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_deploy_outputs.json
 
+
+        ENDUSER_USERPOOL_ID=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaUserPoolId' ../apersona_idp_deploy_outputs.json)
+        ENDUSER_CLIENT_ID=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaUserPoolClientId' ../apersona_idp_deploy_outputs.json)
+        ENDUSER_HOSTEDUI_URL=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaOauthDomain' ../apersona_idp_deploy_outputs.json)
+
         mobileTokenApiClientId=$(jq -rc '.[].AmfamobileTokenApiClientId' ../apersona_idp_deploy_outputs.json)
         mobileTokenApiClientSecret=$(jq -rc '.[].AmfamobileTokenApiClientSecret' ../apersona_idp_deploy_outputs.json)
         mobileTokenAuthEndpointUri=$(jq -rc '.[].AmfamobileTokenAuthEndpointUri' ../apersona_idp_deploy_outputs.json)
@@ -254,6 +251,30 @@ if aws sts get-caller-identity >/dev/null; then
         else
             echo "update mobile token details success"
         fi
+
+        ## generate spportal aws config file, redeploy again
+
+        if [ -z "$ENDUSER_USERPOOL_ID" ] || [ -z "$ENDUSER_CLIENT_ID" ] || [ -z "$ENDUSER_HOSTEDUI_URL" ]; then
+            echo "Get apersona AWS AMFA deployment info failure"
+            echo "End user SP Portal will not deploy"
+        else
+            echo "generate SP front end config file"
+            rm -rf spportal/dist/amfaext.js
+
+            echo "export const AmfaServiceDomain='login."$TENANT_ID"."$ROOT_DOMAIN_NAME"';" >>spportal/dist/amfaext.js
+            echo "export const AdminAPIUrl='https://api.adminportal."$ROOT_DOMAIN_NAME"';">>spportal/dist/amfaext.js
+            echo "export const ProjectRegion='"$CDK_DEPLOY_REGION"';">>spportal/dist/amfaext.js
+            echo "export const EndUserPoolId='"$ENDUSER_USERPOOL_ID"';">>spportal/dist/amfaext.js
+            echo "export const EndUserAppClientId='"$ENDUSER_CLIENT_ID"';">>spportal/dist/amfaext.js
+            echo "export const OAuthDomainName='"$ENDUSER_HOSTEDUI_URL"';">>spportal/dist/amfaext.js
+
+            aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/amfaext.js
+            aws s3 cp spportal/dist/amfaext.js s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/amfaext.js
+
+            # npm run cdk-build
+            # npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_deploy_outputs.json
+        fi
+
 
         cd ..
         cd $APERSONAADM_REPO_NAME
@@ -330,9 +351,13 @@ if aws sts get-caller-identity >/dev/null; then
             echo "export const AdminPortalDomainName='$ADMINPORTAL_DOMAIN_NAME'" >>dist/amfaext.js
             # deploy admin portal stack again
             # npm run build
-            npm run cdk-build
-            rm -rf ../apersona_idp_mgt_deploy_outputs.json
-            npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
+
+            aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa-web/amfaext.js
+            aws s3 cp dist/amfaext.js s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa-web/amfaext.js
+
+            # npm run cdk-build
+            # rm -rf ../apersona_idp_mgt_deploy_outputs.json
+            # npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
 
             aws cognito-idp admin-create-user --username $ADMIN_EMAIL --user-attributes Name=email,Value=$ADMIN_EMAIL Name=email_verified,Value=true --desired-delivery-mediums EMAIL --user-pool-id $ADMINPORTAL_USERPOOL_ID >/dev/null 2>&1
         fi

@@ -25,14 +25,17 @@ export class WebApplication {
     distribution: Distribution;
     tenantId: string;
     accountId: string | undefined;
+    type: string;
 
-    constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone, 
-        tenantId: string | undefined, accountId: string | undefined) {
+    constructor(scope: Construct, certificate: Certificate, hostedZone: PublicHostedZone,
+        tenantId: string | undefined, accountId: string | undefined, isSPPortal: boolean) {
         this.scope = scope;
-        this.domainName = `${tenantId}.${RootDomainName}`;
+        this.tenantId = tenantId ? tenantId : '';
+        this.type = isSPPortal ? 'login' : 'amfa';
+
+        this.domainName = isSPPortal ? `login.${tenantId}.${RootDomainName}` : `${tenantId}.${RootDomainName}`;
         this.certificate = certificate;
         this.hostedZone = hostedZone;
-        this.tenantId = tenantId?tenantId:'';
         this.accountId = accountId;
 
         this.distribution = this.createDistribution();
@@ -40,35 +43,27 @@ export class WebApplication {
     }
 
     private createS3Bucket() {
-        return new Bucket(this.scope, 'amfaWebAppDeployBucket', {
-            bucketName: `${this.accountId}-amfa-${this.tenantId.toLowerCase()}`,
+        return new Bucket(this.scope, `amfaWebAppDeployBucket-${this.type}`, {
+            bucketName: `${this.accountId}-amfa-${this.tenantId.toLowerCase()}-${this.type}`,
             accessControl: BucketAccessControl.PRIVATE,
             removalPolicy: RemovalPolicy.DESTROY,
         });
 
     }
 
-    // private createACMCert() {
-    // 	const cert: Certificate = new Certificate(this.scope, `AMfa${config.tenantId}-Certificate`, {
-    // 		domainName: this.domainName,
-    // 		validation: CertificateValidation.fromDns(this.hostedZone),
-    // 	});
-    // 	return cert;
-    // }
-
     private createDistribution(bucket: Bucket = this.createS3Bucket()) {
 
         // config Cloudfront read to S3
         const originAccessIdentity = new OriginAccessIdentity(
             this.scope,
-            'OriginAccessIdentity'
+            `OriginAccessIdentity-${this.type}`
         );
         bucket.grantRead(originAccessIdentity);
 
         // set up cloudfront
-        const distribution = new Distribution(this.scope, 'Distribution', {
+        const distribution = new Distribution(this.scope, `Distribution-${this.type}`, {
             defaultRootObject: 'index.html',
-            domainNames: [`${this.tenantId}.${RootDomainName}`],
+            domainNames: [this.domainName],
             certificate: this.certificate,
             defaultBehavior: {
                 origin: S3BucketOrigin.withOriginAccessControl(bucket),
@@ -84,12 +79,13 @@ export class WebApplication {
                 responsePagePath: '/index.html',
                 ttl: Duration.minutes(30),
             }],
+            enableLogging: true,
         });
 
         // assign web release path to s3 deployment
-        new BucketDeployment(this.scope, 'BucketDeployment', {
+        new BucketDeployment(this.scope, `BucketDeployment-${this.type}`, {
             destinationBucket: bucket,
-            sources: [Source.asset(path.resolve(__dirname, '../../build'))],
+            sources: [Source.asset(path.resolve(__dirname, this.type === 'amfa' ? '../../build' : '../../spportal/dist'))],
             distribution,
             distributionPaths: ['/*'],
         });
@@ -98,7 +94,7 @@ export class WebApplication {
     }
 
     private createRoute53ARecord(distribution: Distribution = this.distribution, hostedZone: PublicHostedZone = this.hostedZone): ARecord {
-        return new ARecord(this.scope, 'Route53ARecordSet', {
+        return new ARecord(this.scope, `Route53ARecordSet-${this.type}`, {
             recordName: this.domainName,
             zone: this.hostedZone,
             target: RecordTarget.fromAlias(

@@ -24,6 +24,7 @@ import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
 import SetTOTP from './Pages/SetTOTP';
 import TimeOut from './Pages/TimeOut';
+import Favicon from 'react-favicon';
 
 
 const App = () => {
@@ -236,6 +237,7 @@ const App = () => {
 
    return (
       <div className="container">
+      <Favicon url={config?.branding.favicon_url} />
          <div className="modal-dialog" style={{ marginTop: '0px' }}>
             <div className="modal-content background-customizable modal-content-mobile visible-xs visible-sm">
                <div class="banner-customizable">
