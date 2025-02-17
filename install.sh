@@ -229,10 +229,10 @@ if aws sts get-caller-identity >/dev/null; then
         ENDUSER_CLIENT_ID=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaUserPoolClientId' ../apersona_idp_deploy_outputs.json)
         ENDUSER_HOSTEDUI_URL=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaOauthDomain' ../apersona_idp_deploy_outputs.json)
 
-        mobileTokenApiClientId=$(jq -rc '.[].AmfamobileTokenApiClientId' ../apersona_idp_deploy_outputs.json)
-        mobileTokenApiClientSecret=$(jq -rc '.[].AmfamobileTokenApiClientSecret' ../apersona_idp_deploy_outputs.json)
-        mobileTokenAuthEndpointUri=$(jq -rc '.[].AmfamobileTokenAuthEndpointUri' ../apersona_idp_deploy_outputs.json)
-        mobileTokenApiEndpointUri=$(jq -rc '.[].AmfamobileTokenApiEndpointUri' ../apersona_idp_deploy_outputs.json)
+        mobileTokenApiClientId=$(jq -rc '.AmfaStack.AmfamobileTokenApiClientId' ../apersona_idp_deploy_outputs.json)
+        mobileTokenApiClientSecret=$(jq -rc '.AmfaStack.AmfamobileTokenApiClientSecret' ../apersona_idp_deploy_outputs.json)
+        mobileTokenAuthEndpointUri=$(jq -rc '.AmfaStack.AmfamobileTokenAuthEndpointUri' ../apersona_idp_deploy_outputs.json)
+        mobileTokenApiEndpointUri=$(jq -rc '.AmfaStack.AmfamobileTokenApiEndpointUri' ../apersona_idp_deploy_outputs.json)
 
         mobileTokenAuthEndpointUri=$(jq -rn --arg x "$mobileTokenAuthEndpointUri" '$x|@uri')
         mobileTokenApiEndpointUri=$(jq -rn --arg x "$mobileTokenApiEndpointUri" '$x|@uri')
