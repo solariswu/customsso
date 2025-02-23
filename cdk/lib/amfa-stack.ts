@@ -70,6 +70,7 @@ export class AmfaStack extends Stack {
       new CfnOutput(this, 'Amfa_TotpTokenTable', { value: ddb.totpTokenTable.tableName, });
       new CfnOutput(this, 'Amfa_PwdHashTable', { value: ddb.pwdHashTable.tableName, });
       new CfnOutput(this, 'Amfa_SPPortalDistributionId', { value: spPortalWebApp.distribution.distributionId, });
+      new CfnOutput(this, 'Amfa_AdminPortalDistributionId', { value: webapp.distribution.distributionId, });
 
     })
 
