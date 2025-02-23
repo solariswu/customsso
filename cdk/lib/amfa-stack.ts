@@ -69,6 +69,7 @@ export class AmfaStack extends Stack {
       new CfnOutput(this, 'Amfa_mobileTokenApiEndpointUri', { value: `https://api.${process.env.TENANT_ID}.${process.env.ROOT_DOMAIN_NAME}/totptoken`, });
       new CfnOutput(this, 'Amfa_TotpTokenTable', { value: ddb.totpTokenTable.tableName, });
       new CfnOutput(this, 'Amfa_PwdHashTable', { value: ddb.pwdHashTable.tableName, });
+      new CfnOutput(this, 'Amfa_SPPortalDistributionId', { value: spPortalWebApp.distribution.distributionId, });
 
     })
 
