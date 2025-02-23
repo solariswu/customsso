@@ -18,7 +18,8 @@
   ],
   "acknowledged-issue-numbers": [
     29483,
-    30241
+    30241,
+    32775
   ],
   "availability-zones:account=024848446315:region=us-west-2": [
     "us-west-2a",

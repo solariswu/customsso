@@ -23,7 +23,7 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
-import { portal_description, portal_title } from "../configs/configs_ui.mjs";
+import { useFeConfigs } from "../configs/FeConfigProvider";
 
 const ContainerLoading = () => (
   <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -53,6 +53,7 @@ const MyContent = ({ data, identity }) => {
     }
   );
   const notify = useNotify();
+  const branding = useFeConfigs();
 
   const { data: userdata, isLoading } = useGetOne("usercustomsps", {
     id: identity.email,
@@ -255,10 +256,10 @@ const MyContent = ({ data, identity }) => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Typography component="h1" variant="h4" align="center">
-        {portal_title}
+        {branding && branding.portal_title}
       </Typography>
       <Typography component="h6" variant="body2" align="center">
-        {portal_description}
+        {branding && branding.portal_description}
       </Typography>
       <Box sx={{ mt: 5 }}>
         <Grid container spacing={2}>

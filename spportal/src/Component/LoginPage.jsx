@@ -1,17 +1,15 @@
-import {
-  login_page_center_color,
-  login_page_outter_color,
-} from "../configs/configs_ui.mjs";
+import { useFeConfigs } from "../configs/FeConfigProvider";
 import LoginForm from "./LoginForm";
 import Card from "@mui/material/Card";
-import Typography from "@mui/material/Typography";
 
 const LoginPage = () => {
   const queryParams = new URLSearchParams(window.location.search);
   const errMsg = queryParams.get("err");
+  const branding = useFeConfigs();
 
-  // console.log ('errmsg', errMsg)
-  // <Login>
+  if (!branding) {
+    return <div></div>;
+  }
   return (
     <div
       style={{
@@ -23,7 +21,7 @@ const LoginPage = () => {
         justifyContent: "flex-start",
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
-        backgroundImage: `radial-gradient(circle at 50% 14em, ${login_page_center_color} 0%, ${login_page_outter_color} 60%, ${login_page_outter_color} 100%)`,
+        backgroundImage: `radial-gradient(circle at 50% 14em, ${branding.login_page_center_color} 0%, ${branding.login_page_outter_color} 60%, ${branding.login_page_outter_color} 100%)`,
       }}
     >
       <Card
@@ -33,7 +31,7 @@ const LoginPage = () => {
           marginTop: "6em",
         }}
       >
-        <LoginForm />
+        <LoginForm logo={brandingapp_login_logo_url} title={branding.app_title}/>
         <div
           style={{
             textAlign: "center",

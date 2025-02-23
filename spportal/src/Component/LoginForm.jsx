@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useLogin } from "react-admin";
 import { Button, CardActions, CircularProgress, Typography } from "@mui/material";
-import { app_login_logo_url, app_title } from "../configs/configs_ui.mjs";
 
-const LoginForm = () => {
+const LoginForm = ({logo, title}) => {
   const [loading, setLoading] = useState(false);
   const login = useLogin();
 
@@ -15,15 +14,15 @@ const LoginForm = () => {
   return (
     <div style={{ textAlign: "center", padding: '1em' }}>
       <div>
-        <img
-          src={app_login_logo_url}
+       <img
+          src={logo}
           alt="logo"
           width="250"
         />
       </div>
       <div>
         <Typography variant="subtitle1" align="center">
-          {app_title}
+          {title}
         </Typography>
         <CardActions >
           <Button

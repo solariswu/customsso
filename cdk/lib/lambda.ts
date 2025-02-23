@@ -102,37 +102,3 @@ export const createCustomEmailSenderLambda = (
   return lambda;
 }
 
-export const createCustomMessageLambda = (scope: Construct, configTable: Table, tenantId: string, spPortalUrl: string) => {
-  const lambdaName = 'custommessage';
-
-  const lambda = new Function(scope, lambdaName, {
-    runtime: Runtime.NODEJS_20_X,
-    handler: 'index.handler',
-    code: Code.fromAsset(path.join(__dirname, `/../lambda/${lambdaName}`)),
-    environment: {
-      CONFIG_TABLE: configTable.tableName,
-      APP_URL: spPortalUrl,
-      // SERVICE_NAME: serviceName,
-    },
-    timeout: Duration.minutes(5)
-  });
-
-  lambda.role?.attachInlinePolicy(
-    new Policy(scope, `${lambdaName}-policy-${tenantId}`, {
-      statements: [
-        new PolicyStatement({
-          resources:
-            [configTable.tableArn]
-          ,
-          actions: [
-            'dynamodb:GetItem',
-            'dynamodb:Scan',
-          ],
-        }),
-      ],
-    })
-  );
-
-  return lambda;
-
-}

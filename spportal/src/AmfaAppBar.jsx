@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { AppBar, Logout, UserMenu } from "react-admin";
 
 import Typography from "@mui/material/Typography";
@@ -7,10 +8,14 @@ import ListItemText from "@mui/material/ListItemText";
 import MenuItem from "@mui/material/MenuItem";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 
-import { app_bar_logo_url } from "./configs/configs_ui.mjs";
 import { amfa_service_domain } from "./aws-export";
 
+import { useFeConfigs } from './configs/FeConfigProvider';
+
 export const AmfaAppBar = () => {
+  const branding = useFeConfigs();
+
+
   const UserProfile = () => {
     const isXSmall = useMediaQuery((theme) => theme.breakpoints.down("sm"));
     return (
@@ -53,12 +58,12 @@ export const AmfaAppBar = () => {
         }}
       />
       <div style={{ flex: 10, textAlign: "center", verticalAlign: "center" }}>
-        <img
-          src={app_bar_logo_url}
+        {branding && <img
+          src={branding?.app_bar_logo_url}
           alt="logo"
           width="200"
           style={{ marginTop: "6px" }}
-        />
+        />}
       </div>
     </AppBar>
   );

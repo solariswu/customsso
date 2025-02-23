@@ -226,7 +226,6 @@ if aws sts get-caller-identity >/dev/null; then
 
 
         ENDUSER_USERPOOL_ID=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaUserPoolId' ../apersona_idp_deploy_outputs.json)
-        ENDUSER_CLIENT_ID=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaUserPoolClientId' ../apersona_idp_deploy_outputs.json)
         ENDUSER_HOSTEDUI_URL=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaOauthDomain' ../apersona_idp_deploy_outputs.json)
 
         mobileTokenApiClientId=$(jq -rc '.AmfaStack.AmfamobileTokenApiClientId' ../apersona_idp_deploy_outputs.json)
@@ -251,30 +250,6 @@ if aws sts get-caller-identity >/dev/null; then
         else
             echo "update mobile token details success"
         fi
-
-        ## generate spportal aws config file, redeploy again
-
-        if [ -z "$ENDUSER_USERPOOL_ID" ] || [ -z "$ENDUSER_CLIENT_ID" ] || [ -z "$ENDUSER_HOSTEDUI_URL" ]; then
-            echo "Get apersona AWS AMFA deployment info failure"
-            echo "End user SP Portal will not deploy"
-        else
-            echo "generate SP front end config file"
-            rm -rf spportal/dist/amfaext.js
-
-            echo "export const AmfaServiceDomain='login."$TENANT_ID"."$ROOT_DOMAIN_NAME"';" >>spportal/dist/amfaext.js
-            echo "export const AdminAPIUrl='https://api.adminportal."$ROOT_DOMAIN_NAME"';">>spportal/dist/amfaext.js
-            echo "export const ProjectRegion='"$CDK_DEPLOY_REGION"';">>spportal/dist/amfaext.js
-            echo "export const EndUserPoolId='"$ENDUSER_USERPOOL_ID"';">>spportal/dist/amfaext.js
-            echo "export const EndUserAppClientId='"$ENDUSER_CLIENT_ID"';">>spportal/dist/amfaext.js
-            echo "export const OAuthDomainName='"$ENDUSER_HOSTEDUI_URL"';">>spportal/dist/amfaext.js
-
-            aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/amfaext.js
-            aws s3 cp spportal/dist/amfaext.js s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/amfaext.js
-
-            # npm run cdk-build
-            # npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_deploy_outputs.json
-        fi
-
 
         cd ..
         cd $APERSONAADM_REPO_NAME
@@ -355,11 +330,34 @@ if aws sts get-caller-identity >/dev/null; then
             aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa-web/amfaext.js
             aws s3 cp dist/amfaext.js s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa-web/amfaext.js
 
-            # npm run cdk-build
-            # rm -rf ../apersona_idp_mgt_deploy_outputs.json
-            # npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
+
 
             aws cognito-idp admin-create-user --username $ADMIN_EMAIL --user-attributes Name=email,Value=$ADMIN_EMAIL Name=email_verified,Value=true --desired-delivery-mediums EMAIL --user-pool-id $ADMINPORTAL_USERPOOL_ID >/dev/null 2>&1
+        fi
+
+        cd ..
+        cd $APERSONAIDP_REPO_NAME
+
+        ## generate spportal aws config file, redeploy again
+        ENDUSER_CLIENT_ID=$(jq -r 'to_entries|.[]|select (.key=="SSO-CUPStack")|.value|.SpPortalAppClientID' ../apersona_idp_mgt_deploy_outputs.json)
+
+        if [ -z "$ENDUSER_USERPOOL_ID" ] || [ -z "$ENDUSER_CLIENT_ID" ] || [ -z "$ENDUSER_HOSTEDUI_URL" ]; then
+            echo "Get apersona AWS AMFA/AdminPortal deployment info failure"
+            echo "End user SP Portal might have issue"
+        else
+            echo "generate SP front end config file"
+            rm -rf spportal/dist/amfaext.js
+
+            echo "export const AmfaServiceDomain='login."$TENANT_ID"."$ROOT_DOMAIN_NAME"';" >>spportal/dist/amfaext.js
+            echo "export const AdminAPIUrl='https://api.adminportal."$ROOT_DOMAIN_NAME"';">>spportal/dist/amfaext.js
+            echo "export const ProjectRegion='"$CDK_DEPLOY_REGION"';">>spportal/dist/amfaext.js
+            echo "export const EndUserPoolId='"$ENDUSER_USERPOOL_ID"';">>spportal/dist/amfaext.js
+            echo "export const EndUserAppClientId='"$ENDUSER_CLIENT_ID"';">>spportal/dist/amfaext.js
+            echo "export const OAuthDomainName='"$ENDUSER_HOSTEDUI_URL"';">>spportal/dist/amfaext.js
+
+            aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/amfaext.js
+            aws s3 cp spportal/dist/amfaext.js s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/amfaext.js
+
         fi
 
         echo "Deploy finished"

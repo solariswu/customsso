@@ -22,7 +22,7 @@ import { Duration } from 'aws-cdk-lib';
 
 
 import { AMFAIdPName, resourceName, totpScopeName, RootDomainName, AMFAUserPoolName } from './const';
-import { createAuthChallengeFn, createCustomMessageLambda, createCustomEmailSenderLambda } from './lambda';
+import { createAuthChallengeFn, createCustomEmailSenderLambda } from './lambda';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { Effect, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
@@ -66,7 +66,6 @@ export class TenantUserPool {
     this.hostedUIClient.node.addDependency(this.oidcProvider);
     this.userpoolDomain = this.addHostedUIDomain();
     this.userpoolDomain.node.addDependency(this.userpool);
-    // this.addCustomMessageLambdaTrigger(configTable, spPortalUrl);
 
     this.addCustomEmailSenderLambdaTrigger(configTable, spPortalUrl, smtpScrets);
     this.clientCredentialsClient = this.addClientCredentialClient();
@@ -284,16 +283,6 @@ export class TenantUserPool {
       authChallengeFns[2]
     );
   };
-
-  private addCustomMessageLambdaTrigger(configTable, spPortalUrl) {
-    const lambdaFn = createCustomMessageLambda(
-      this.scope, configTable, this.tenantId, spPortalUrl
-    );
-    this.userpool.addTrigger(
-      UserPoolOperation.CUSTOM_MESSAGE,
-      lambdaFn
-    );
-  }
 
   private addCustomEmailSenderLambdaTrigger(configTable, spPortalUrl, smtpScrets) {
     const lambdaFn = createCustomEmailSenderLambda(

@@ -12,7 +12,7 @@ export default defineConfig({
     },
     build: {
         rollupOptions: {
-            external: '/amfaext.js',
+            external: ['/amfaext.js', '/branding.json']
         }
     },
     base: './',
