@@ -32,7 +32,7 @@ fi
 
 echo ""
 echo ""
-echo "$(<./$APERSONAIDP_REPO_NAME/aPersona_ASM-and-aPersona_Identity_Mgr_Ts_Cs.txt )"
+echo "$(<./$APERSONAIDP_REPO_NAME/aPersona_ASM-and-aPersona_Identity_Mgr_Ts_Cs.txt)"
 
 echo ""
 read -p "Please review and agree to the above $(echo -e $BOLD$YELLOW)aPersona Terms and Conditions$(echo -e $NC)? (y/n)" responsetc
@@ -150,7 +150,7 @@ if aws sts get-caller-identity >/dev/null; then
 
     TENANT_NAME=$(jq -rn --arg x "$TENANT_NAME" '$x|@uri')
 
-    registRes=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/install" 2>/dev/null | jq -r .SecretString | jq -r -c .registRes )
+    registRes=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/install" 2>/dev/null | jq -r .SecretString | jq -r -c .registRes)
     echo "amfa install params fetched from previous record: "$registRes
     if [[ -z "$registRes" || "$registRes" = "null" ]]; then
         ## never installed
@@ -178,7 +178,7 @@ if aws sts get-caller-identity >/dev/null; then
     export TENANT_AUTH_TOKEN=$(echo $registRes | jq -r .asmClientSecretKey)
     export ASM_POLICIES=$(echo $registRes | jq -r .apiKeys)
 
-    if [[ -z "$ASM_PROVIDER_ID" || "$ASM_PROVIDER_ID" = "null" || -z "$MOBILE_TOKEN_SALT" || "$MOBILE_TOKEN_SALT" = "null" || -z "$MOBILE_TOKEN_KEY" || "$MOBILE_TOKEN_KEY" = "null"  ]]; then
+    if [[ -z "$ASM_PROVIDER_ID" || "$ASM_PROVIDER_ID" = "null" || -z "$MOBILE_TOKEN_SALT" || "$MOBILE_TOKEN_SALT" = "null" || -z "$MOBILE_TOKEN_KEY" || "$MOBILE_TOKEN_KEY" = "null" ]]; then
         echo "ASM assignment error, please check your install key and admin email value and contact Apersona for support"
         exit 1
     fi
@@ -222,8 +222,14 @@ if aws sts get-caller-identity >/dev/null; then
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/us-east-1
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION || (unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP)
         unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP
-        npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_deploy_outputs.json
 
+        aws s3api head-object --bucket "${CDK_DEPLOY_ACCOUNT}-amfa-${TENANT_ID}-login" --key /branding.json || NOT_EXIST=true
+        if [ ! $NOT_EXIST ]; then
+            echo "branding file exists, copy it"
+            aws s3 cp s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/branding.json ./spportal/dist/ 2>/dev/null
+        fi
+
+        npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_deploy_outputs.json
 
         ENDUSER_USERPOOL_ID=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaUserPoolId' ../apersona_idp_deploy_outputs.json)
         ENDUSER_HOSTEDUI_URL=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaOauthDomain' ../apersona_idp_deploy_outputs.json)
@@ -333,8 +339,6 @@ if aws sts get-caller-identity >/dev/null; then
             aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa-web/amfaext.js
             aws s3 cp dist/amfaext.js s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa-web/amfaext.js
 
-
-
             aws cognito-idp admin-create-user --username $ADMIN_EMAIL --user-attributes Name=email,Value=$ADMIN_EMAIL Name=email_verified,Value=true --desired-delivery-mediums EMAIL --user-pool-id $ADMINPORTAL_USERPOOL_ID >/dev/null 2>&1
         fi
 
@@ -352,11 +356,11 @@ if aws sts get-caller-identity >/dev/null; then
             rm -rf spportal/dist/amfaext.js
 
             echo "export const AmfaServiceDomain='login."$TENANT_ID"."$ROOT_DOMAIN_NAME"';" >>spportal/dist/amfaext.js
-            echo "export const AdminAPIUrl='https://api.adminportal."$ROOT_DOMAIN_NAME"';">>spportal/dist/amfaext.js
-            echo "export const ProjectRegion='"$CDK_DEPLOY_REGION"';">>spportal/dist/amfaext.js
-            echo "export const EndUserPoolId='"$ENDUSER_USERPOOL_ID"';">>spportal/dist/amfaext.js
-            echo "export const EndUserAppClientId='"$ENDUSER_CLIENT_ID"';">>spportal/dist/amfaext.js
-            echo "export const OAuthDomainName='"$ENDUSER_HOSTEDUI_URL"';">>spportal/dist/amfaext.js
+            echo "export const AdminAPIUrl='https://api.adminportal."$ROOT_DOMAIN_NAME"';" >>spportal/dist/amfaext.js
+            echo "export const ProjectRegion='"$CDK_DEPLOY_REGION"';" >>spportal/dist/amfaext.js
+            echo "export const EndUserPoolId='"$ENDUSER_USERPOOL_ID"';" >>spportal/dist/amfaext.js
+            echo "export const EndUserAppClientId='"$ENDUSER_CLIENT_ID"';" >>spportal/dist/amfaext.js
+            echo "export const OAuthDomainName='"$ENDUSER_HOSTEDUI_URL"';" >>spportal/dist/amfaext.js
 
             aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/amfaext.js
             aws s3 cp spportal/dist/amfaext.js s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/amfaext.js
