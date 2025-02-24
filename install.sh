@@ -302,7 +302,7 @@ if aws sts get-caller-identity >/dev/null; then
         export ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID#*zone/}
         echo "Admin Portal Hosted Zone ID is $ADMINPORTAL_HOSTED_ZONE_ID"
 
-        npm install >/dev/null 2>&1
+        npm install --legacy-peer-deps >/dev/null 2>&1
         # npm run build
         npm run cdk-build
 
