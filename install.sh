@@ -302,11 +302,12 @@ if aws sts get-caller-identity >/dev/null; then
         export ADMINPORTAL_HOSTED_ZONE_ID=${ADMINPORTAL_HOSTED_ZONE_ID#*zone/}
         echo "Admin Portal Hosted Zone ID is $ADMINPORTAL_HOSTED_ZONE_ID"
 
-        npm install >/dev/null 2>&1
+        npm install --legacy-peer-deps >/dev/null 2>&1
         # npm run build
         npm run cdk-build
 
         export SPPORTAL_DISTRIBUTION_ID=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaSPPortalDistributionId' ../apersona_idp_deploy_outputs.json)
+        export ADMINPORTAL_DISTRIBUTION_ID=$(jq -r 'to_entries|.[]|select (.key=="AmfaStack")|.value|.AmfaAdminPortalDistributionId' ../apersona_idp_deploy_outputs.json)
 
         npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_mgt_deploy_outputs.json
 
