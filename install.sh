@@ -226,7 +226,7 @@ if aws sts get-caller-identity >/dev/null; then
         aws s3api head-object --bucket "${CDK_DEPLOY_ACCOUNT}-amfa-${TENANT_ID}-login" --key /branding.json || NOT_EXIST=true
         if [ ! $NOT_EXIST ]; then
             echo "branding file exists, copy it"
-            aws s3 cp s3://$CDK_DEPLOY_REGION-amfa-$CDK_DEPLOY_ACCOUNT-login/branding.json ./spportal/dist/ 2>/dev/null
+            aws s3 cp s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/branding.json ./spportal/dist/ 2>/dev/null
         fi
 
         npx cdk deploy "$@" --require-approval never --all --outputs-file ../apersona_idp_deploy_outputs.json
