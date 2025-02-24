@@ -339,6 +339,8 @@ if aws sts get-caller-identity >/dev/null; then
             aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa-web/amfaext.js
             aws s3 cp dist/amfaext.js s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa-web/amfaext.js
 
+            aws cloudfront create-invalidation --distribution-id $ADMINPORTAL_DISTRIBUTION_ID --paths /amfaext.js
+
             aws cognito-idp admin-create-user --username $ADMIN_EMAIL --user-attributes Name=email,Value=$ADMIN_EMAIL Name=email_verified,Value=true --desired-delivery-mediums EMAIL --user-pool-id $ADMINPORTAL_USERPOOL_ID >/dev/null 2>&1
         fi
 
@@ -364,6 +366,8 @@ if aws sts get-caller-identity >/dev/null; then
 
             aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/amfaext.js
             aws s3 cp spportal/dist/amfaext.js s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/amfaext.js
+
+            aws cloudfront create-invalidation --distribution-id $SPPORTAL_DISTRIBUTION_ID --paths /amfaext.js
 
         fi
 
