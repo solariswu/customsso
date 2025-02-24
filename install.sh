@@ -223,7 +223,7 @@ if aws sts get-caller-identity >/dev/null; then
         npx cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION || (unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP)
         unset IS_BOOTSTRAP && unset CDK_NEW_BOOTSTRAP
 
-        aws s3api head-object --bucket "${CDK_DEPLOY_ACCOUNT}-amfa-${TENANT_ID}-login" --key /branding.json || NOT_EXIST=true
+        aws s3api head-object --bucket "${CDK_DEPLOY_ACCOUNT}-amfa-${TENANT_ID}-login" --key branding.json || NOT_EXIST=true
         if [ ! $NOT_EXIST ]; then
             echo "branding file exists, copy it"
             aws s3 cp s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login/branding.json ./spportal/dist/ 2>/dev/null
