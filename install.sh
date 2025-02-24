@@ -32,7 +32,7 @@ fi
 
 echo ""
 echo ""
-echo "$(<aPersona_ASM-and-aPersona_Identity_Mgr_Ts_Cs.txt )"
+echo "$(<./$APERSONAIDP_REPO_NAME/aPersona_ASM-and-aPersona_Identity_Mgr_Ts_Cs.txt )"
 
 echo ""
 read -p "Please review and agree to the above $(echo -e $BOLD$YELLOW)aPersona Terms and Conditions$(echo -e $NC)? (y/n)" responsetc
