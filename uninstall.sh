@@ -33,7 +33,7 @@ if aws sts get-caller-identity >/dev/null; then
     source ~/.bashrc
     NODE_OPTIONS=--max-old-space-size=8192
 
-    echo() {
+    echo_time() {
         command echo $(date) "$@"
     }
 
@@ -257,25 +257,25 @@ if aws sts get-caller-identity >/dev/null; then
         done
 
         ## delete registration from asm
-        echo "deleting registration from asm"
+        echo_time "deleting registration from asm"
         installSecret=$(aws secretsmanager get-secret-value --secret-id apersona/$TENANT_ID/install)
         ASM_PROVIDER_ID=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.asmProviderId')
         asmClientSecretKey=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.asmClientSecretKey')
         asmSecretKey=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.asmSecretKeyNew')
         ## debug
-        echo "curl -X POST \"$ASM_PORTAL_URL/deleteAsmClient.ap?requestedBy=$INSTALLER_EMAIL&asmSecretKey=$asmSecretKey&asmClientSecretKey=$asmClientSecretKey&asmClientId=$ASM_PROVIDER_ID\" -H \"Accept:application/json\""
+        echo_time "curl -X POST \"$ASM_PORTAL_URL/deleteAsmClient.ap?requestedBy=$INSTALLER_EMAIL&asmSecretKey=$asmSecretKey&asmClientSecretKey=$asmClientSecretKey&asmClientId=$ASM_PROVIDER_ID\" -H \"Accept:application/json\""
         passSecretRes=$(curl -X POST "$ASM_PORTAL_URL/deleteAsmClient.ap?requestedBy=$INSTALLER_EMAIL&asmSecretKey=$asmSecretKey&asmClientSecretKey=$asmClientSecretKey&asmClientId=$ASM_PROVIDER_ID" -H "Accept:application/json")
         echo "asm portal delete tenant result: "$passSecretRes
 
         ## delete secrets for re-install
-        echo "deleting secrets"
-        aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/asm --force-delete-without-recovery >/dev/null 2>&1
-        aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/smtp --force-delete-without-recovery >/dev/null 2>&1
-        aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/secret --force-delete-without-recovery >/dev/null 2>&1
-        aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/install --force-delete-without-recovery >/dev/null 2>&1
+        echo_time "deleting secrets"
+        #debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/asm --force-delete-without-recovery >/dev/null 2>&1
+        #debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/smtp --force-delete-without-recovery >/dev/null 2>&1
+        #debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/secret --force-delete-without-recovery >/dev/null 2>&1
+        #debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/install --force-delete-without-recovery >/dev/null 2>&1
 
         ## clean cross region exporter parameters
-        echo "deleting installer cross region parameters"
+        echo_time "deleting installer cross region parameters"
         Params=$(aws ssm describe-parameters --parameter-filters "Key=Name,Option=Contains,Values=/AmfaStack/" --region $CDK_DEPLOY_REGION | jq .Parameters | jq .[].Name)
         for param_name in $Params; do
             aws ssm delete-parameter --name $param_name --region $CDK_DEPLOY_REGION >/dev/null 2>&1
@@ -291,7 +291,7 @@ if aws sts get-caller-identity >/dev/null; then
 
         ## clear local files
         echo "clearing local files"
-        rm -rf *.json *.txt *.sh cognito-userpool-myraadmin customsso
+        #debug rm -rf *.json *.txt *.sh cognito-userpool-myraadmin customsso
 
         echo "*************************************************************************************"
         echo "uninstall finished"
