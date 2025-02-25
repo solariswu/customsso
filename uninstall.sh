@@ -33,6 +33,10 @@ if aws sts get-caller-identity >/dev/null; then
     source ~/.bashrc
     NODE_OPTIONS=--max-old-space-size=8192
 
+    echo() {
+        command echo $(date) "$@"
+    }
+
     #get region and account by EC2 info
     TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
     EC2_AVAIL_ZONE=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone)
@@ -63,7 +67,7 @@ if aws sts get-caller-identity >/dev/null; then
         #check whether SSO-CUPStack exists
         if aws cloudformation describe-stacks --stack-name SSO-CUPStack >/dev/null 2>&1; then
 
-            aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa --recursive >/dev/null 2>&1
+            aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa-web --recursive >/dev/null 2>&1
             aws cloudformation delete-stack --stack-name SSO-CUPStack >/dev/null 2>&1
 
             echo "[deleting admin portal stack]"
@@ -80,7 +84,7 @@ if aws sts get-caller-identity >/dev/null; then
                 i=$((i % 4))
             done
             if [[ "$StackStatus" == 'DELETE_FAILED' || -z "$StackStatus" ]]; then
-                echo -e "AdminPortal service uninstall \b${RED}failed${NC}"
+                echo -e "AdminPortal service uninstall \b${RED} failed${NC}"
                 exit 1
             else
                 echo "succ: AdminPortal service uninstalled"
@@ -107,7 +111,7 @@ if aws sts get-caller-identity >/dev/null; then
                 i=$((i % 4))
             done
             if [[ "$StackStatus" == 'DELETE_FAILED' || -z "$StackStatus" ]]; then
-                echo -e "AdminPortal API cert stack uninstall \b${RED}failed${NC}"
+                echo -e "AdminPortal API cert stack uninstall \b${RED} failed${NC}"
                 exit 1
             else
                 echo "succ: AdminPortal API cert stack uninstalled"
@@ -134,7 +138,7 @@ if aws sts get-caller-identity >/dev/null; then
                 i=$((i % 4))
             done
             if [[ "$StackStatus" == 'DELETE_FAILED' || -z "$StackStatus" ]]; then
-                echo -e "AdminPortal FE cert stack uninstall \b${RED}failed${NC}"
+                echo -e "AdminPortal FE cert stack uninstall \b${RED} failed${NC}"
                 exit 1
             else
                 echo "succ: AdminPortal FE cert uninstalled"
@@ -162,7 +166,7 @@ if aws sts get-caller-identity >/dev/null; then
                 i=$((i % 4))
             done
             if [[ "$StackStatus" == 'DELETE_FAILED' || -z "$StackStatus" ]]; then
-                echo -e "AMFA service uninstall \b${RED}failed${NC}"
+                echo -e "AMFA service uninstall \b${RED} failed${NC}"
                 exit 1
             else
                 echo "succ: AMFA service uninstalled"
@@ -194,7 +198,7 @@ if aws sts get-caller-identity >/dev/null; then
                 i=$((i % 4))
             done
             if [[ "$StackStatus" == 'DELETE_FAILED' || -z "$StackStatus" ]]; then
-                echo -e "AMFA cert stack uninstall \b${RED}failed${NC}"
+                echo -e "AMFA cert stack uninstall \b${RED} failed${NC}"
                 exit 1
             else
                 echo "succ: AMFA cert Stack uninstalled"
@@ -259,6 +263,7 @@ if aws sts get-caller-identity >/dev/null; then
         asmClientSecretKey=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.asmClientSecretKey')
         asmSecretKey=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.asmSecretKeyNew')
         ## debug
+        echo "curl -X POST \"$ASM_PORTAL_URL/deleteAsmClient.ap?requestedBy=$INSTALLER_EMAIL&asmSecretKey=$asmSecretKey&asmClientSecretKey=$asmClientSecretKey&asmClientId=$ASM_PROVIDER_ID\" -H \"Accept:application/json\""
         passSecretRes=$(curl -X POST "$ASM_PORTAL_URL/deleteAsmClient.ap?requestedBy=$INSTALLER_EMAIL&asmSecretKey=$asmSecretKey&asmClientSecretKey=$asmClientSecretKey&asmClientId=$ASM_PROVIDER_ID" -H "Accept:application/json")
         echo "asm portal delete tenant result: "$passSecretRes
 
@@ -292,7 +297,7 @@ if aws sts get-caller-identity >/dev/null; then
         echo "uninstall finished"
         echo "***************"
 
-        echo "Note: End User UserPool("$userpoolId") and Admin Userpool("$adminportal") are not deleted, please delete it manually in the console if needs."
+        echo "Note: End User UserPool("$userpoolId") and Admin Userpool("$adminuserpoolId") are not deleted, please delete it manually in the console if needs."
     fi
     unset NODE_OPTIONS
 else

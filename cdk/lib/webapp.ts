@@ -79,7 +79,7 @@ export class WebApplication {
                 responsePagePath: '/index.html',
                 ttl: Duration.minutes(30),
             }],
-            enableLogging: true,
+            enableLogging: false,
         });
 
         // assign web release path to s3 deployment

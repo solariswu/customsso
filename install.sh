@@ -14,6 +14,10 @@ amfaVersion=$(jq -rc '.version' $APERSONAIDP_REPO_NAME/package.json)
 adPortalName=$(jq -rc '.name' $APERSONAADM_REPO_NAME/package.json)
 adPortalVersion=$(jq -rc '.version' $APERSONAADM_REPO_NAME/package.json)
 
+echo() {
+    command echo $(date) "$@"
+}
+
 echo ""
 echo "-----------------------------------"
 echo "aPersona Identity Manager Installer"
