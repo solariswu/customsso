@@ -152,7 +152,7 @@ if aws sts get-caller-identity >/dev/null; then
             aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-amfa --recursive >/dev/null 2>&1
             aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-amfa-$TENANT_ID-login --recursive >/dev/null 2>&1
             aws cloudformation delete-stack --stack-name AmfaStack >/dev/null 2>&1
-            echo -n "[deleting AMFA stack] ${spin[0]}"
+            echo -n "[deleting AMFA stack]"
             StackStatus=''
             i=0
             while [[ "$StackStatus" != 'DELETE_COMPLETE' && "$StackStatus" != 'DELETE_FAILED' ]]; do
@@ -223,7 +223,7 @@ if aws sts get-caller-identity >/dev/null; then
         echo "deleting db pwd history hash table"
         aws dynamodb delete-table --table-name $pwdHashTable >/dev/null 2>&1
 
-        ## todo: delete subdomain DNS record here
+        ## delete subdomain DNS record here
         echo "removing adminportal domain from DNS"
         HOSTED_ZONE_IDs=$(aws route53 list-hosted-zones | jq .HostedZones | jq 'map(select(.Name=="'$ADMINPORTAL_DOMAIN_NAME'."))' | jq -r '.[]'.Id)
         for HOSTED_ZONE_ID in $HOSTED_ZONE_IDs; do
@@ -259,20 +259,20 @@ if aws sts get-caller-identity >/dev/null; then
         ## delete registration from asm
         echo_time "deleting registration from asm"
         installSecret=$(aws secretsmanager get-secret-value --secret-id apersona/$TENANT_ID/install)
-        ASM_PROVIDER_ID=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.asmProviderId')
-        asmClientSecretKey=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.asmClientSecretKey')
-        asmSecretKey=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.asmSecretKeyNew')
+        ASM_PROVIDER_ID=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.registRes' | jq -rc '.asmClientId')
+        asmClientSecretKey=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.registRes' | jq -rc '.asmClientSecretKey')
+        asmSecretKey=$(echo $installSecret | jq -rc '.SecretString' | jq -rc '.registRes' | jq -rc '.asmSecretKeyNew')
         ## debug
-        echo_time "curl -X POST \"$ASM_PORTAL_URL/deleteAsmClient.ap?requestedBy=$INSTALLER_EMAIL&asmSecretKey=$asmSecretKey&asmClientSecretKey=$asmClientSecretKey&asmClientId=$ASM_PROVIDER_ID\" -H \"Accept:application/json\""
+        #echo_time "curl -X POST \"$ASM_PORTAL_URL/deleteAsmClient.ap?requestedBy=$INSTALLER_EMAIL&asmSecretKey=$asmSecretKey&asmClientSecretKey=$asmClientSecretKey&asmClientId=$ASM_PROVIDER_ID\" -H \"Accept:application/json\""
         passSecretRes=$(curl -X POST "$ASM_PORTAL_URL/deleteAsmClient.ap?requestedBy=$INSTALLER_EMAIL&asmSecretKey=$asmSecretKey&asmClientSecretKey=$asmClientSecretKey&asmClientId=$ASM_PROVIDER_ID" -H "Accept:application/json")
-        echo "asm portal delete tenant result: "$passSecretRes
+        #echo "asm portal delete tenant result: "$passSecretRes
 
         ## delete secrets for re-install
         echo_time "deleting secrets"
-        #debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/asm --force-delete-without-recovery >/dev/null 2>&1
-        #debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/smtp --force-delete-without-recovery >/dev/null 2>&1
-        #debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/secret --force-delete-without-recovery >/dev/null 2>&1
-        #debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/install --force-delete-without-recovery >/dev/null 2>&1
+        debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/asm --force-delete-without-recovery >/dev/null 2>&1
+        debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/smtp --force-delete-without-recovery >/dev/null 2>&1
+        debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/secret --force-delete-without-recovery >/dev/null 2>&1
+        debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/install --force-delete-without-recovery >/dev/null 2>&1
 
         ## clean cross region exporter parameters
         echo_time "deleting installer cross region parameters"
