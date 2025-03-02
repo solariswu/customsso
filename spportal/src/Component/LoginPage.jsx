@@ -31,7 +31,7 @@ const LoginPage = () => {
           marginTop: "6em",
         }}
       >
-        <LoginForm logo={branding.app_login_logo_url} title={branding.app_title}/>
+        <LoginForm logo={branding.app_login_logo_url} title={branding.app_title_msg}/>
         <div
           style={{
             textAlign: "center",

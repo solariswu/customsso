@@ -256,10 +256,10 @@ const MyContent = ({ data, identity }) => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Typography component="h1" variant="h4" align="center">
-        {branding && branding.portal_title}
+        {branding && branding.portal_title_msg}
       </Typography>
       <Typography component="h6" variant="body2" align="center">
-        {branding && branding.portal_description}
+        {branding && branding.portal_description_msg}
       </Typography>
       <Box sx={{ mt: 5 }}>
         <Grid container spacing={2}>

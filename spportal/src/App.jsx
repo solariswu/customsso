@@ -38,7 +38,7 @@ export const App = () => {
   const branding = useFeConfigs();
 
   if (branding) {
-    document.title = branding.app_title;
+    document.title = branding.app_title_msg;
 
     const userTheme = {
       ...houseLightTheme,
