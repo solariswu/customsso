@@ -13,6 +13,7 @@ export const amfaConfigs = {
     "enable_google_recaptcha": false,
     "COMMENT-NOTE!!! Please Take care of using 'master_additional_otp_methods'": " 'e' would be always available for update profile and password reset, even if 'e' is not set. Available options are: 'e' for primary email, 'ae' for alt-email, 's' for sms, 'v' for voice, 't' for mobile soft token. Be sure to use double quotes.",
     "master_additional_otp_methods": [
+        "e",
         "ae",
         "s",
         "v",
