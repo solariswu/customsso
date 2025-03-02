@@ -199,7 +199,7 @@ const App = () => {
             <span
                className='legalText-customizable'
             >
-               &copy; 2024 -&nbsp;
+               &copy; 2025 -&nbsp;
                <div className="link-customizable" style={{ fontSize: "11px", display: 'inline' }} onClick={() => { pauseTimer(); setModal(true) }}>
                   about
                </div>

@@ -14,11 +14,15 @@ amfaVersion=$(jq -rc '.version' $APERSONAIDP_REPO_NAME/package.json)
 adPortalName=$(jq -rc '.name' $APERSONAADM_REPO_NAME/package.json)
 adPortalVersion=$(jq -rc '.version' $APERSONAADM_REPO_NAME/package.json)
 
+echo_time() {
+    command echo $(date) "$@"
+}
+
 echo ""
 echo "-----------------------------------"
 echo "aPersona Identity Manager Installer"
 echo "-----------------------------------"
-echo "This script will install aPersona Identity Manager on your AWS account."
+echo_time "This script will install aPersona Identity Manager on your AWS account."
 echo ""
 echo "aPersona Identity Manager - "$amfaName" - v"$amfaVersion
 echo "aPersona admin Portal - "$adPortalName" - v"$adPortalVersion
@@ -151,7 +155,7 @@ if aws sts get-caller-identity >/dev/null; then
     TENANT_NAME=$(jq -rn --arg x "$TENANT_NAME" '$x|@uri')
 
     registRes=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/install" 2>/dev/null | jq -r .SecretString | jq -r -c .registRes)
-    echo "amfa install params fetched from previous record: "$registRes
+    echo_time "amfa install params fetched from previous record: "$registRes
     if [[ -z "$registRes" || "$registRes" = "null" ]]; then
         ## never installed
         ## register to ASM portal
@@ -162,7 +166,7 @@ if aws sts get-caller-identity >/dev/null; then
         export ASM_PROVIDER_ID=$(echo $registRes | jq -r .asmClientId)
         if [[ -z "$ASM_PROVIDER_ID" || "$ASM_PROVIDER_ID" = "null" ]]; then
             ## assignment error
-            echo "ASM portal newTenant API error, no provider_id, please check your install key and admin email value and contact Apersona for support"
+            echo_time "ASM portal newTenant API error, no provider_id, please check your install key and admin email value and contact Apersona for support"
             exit 1
         fi
 
@@ -179,7 +183,7 @@ if aws sts get-caller-identity >/dev/null; then
     export ASM_POLICIES=$(echo $registRes | jq -r .apiKeys)
 
     if [[ -z "$ASM_PROVIDER_ID" || "$ASM_PROVIDER_ID" = "null" || -z "$MOBILE_TOKEN_SALT" || "$MOBILE_TOKEN_SALT" = "null" || -z "$MOBILE_TOKEN_KEY" || "$MOBILE_TOKEN_KEY" = "null" ]]; then
-        echo "ASM assignment error, please check your install key and admin email value and contact Apersona for support"
+        echo_time "ASM assignment error, please check your install key and admin email value and contact Apersona for support"
         exit 1
     fi
 
@@ -245,13 +249,13 @@ if aws sts get-caller-identity >/dev/null; then
         installParam=$(aws secretsmanager get-secret-value --region $CDK_DEPLOY_REGION --secret-id "apersona/$TENANT_ID/install" | jq -r .SecretString | jq -r -c .registRes)
         asmClientSecretKey=$(echo $installParam | jq -r .asmClientSecretKey)
 
-        echo "update asm tenant mobile token details"
+        echo_time "update asm tenant mobile token details"
         ## echo "debug - : curl -X POST \"$ASM_PORTAL_URL/updateAsmClientMobileTokenDetails.ap\" -H \"Content-Type:application/json\" -d \"{\\\"mobileTokenApiClientId\\\":\\\"$mobileTokenApiClientId\\\",\\\"mobileTokenApiClientSecret\\\":\\\"$mobileTokenApiClientSecret\\\",\\\"mobileTokenAuthEndpointUri\\\":\\\"$mobileTokenAuthEndpointUri\\\",\\\"asmClientSecretKey\\\":\\\"$asmClientSecretKey\\\",\\\"mobileTokenApiEndpointUri\\\":\\\"$mobileTokenApiEndpointUri\\\",\\\"asmClientId\\\":$ASM_PROVIDER_ID}\""
 
         passSecretRes=$(curl -X POST "$ASM_PORTAL_URL/updateAsmClientMobileTokenDetails.ap" -H "Content-Type:application/json" -d "{\"mobileTokenApiClientId\":\"$mobileTokenApiClientId\",\"mobileTokenApiClientSecret\":\"$mobileTokenApiClientSecret\",\"mobileTokenAuthEndpointUri\":\"$mobileTokenAuthEndpointUri\",\"asmClientSecretKey\":\"$asmClientSecretKey\",\"mobileTokenApiEndpointUri\":\"$mobileTokenApiEndpointUri\",\"asmClientId\":$ASM_PROVIDER_ID}" 2>/dev/null)
         updateMobSecStatsCode=$(echo $passSecretRes | jq -r .code)
         if [ "$updateMobSecStatsCode" != "200" ]; then
-            echo "update mobile token details error - "$passSecretRes
+            echo_time "update mobile token details error - "$passSecretRes
             exit 1
         else
             echo "update mobile token details success"
