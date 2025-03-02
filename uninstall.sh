@@ -269,10 +269,10 @@ if aws sts get-caller-identity >/dev/null; then
 
         ## delete secrets for re-install
         echo_time "deleting secrets"
-        debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/asm --force-delete-without-recovery >/dev/null 2>&1
-        debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/smtp --force-delete-without-recovery >/dev/null 2>&1
-        debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/secret --force-delete-without-recovery >/dev/null 2>&1
-        debug aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/install --force-delete-without-recovery >/dev/null 2>&1
+        aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/asm --force-delete-without-recovery >/dev/null 2>&1
+        aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/smtp --force-delete-without-recovery >/dev/null 2>&1
+        aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/secret --force-delete-without-recovery >/dev/null 2>&1
+        aws secretsmanager delete-secret --secret-id apersona/$TENANT_ID/install --force-delete-without-recovery >/dev/null 2>&1
 
         ## clean cross region exporter parameters
         echo_time "deleting installer cross region parameters"
@@ -291,7 +291,7 @@ if aws sts get-caller-identity >/dev/null; then
 
         ## clear local files
         echo "clearing local files"
-        #debug rm -rf *.json *.txt *.sh cognito-userpool-myraadmin customsso
+        rm -rf *.json *.txt *.sh cognito-userpool-myraadmin customsso
 
         echo "*************************************************************************************"
         echo "uninstall finished"
