@@ -6,7 +6,7 @@ export ASM_SERVICE_URL='' ## ASM portal url, example 'https://asm.apersona.com/a
 export ASM_INSTAL_KEY='' ## example '1234567890' the key received by admin email
 
 # deployment tenant info, REQUIRED
-export TENANT_ID= '' ## example 'co25’ (must be lower case, no spaces.)
+export TENANT_ID='' ## example 'co25’ (must be lower case, no spaces.)
 export TENANT_NAME='' ## example 'Company Name',.
 export ADMIN_EMAIL='' ## example 'install.admin@yourdomain.com'
 
