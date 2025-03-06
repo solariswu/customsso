@@ -10,7 +10,7 @@ export const AMFAIdPName = 'apersona';
 export const resourceName = 'amfa';
 export const totpScopeName = 'totptoken';
 
-export const AMFAUserPoolName = 'aPersona-AWS-aMFA-UserPool';
+export const AMFAUserPoolName = `${process.env.TENANT_ID}-aP-AWS-UserPool`;
 
 export const SecretName = `apersona/${process.env.TENANT_ID}/secret`;
 export const ASMSecretName = `apersona/${process.env.TENANT_ID}/asm`;
