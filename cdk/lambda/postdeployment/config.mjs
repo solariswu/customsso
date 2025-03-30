@@ -22,10 +22,7 @@ export const amfaConfigs = {
     "user_registration_default_group": "user",
     "mobile_token_svc_name": serviceName,
     "update_profile_force_mobile_token_first_if_registered": true,
-    "COMMENT-totp": "This totp information must match the aPersona Adaptive Security Manager Tenant/Client ID and associated salt. salt now is saving in secret manager",
-    "totp": {
-        "asm_provider_id": 50, //This would be overrided by deploy variable retrieved. implemented.
-    },
+    "COMMENT-totp": "The totp secrets and integration provider ID are located in the AWS secret manager",
     "enable_password_expire": true,
     "passwords_expire_days": 90,
     "enable_prevent_password_reuse": true,
@@ -41,7 +38,7 @@ export const amfaBrandings =
     "COMMENT-NOTE email_logo size": "250x50",
     email_logo_url: "https://downloads.apersona.com/logos/logo-here_250x50.png",
     brand_base_color: "#7D8CA3",
-    consent_content: 'By signing up, I accept the  <a href=\"[https://downloads.apersona.com/demos/compnay-privacy.html](https://downloads.apersona.com/demos/WeaveAI-Privacy.html\)" target=\"_blank\">privacy policy</a> and the <a href=\"[https://downloads.apersona.com/demos/company-Ts-Cs.html](https://downloads.apersona.com/demos/WeaveAI-Ts-Cs.html\)" target=\"_blank\"> terms &amp; conditions</a>',
+    consent_content: 'By signing up, I accept the  <a href=\"[https://downloads.apersona.com/demos/compnay-privacy.html](https://downloads.apersona.com/demos/company-privacy.html\)" target=\"_blank\">privacy policy</a> and the <a href=\"[https://downloads.apersona.com/demos/company-Ts-Cs.html](https://downloads.apersona.com/demos/company-Ts-Cs.html\)" target=\"_blank\"> terms &amp; conditions</a>',
     "COMMENT-NOTE fav_icon size": "16x16 png",
     favicon_url: 'https://downloads.apersona.com/logos/favicon.png',
 }
