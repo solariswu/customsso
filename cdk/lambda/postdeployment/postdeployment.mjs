@@ -35,6 +35,7 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 	// override default values by installer specified values.
 	if (process.env.ASM_PROVIDER_ID && process.env.ASM_PROVIDER_ID != '') {
 		console.log('update amfaConfig totp asm provider id to value ', process.env.ASM_PROVIDER_ID)
+		values.amfaConfigs.totp = {};
 		values.amfaConfigs.totp.asm_provider_id = parseInt(process.env.ASM_PROVIDER_ID)
 	}
 	else {
