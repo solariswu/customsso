@@ -11,6 +11,7 @@ import { deletePwdHashByUser } from './utils/passwordhash.mjs';
 import { headers, responseWithRequestId } from './utils/amfaUtils.mjs';
 import { adminGetSecrets, adminSetSmtp } from './utils/admingetsecrets.mjs';
 import { validateEmail, validateTOTP, validateOTP, validatePhoneNumber } from './utils/inputValidate.mjs';
+import { getProviderId } from './utils/totp/getKms.mjs';
 
 const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
 const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION, });
@@ -138,10 +139,11 @@ export const handler = async (event) => {
         case 'admindeleteuser':
           {
             console.log('asm delete user payload', payload);
+            const provider_id = await getProviderId();
             const results = await Promise.allSettled([
               asmDeleteUser(headers, payload.email, amfaConfigs, requestId, amfaPolicies, payload.admin),
               deleteTotp(headers, payload.email, amfaConfigs,
-                requestId, client, false, dynamodb, amfaBrandings.email_logo_url, amfaBrandings.service_name, true),
+                requestId, client, false, dynamodb, amfaBrandings.email_logo_url, amfaBrandings.service_name, true, provider_id),
               deletePwdHashByUser(payload.email, dynamodb, amfaConfigs),
             ])
             console.log('admin delete user promises result:', results);
@@ -170,8 +172,10 @@ export const handler = async (event) => {
         case 'registotp':
           const isValidUuid = await checkSessionId(payload, payload.uuid, dynamodb);
           if (isValidUuid) {
+            const provider_id = await getProviderId();
             return await registotp(headers, payload, amfaConfigs,
-              requestId, amfaBrandings.email_logo_url, amfaBrandings.service_naem, client, dynamodb);
+              requestId, amfaBrandings.email_logo_url, amfaBrandings.service_naem, provider_id,
+              client, dynamodb);
           }
           break;
         case 'removeProfile':

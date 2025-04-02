@@ -18,7 +18,7 @@ import { checkSessionId } from './checkSessionId.mjs';
 import { getTType } from './amfaUtils.mjs';
 import { getTotp } from './totp/getToken.mjs';
 import { validateTotp } from './totp/verifyOtp.mjs';
-import { getAsmSalt } from './totp/getKms.mjs';
+import { getAsmSalt, getProviderId } from './totp/getKms.mjs';
 import { checkPasswordExpiration, createPWDHashHistory } from './passwordhash.mjs';
 
 const cookieEnabledHeaders = {
@@ -293,12 +293,13 @@ export const amfaSteps = async (event, headers, cognito, step,
 
     if (step === 'getOtpOptions' || step === 'getUserOtpOptions') {
       let otpOptions = amfaConfigs.master_additional_otp_methods;
+      const provider_id = await getProviderId();
 
       const otpData = await transUAttr(
         event.email,
         userAttributes,
         otpOptions,
-        amfaConfigs.totp?.asm_provider_id,
+        provider_id,
         dynamodb
       );
 
@@ -461,7 +462,7 @@ export const amfaSteps = async (event, headers, cognito, step,
       case 'updateProfile':
       case 'emailverificationverifyotp':
         if (event.otptype === 't') {
-          validateTotp({ email: event.email }, amfaConfigs, dynamodb);
+          validateTotp({ email: event.email }, dynamodb);
           console.log('step', step, 'input otptype', event.otptype, ' code', event.otpcode);
         }
         otpm = event.otptype;
@@ -644,11 +645,12 @@ export const amfaSteps = async (event, headers, cognito, step,
                 amfaConfigs.master_additional_otp_methods
               );
 
+              const provider_id = await getProviderId();
               const otpData = await transUAttr(
                 event.email,
                 userAttributes,
                 otpOptions,
-                amfaConfigs.totp?.asm_provider_id,
+                provider_id,
                 dynamodb
               );
 

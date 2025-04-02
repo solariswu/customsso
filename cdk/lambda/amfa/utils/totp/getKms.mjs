@@ -31,8 +31,25 @@ export const getSecret = async () => {
 }
 
 export const getAsmSalt = async () => {
-	const secret = await getSecret ();
-	return secret?.asmSalt;
+	try {
+  	    const secret = await getSecret ();
+	    return secret?.asmSalt;
+	}
+	catch (e) {
+		console.error('get asm salt failed with:', e);
+		return null;
+	}
+}
+
+export const getProviderId = async () => {
+	try {
+		const secret = await getSecret ();
+		return secret?.Provider_Id;
+	}
+	catch (e) {
+		console.error('get provider id failed with:', e);
+		return null;
+	}
 }
 
 export const getSMTP = async () => {

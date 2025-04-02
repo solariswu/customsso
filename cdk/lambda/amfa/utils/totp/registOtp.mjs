@@ -16,7 +16,7 @@ const response = (headers, statusCode, body, requestIdIn) => {
     };
 };
 
-export const registotp = async (headers, payload, configs, requestId, logoUrl, serviceName, cognito, dynamodb) => {
+export const registotp = async (headers, payload, configs, requestId, logoUrl, serviceName, provider_id, cognito, dynamodb) => {
 
     authenticator.options = { window: 10 };
 
@@ -33,7 +33,7 @@ export const registotp = async (headers, payload, configs, requestId, logoUrl, s
                     {
                         secret_key: payload.secretCode,
                         email: payload.email,
-                        provider_id: configs.totp.asm_provider_id,
+                        provider_id,
                         device_name: payload.tokenLabel
                     }, dynamodb);
 
@@ -64,13 +64,13 @@ export const registotp = async (headers, payload, configs, requestId, logoUrl, s
 
 export const deleteTotp = async (
     headers, email, configs, requestId, cognito,
-    needNotify, dynamodb, logoUrl, serviceName, isByAdmin
+    needNotify, dynamodb, logoUrl, serviceName, isByAdmin, provider_id
 ) => {
     console.log('deleteTotp payload ', email, ' configs ', configs)
     let totpCount = 0;
 
     try {
-        totpCount = await deleteToken({ email, pid: configs.totp.asm_provider_id }, dynamodb)
+        totpCount = await deleteToken({ email, pid: provider_id }, dynamodb)
 
         await cognito.send(new AdminUpdateUserAttributesCommand({
             UserPoolId: process.env.USERPOOL_ID,
