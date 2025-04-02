@@ -91,6 +91,8 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 		return;
 	}
 
+	console.log("createAmfaConfigs configType: ", configType, " value: ", value);
+
 	try {
 		const params = {
 			Item: {
@@ -104,6 +106,8 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 			ReturnConsumedCapacity: 'TOTAL',
 			TableName: process.env.AMFACONFIG_TABLE,
 		};
+
+		console.log('createAmfaConfigs params', params);
 
 		let putItemCommand = new PutItemCommand(params);
 		let results = await dynamodb.send(putItemCommand);
@@ -204,7 +208,9 @@ const createTenants = async (dynamodb, userpoolIds) => {
 
 export const handler = async (event) => {
 	const dbTables = ['amfaPolicies', 'amfaBrandings', 'amfaConfigs', 'amfaLegals'];
-	await Promise.allSettled(dbTables.map((table) => createAmfaConfigs(table, dynamodb)))
+	const res = await Promise.allSettled(dbTables.map((table) => createAmfaConfigs(table, dynamodb)))
+
+	console.log('createAmfaConfigs result', res);
 
 	try {
 		const userpoolIds = JSON.parse(process.env.USERPOOL_IDS);
@@ -213,7 +219,8 @@ export const handler = async (event) => {
 			GroupName: amfaConfigs.user_registration_default_group,
 			UserPoolId: userpoolIds[0],
 		}
-		await cognito.send(new CreateGroupCommand(param));
+		const res = await cognito.send(new CreateGroupCommand(param));
+		console.log('create user group result', res);
 	}
 	catch (err) {
 		console.error('create group failed with:', err);
