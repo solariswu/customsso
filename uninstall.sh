@@ -68,6 +68,7 @@ if aws sts get-caller-identity >/dev/null; then
         if aws cloudformation describe-stacks --stack-name SSO-CUPStack >/dev/null 2>&1; then
 
             aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-amfa-web --recursive >/dev/null 2>&1
+            aws s3 rm s3://$CDK_DEPLOY_ACCOUNT-$CDK_DEPLOY_REGION-adminportal-importusersjobs --recursive >/dev/null 2>&1
             aws cloudformation delete-stack --stack-name SSO-CUPStack >/dev/null 2>&1
 
             echo "[deleting admin portal stack]"
