@@ -5,8 +5,8 @@ BOLD="\033[1m"
 YELLOW="\033[38;5;11m"
 NC='\033[0m' # No Color
 
-APERSONAIDP_REPO_NAME=customsso
-APERSONAADM_REPO_NAME=cognito-userpool-myraadmin
+APERSONAIDP_REPO_NAME=aPersona-Identity-for-AWS-End-User-Services
+APERSONAADM_REPO_NAME=aPersona-Identity-for-AWS-Admin-Portal
 
 amfaName=$(jq -rc '.name' $APERSONAIDP_REPO_NAME/package.json)
 amfaVersion=$(jq -rc '.version' $APERSONAIDP_REPO_NAME/package.json)
@@ -129,8 +129,8 @@ if aws sts get-caller-identity >/dev/null; then
         exit 1
     fi
 
-    APERSONAIDP_REPO_NAME=customsso
-    APERSONAADM_REPO_NAME=cognito-userpool-myraadmin
+    APERSONAIDP_REPO_NAME=aPersona-Identity-for-AWS-End-User-Services
+    APERSONAADM_REPO_NAME=aPersona-Identity-for-AWS-Admin-Portal
 
     source ~/.bashrc
     NODE_OPTIONS=--max-old-space-size=8192

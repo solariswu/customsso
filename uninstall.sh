@@ -292,7 +292,8 @@ if aws sts get-caller-identity >/dev/null; then
 
         ## clear local files
         echo "clearing local files"
-        rm -rf *.json *.txt *.sh cognito-userpool-myraadmin customsso
+        rm -rf *.json *.txt *.sh aPersona-Identity-for-AWS-End-User-Services aPersona-Identity-for-AWS-Admin-Portal
+
 
         echo "*************************************************************************************"
         echo "uninstall finished"
