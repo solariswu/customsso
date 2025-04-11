@@ -361,7 +361,7 @@ if aws sts get-caller-identity >/dev/null; then
             echo "generate SP front end config file"
             rm -rf spportal/dist/amfaext.js
 
-            echo "export const AmfaServiceDomain='login."$TENANT_ID"."$ROOT_DOMAIN_NAME"';" >>spportal/dist/amfaext.js
+            echo "export const AmfaServiceDomain='"$TENANT_ID"."$ROOT_DOMAIN_NAME"';" >>spportal/dist/amfaext.js
             echo "export const AdminAPIUrl='https://api.adminportal."$ROOT_DOMAIN_NAME"';" >>spportal/dist/amfaext.js
             echo "export const ProjectRegion='"$CDK_DEPLOY_REGION"';" >>spportal/dist/amfaext.js
             echo "export const EndUserPoolId='"$ENDUSER_USERPOOL_ID"';" >>spportal/dist/amfaext.js
