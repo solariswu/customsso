@@ -38,13 +38,12 @@ export const amfaBrandings =
     "COMMENT-NOTE email_logo size": "250x50",
     email_logo_url: "https://downloads.apersona.com/logos/logo-here_250x50.png",
     brand_base_color: "#7D8CA3",
-    consent_content: 'By signing up, I accept the  <a href=\"https://downloads.apersona.com/demos/company-privacy.html\" target=\"_blank\">privacy policy</a> and the <a href=\"https://downloads.apersona.com/demos/company-Ts-Cs.html" target=\"_blank\"> terms &amp; conditions</a>',
     "COMMENT-NOTE fav_icon size": "16x16 png",
     favicon_url: 'https://downloads.apersona.com/logos/favicon.png',
 }
 
 export const amfaLegals =
 {
-    "terms_of_service": "https://downloads.apersona.com/demos/WeaveAI-Ts-Cs.html",
-    "privacy_policy": "https://downloads.apersona.com/demos/WeaveAI-Privacy.html"
+    "terms_of_service": "https://downloads.apersona.com/demos/company-Ts-Cs.html",
+    "privacy_policy": "https://downloads.apersona.com/demos/company-privacy.html"
 }

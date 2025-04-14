@@ -173,9 +173,14 @@ const LOGIN = () => {
             checked={consent}
             onChange={() => setConsent(consent => !consent)}
           />
-          <span
-            style={{ marginLeft: '4px', lineHeight: '1rem', color: 'grey', display: 'inline' }}
-            dangerouslySetInnerHTML={{ __html: config?.branding.consent_content }} />
+          <span style={{ marginLeft: '4px', lineHeight: '1rem', color: 'grey', display: 'inline' }}>
+            By signing up, I accept the&nbsp;
+            <a href={config?.legal.privacy_policy} target="_blank">
+              privacy policy</a>&nbsp;
+            and the&nbsp;
+            <a href={config?.legal.terms_of_service} target="_blank">
+              terms &amp; conditions</a>
+          </span>
         </div>
         <hr className='hr-customizable' />
         <span className='idpDescription-customizable'> {t('registration_app_main_page_input_email')} </span>

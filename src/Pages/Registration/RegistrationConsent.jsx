@@ -25,9 +25,12 @@ const ConsentForm = () => {
 					<span
 						style={{ lineHeight: '1rem', color: 'grey' }}
 					>
-						{
-							config?.branding.consent_content
-						}
+						By signing up, I accept the&nbsp;
+						<a href={config?.legal.privacy_policy} target="_blank">
+							privacy policy</a>&nbsp;
+						and the&nbsp;
+						<a href={config?.legal.terms_of_service} target="_blank">
+							terms &amp; conditions</a>
 					</span>
 					<hr className='hr-customizable' />
 				</div>
