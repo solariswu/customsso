@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # aPersona Adaptive Security Manager URLS and Installation key, REQUIRED
-export ASM_PORTAL_URL='' ## ASM portal url, example 'https://asm.apersona.com/asm_portal'
-export ASM_SERVICE_URL='' ## ASM portal url, example 'https://asm.apersona.com/asm'
+export ASM_PORTAL_URL='https://asm.apersona.com/asm_portal' ## ASM portal url, example 'https://asm.apersona.com/asm_portal'
+export ASM_SERVICE_URL='https://asm.apersona.com/asm' ## ASM portal url, example 'https://asm.apersona.com/asm'
 export ASM_INSTAL_KEY='' ## example 'd5a0dc1295d7839ab31cb9a8aefb1bbf' Your install key received after registration.
 
 # deployment tenant info, REQUIRED
