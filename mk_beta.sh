@@ -12,6 +12,8 @@ if [ -d "../"$AMFA_FOLD"_beta" ]; then
 	fi
 fi
 
+git checkout beta >/dev/null 2>&1
+
 echo 'making beta version of AMFA ... wait'
 npm i
 npm run build
