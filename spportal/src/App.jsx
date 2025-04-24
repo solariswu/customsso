@@ -92,7 +92,7 @@ export const App = () => {
             fontSize: "11px",
           }}
         >
-          Copyright &copy; 2025 aPersona Inc. v1.0{" "}
+          Copyright &copy; 2025 aPersona Inc. v1.1.0{" "}
           <a href={branding.app_privacy_url} target="_blank" rel="noreferrer">Privacy Policy</a>
           {" and "}
           <a href={branding.app_terms_url} target="_blank" rel="noreferrer">Terms of Service</a>

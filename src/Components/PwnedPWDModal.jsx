@@ -15,10 +15,10 @@ function PwnedPWDModal(args) {
 			</span>
 
 			<Modal isOpen={modal} toggle={toggle} {...args}>
-				<ModalHeader toggle={toggle}>Copyright 2023 - aPersona, Inc.</ModalHeader>
+				<ModalHeader toggle={toggle}>Copyright 2025 - aPersona, Inc.</ModalHeader>
 				<ModalBody>
 
-					Copyright 2023 - aPersona, Inc.<br />
+					Copyright 2025 - aPersona, Inc.<br />
 					Licensed by aPersona, Inc.<br />
 					Refer to your signed aPersona Subscription Agreement.
 					aPersona Terms and Conditioins & Privacy Policy<br /><br />
