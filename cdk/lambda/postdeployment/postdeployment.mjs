@@ -120,7 +120,7 @@ const createAmfaConfigs = async (configType, dynamodb) => {
 	}
 }
 
-const switchUserpoolTierToLite = async (UserPoolId) => {
+const switchUserpoolTier = async (UserPoolId) => {
 
 	const describeUserPoolRes = await cognito.send(new DescribeUserPoolCommand({
 		UserPoolId
@@ -131,12 +131,12 @@ const switchUserpoolTierToLite = async (UserPoolId) => {
 		throw new Error('UserPool not found');
 	}
 
-	if (userPool.UserPoolTier === 'LITE') {
-		console.log('UserPool already in LITE tier');
+	if (userPool.UserPoolTier === 'ESSENTIALS') {
+		console.log('UserPool already in ESSENTIALS tier');
 		return;
 	}
 
-	userPool.UserPoolTier = 'LITE';
+	userPool.UserPoolTier = 'ESSENTIALS';
 	delete userPool.CreationDate;
 	delete userPool.LastModifiedDate;
 	delete userPool.EstimatedNumberOfUsers;
@@ -238,9 +238,9 @@ export const handler = async (event) => {
 
 	try {
 		const userpoolIds = JSON.parse(process.env.USERPOOL_IDS);
-		await switchUserpoolTierToLite(userpoolIds[0]);
+		await switchUserpoolTier(userpoolIds[0]);
 	} catch (err) {
-		console.error('switch userpool tier to lite failed with:', err);
+		console.error('switch userpool tier to ESSENTIALS failed with:', err);
 		console.error('RequestId: ' + error.requestId);
 	}
 };
