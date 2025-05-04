@@ -150,6 +150,7 @@ const LOGIN = () => {
                   apti,
                   state,
                   redirectUri,
+                  passkey: resJson.passkey
                 }
               });
               break;

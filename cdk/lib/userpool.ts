@@ -124,6 +124,9 @@ export class TenantUserPool {
         requireLowercase: true,
         requireUppercase: true,
       },
+      signInPolicy: {
+        allowedFirstAuthFactors: { password: true, passkey: true },
+      },
       // no customer attribute
       // MFA optional
       mfa: Mfa.OPTIONAL,

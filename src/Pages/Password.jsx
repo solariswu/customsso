@@ -51,29 +51,54 @@ const LOGIN = () => {
     }
   }
 
-  const steptwo = async (e) => {
+  const steptwo_passkey = async (e) => {
+    const passkeyErrorMsg = t("passkey_error_contact_help_desk");
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const options = {
+        method: 'POST',
+        body: JSON.stringify({ email, passkey: true, apti, state, redirectUri }),
+      };
 
+      const res = await fetch(`${apiUrl}/oauth2/admininitauth`, options);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          navigate('/login', { state: { email, rememberDevice, redirectUri } });
+        }
+        else {
+          setErrorMsg(data.message);
+        }
+      }
+      else {
+        setErrorMsg(passkeyErrorMsg);
+      }
+
+    }
+    catch (err) {
+      setErrorMsg('Passkey login error, please contact help desk.');
+    }
+    finally {
+      setLoading(false);
+    }
+  }
+
+  const steptwo_password = async (e) => {
     if (!password) {
       setErrorMsg('Please enter password');
       return;
     };
-    const authParam = window.getAuthParam();
-
-    const params = {
-      email,
-      password: password.trim(),
-      rememberDevice,
-      authParam,
-      apti,
-      state,
-      redirectUri,
-      phase: 'password'
-    };
 
     const options = {
       method: 'POST',
-      body: JSON.stringify({ email, password: password.trim(), apti, state, redirectUri }),
+      body: JSON.stringify({ email, passkey: false, password: password.trim(), apti, state, redirectUri }),
     };
+
+    await steptwo(options)
+  }
+  const steptwo = async (options) => {
 
     setLoading(true);
     setErrorMsg('');
@@ -81,6 +106,21 @@ const LOGIN = () => {
       const res = await fetch(`${apiUrl}/oauth2/admininitauth`, options);
 
       if (res.status === 200) {
+        // authenticated
+
+        const authParam = window.getAuthParam();
+
+        const params = {
+          email,
+          password: password.trim(),
+          rememberDevice,
+          authParam,
+          apti,
+          state,
+          redirectUri,
+          phase: options.credentials === 'include' ? 'passkey' : 'password'
+        };
+
         const result = await fetch(`${apiUrl}/amfa`, {
           method: 'POST',
           body: JSON.stringify(params),
@@ -178,6 +218,35 @@ const LOGIN = () => {
             }
           });
         }
+        if (res.status === 204) {
+          const data = await res.json();
+          console.log('webauthn data', data)
+          const challengeRes = await window.navigator.credentials.get(
+            data.webauthn
+            //   {
+            //   publicKey: {
+            //     challenge: data.challenge,
+            //     allowCredentials: data.allowCredentials,
+            //     userVerification: 'discouraged',
+            //     timeout: 60000,
+            //   },
+            // }
+          )
+          console.log('webauthn challengeRes', challengeRes)
+          const webauthnParams = {
+            email,
+            webauthn: JSON.stringify(challengeRes),
+            uuid: data.uuid,
+            apti,
+            state,
+            redirectUri,
+          };
+          await steptwo({
+            method: 'POST',
+            body: JSON.stringify(webauthnParams),
+            credentials: 'include',
+          })
+        }
         else {
           const data = await res.json();
 
@@ -205,6 +274,14 @@ const LOGIN = () => {
       <div style={{ height: "0.2em" }} />
       <hr className="hr-customizable" />
       <div>
+        <div style={{ height: "0.5em" }} />
+        <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
+          variant="success"
+          disabled={isLoading}
+          onClick={!isLoading ? steptwo_passkey : null}
+        >
+          {isLoading ? 'Sending...' : 'Login with Passkey'}
+        </Button>
         <span className='idpDescription-customizable'> {t('login_app_password_message')}</span>
         <div style={{ height: "0.5em" }} />
         <input id="signInFormPassword" name="password" type="password" className="form-control inputField-customizable"
@@ -216,7 +293,7 @@ const LOGIN = () => {
         <Button name="confirm" type="submit" className="btn btn-primary submitButton-customizable"
           variant="success"
           disabled={isLoading}
-          onClick={!isLoading ? steptwo : null}
+          onClick={!isLoading ? steptwo_password : null}
         >
           {isLoading ? 'Sending...' : 'Sign In'}
         </Button>

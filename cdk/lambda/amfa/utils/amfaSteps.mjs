@@ -74,6 +74,25 @@ const transUAttr = async (email, userAttributes, allowed_otp_methods, asm_provid
   return otpData;
 }
 
+const isSupportPasskey = async (username, cognito) => {
+  const adminAuthParam = {
+    UserPoolId: process.env.USERPOOL_ID,
+    AuthFlow: "USER_AUTH",
+    ClientId: process.env.CLIENT_ID,
+    AuthParameters: {
+      USERNAME: username,
+      PREFERRED_CHALLENGE: "WEB_AUTHN"
+    }
+  };
+
+  const adminAuthRes = await cognito.send(
+    new AdminInitiateAuthCommand(adminAuthParam)
+  );
+  console.log('username', username, ' adminAuthRes:', adminAuthRes);
+  return (adminAuthRes && adminAuthRes.AvailableChallenges &&
+    adminAuthRes.AvailableChallenges.includes('WEB_AUTHN'))
+}
+
 export const amfaSteps = async (event, headers, cognito, step,
   amfaBrandings, amfaPolicies, amfaConfigs, dynamodb) => {
   const response = (statusCode, body) => {
@@ -223,7 +242,18 @@ export const amfaSteps = async (event, headers, cognito, step,
     console.log('ug:', ug);
 
     if (step === 'username' && !(amfaPolicies[ug].enable_passwordless)) {
-      return response(202, 'Your identity requires password login.');
+
+      const body = 'Your identity requires password login.';
+      const passkey = isSupportPasskey(event.email, cognito)
+      console.log('passkey:', passkey);
+
+      return {
+        isBase64Encoded: false,
+        statusCode: 202,
+        headers: { ...headers, requestId: event.requestId },
+        body: JSON.stringify({ message: body, passkey }),
+      };
+
     }
 
     switch (event.otptype) {
@@ -431,6 +461,7 @@ export const amfaSteps = async (event, headers, cognito, step,
         postURL = `${postURL}&igd=${igd}&nsf=${nsf}&tType=${tType}&sfl=${sfl}&bypassthreat=1`;
         break;
       case 'password':
+      case 'passkey':
         postURL = `${postURL}&igd=${igd}&nsf=${nsf}&tType=${tType}`;
         break;
       case 'sendotp':
@@ -512,7 +543,7 @@ export const amfaSteps = async (event, headers, cognito, step,
       }
 
       if (amfaConfigs.enable_auto_pwd_reset_on_threat === true &&
-        (step === 'username' || step === 'password') &&
+        (step === 'username' || step === 'password' || step === 'passkey') &&
         (amfaResponseJSON.isUserUnderThreat === 'true' || amfaResponseJSON.isUserUnderThreat === true)) {
         const params = {
           Username: event.email,
@@ -543,6 +574,7 @@ export const amfaSteps = async (event, headers, cognito, step,
               }
             case 'username':
             case 'password':
+            case 'passkey':
             case 'verifyotp':
             case 'pwdreset2':
             case 'pwdreset3':
@@ -633,12 +665,24 @@ export const amfaSteps = async (event, headers, cognito, step,
           switch (step) {
             case 'username':
               // User did not pass the passwordless verification. Push the user to the password page and request they enter their password.
-              return response(202, 'Your identity requires password login.')
+              const body = 'Your identity requires password login.';
+              const passkey = isSupportPasskey(event.email, cognito)
+              console.log('passkey:', passkey);
+
+              return {
+                isBase64Encoded: false,
+                statusCode: 202,
+                headers: { ...headers, requestId: event.requestId },
+                body: JSON.stringify({ message: body, passkey }),
+              };
             case 'password':
               const isPasswordExpired = await checkPasswordExpiration(event.email, dynamodb, amfaConfigs);
               if (isPasswordExpired) {
                 return response(401, 'PASSWORD_EXPIRED')
               }
+              // no break here, continue otp check after password verification
+              // same treatment as post-passkey
+            case 'passkey':
               // User did not pass the passwordless verification. Push the user to the OTP Challenge Page
               const otpOptions = intersectOtpPolicies(
                 amfaPolicies[ug].permissions,
